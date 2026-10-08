@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Корзина | GameStore{% endblock %}
+
+{% block extra_head %}
+
+<head>
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static '/css/cart.css' %}?v=10">
+    <link rel="icon" type="image/png" href="{% static 'css/icons/gamestore.png' %}">
+
+    {% if user.is_authenticated and user.profile.accent_color %}
+    <style>
+        :root {
+            --accent: {{ user.profile.accent_color }};
+            --accent-color: {{ user.profile.accent_color }};
+            --accent-hover: {{ user.profile.accent_color }}cc;
+        }
+        body.no-blur, body.no-blur * {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+    </style>
+    {% endif %}
+</head>
+{% endblock %}
+
+<body>
+{% block content %}
+
+<main class="cart-container">
+    <div class="cart-title">
+        <h1>Ваша корзина</h1>
+        <span class="cart-count">
+            | товаров: {{ cart_items.count }}
+        </span>
+    </div>
+
+    {% if cart_items %}
+    <div class="cart-layout">
+        <section class="cart-items">
+            {% for game in cart_items %}
+            <div class="cart-item">
+                <!-- Обложка -->
+                <div class="cart-cover">
+                    {% if game.cover %}
+                        <img src="{{ game.cover.url }}" alt="{{ game.title }}">
+                    {% else %}
+                        <div class="no-cover">Нет обложки</div>
+                    {% endif %}
+                </div>
+
+                <!-- Информация -->
+                <div class="cart-game-info">
+                    <div class="title-row">
+                        <h2>{{ game.title }}</h2>
+                        {% if game.is_not_on_steam %}
+                            <span class="exclusive">Эксклюзив</span>
+                        {% endif %}
+                    </div>
+                    <div class="cart-genres">
+                        {% for genre in game.genres.all %}
+                            {{ genre.name }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            Без жанра
+                        {% endfor %}
+                    </div>
+
+                    <div class="cart-actions">
+                        <a href="{% url 'mfs:game_detail' game.id %}">Подробнее</a>
+                        <span>|</span>
+                        <a href="{% url 'mfs:remove_from_cart' game.id %}" class="remove-btn">Удалить</a>
+                    </div>
+
+                </div>
+
+                <!-- Цена -->
+                <div class="cart-price">
+                    {% if game.discount > 0 %}
+                        <span class="discount">-{{ game.discount }}%</span>
+                        <span class="old-price">{{ game.price|floatformat:0 }}₴</span>
+                        <span class="current-price">{{ game.discounted_price|floatformat:0 }}₴</span>
+                    {% else %}
+                        <span class="current-price">{{ game.price|floatformat:0 }}₴</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </section>
+
+        <!-- ИТОГО -->
+        <aside class="cart-summary">
+            <h2>ВАШ ЗАКАЗ</h2>
+            <div class="summary-row2">
+                <span>Товаров</span>
+                <span>{{ cart_items.count }}</span>
+            </div>
+            <div class="summary-row">
+                <span>Стоимость</span>
+                <span>{{ total_price|floatformat:0 }}₴</span>
+            </div>
+            {% if total_discount > 0 %}
+            <div class="summary-row discount-row">
+                <span>Скидка</span>
+                <span>-{{ total_discount|floatformat:0 }}₴</span>
+            </div>
+            {% endif %}
+            <div class="summary-line"></div>
+            <div class="total-row">
+                <span>Итого</span>
+                <strong>{{ total_price|floatformat:0 }}₴</strong>
+            </div>
+            <form action="{% url 'mfs:checkout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="checkout-button">Купить</button>
+            </form>
+            <p class="payment-note">
+                После покупки игры будут добавлены в вашу библиотеку.
+            </p>
+        </aside>
+    </div>
+    {% else %}
+    <div class="empty-cart">
+        <div class="empty-icon">🛒</div>
+        <h2>Ваша корзина пуста</h2>
+        <p>Добавьте игры из магазина чтобы оформить покупку.</p>
+        <a href="{% url 'mfs:index' %}" class="buy-button style=text-decoration: none;">
+            Перейти в магазин
+        </a>
+    </div>
+    {% endif %}
+
+<!-- Секция рекомендаций -->
+    <!-- ... ЗДЕСЬ ЗАКАНЧИВАЕТСЯ <div class="cart-layout"> ... -->
+
+    {% if recommended_games %}
+    <section class="recommendations-section">
+        <h2 class="section-title">Вам может понравиться</h2>
+
+        <div class="recommendations-grid">
+            {% for game in recommended_games %}
+                <div class="rec-card">
+                    <a href="{% url 'mfs:game_detail' game.id %}" class="rec-card-link">
+                        {% if game.cover %}
+                            <img src="{{ game.cover.url }}" alt="{{ game.title }}" class="rec-card-img">
+                        {% else %}
+                            <div class="rec-card-img" style="background: #1e293b; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 14px;">Нет обложки</div>
+                        {% endif %}
+                    </a>
+                    <div class="rec-card-content">
+                        <div>
+                            <a href="{% url 'mfs:game_detail' game.id %}" class="title-link">
+                                <h3 class="rec-card-title">{{ game.title }}</h3>
+                            </a>
+                            <div class="rec-card-genre">
+                                {% for genre in game.genres.all %}
+                                    {{ genre.name }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    Игры
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="rec-card-footer">
+                            {% if game.discount > 0 %}
+                                <!-- Зелёная плашка процента скидки -->
+                                <span class="discount">-{{ game.discount }}%</span>
+                            
+                                <!-- Блок цен со скидкой -->
+                                <div class="price-block">
+                                    <span class="old-price">{{ game.price|floatformat:0 }}₴</span>
+                                    <span class="rec-price {% if game.discount > 101 %}hot-discount{% endif %}">
+                                        {{ game.discounted_price|floatformat:0 }}₴
+                                    </span>
+                                </div>
+                            {% else %}
+                                <!-- Блок обычной цены -->
+                                <div class="price-block">
+                                    {% if game.price == 0 %}
+                                        <span class="rec-price free">Бесплатно</span>
+                                    {% else %}
+                                        <span class="rec-price">{{ game.price|floatformat:0 }}₴</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        
+                        <a href="{% url 'mfs:add_to_cart' game.id %}" class="btn-add-rec">В корзину</a>
+                    </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</main>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById('game-search-input');
+    const resultsDropdown = document.getElementById('search-results-dropdown');
+    const clearBtn = document.getElementById('clear-search');
+
+    // Функция для переключения видимости крестика
+    function toggleClearButton() {
+        if (searchInput.value.trim().length > 0) {
+            clearBtn.style.display = 'block';
+        } else {
+            clearBtn.style.display = 'none';
+        }
+    }
+
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        toggleClearButton(); // Проверяем, нужно ли показать крестик
+
+        if (query.length < 2) {
+            resultsDropdown.style.display = 'none';
+            resultsDropdown.innerHTML = '';
+            return;
+        }
+
+        fetch(`/api/search/?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                resultsDropdown.innerHTML = '';
+
+                if (data.games.length > 0) {
+                    data.games.forEach(game => {
+                        const gameUrl = `/game/${game.id}/`; 
+
+                        const item = document.createElement('a');
+                        item.href = gameUrl;
+                        item.className = 'search-result-item';
+                        item.innerHTML = `
+                            <img src="${game.cover_url}" alt="${game.title}">
+                            <div class="search-result-info">
+                                <h4>${game.title}</h4>
+                                <span class="search-price">${game.price}</span>
+                            </div>
+                        `;
+                        resultsDropdown.appendChild(item);
+                    });
+                    resultsDropdown.style.display = 'block';
+                } else {
+                    resultsDropdown.style.display = 'none';
+                }
+            })
+            .catch(error => console.error('Ошибка поиска:', error));
+    });
+
+    // Логика клика по крестику
+    // Найдите этот блок (примерно 215 строка):
+    clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        resultsDropdown.innerHTML = '';
+
+        // ОШИБКА БЫЛА ЗДЕСЬ: resultsDropdown.style.style.display = 'none';
+        resultsDropdown.style.display = 'none'; // Исправлено (один .style)
+
+        clearBtn.style.display = 'none';
+        searchInput.focus();
+    });
+
+    // Скрываем плашку при клике вне области поиска
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !resultsDropdown.contains(e.target) && !clearBtn.contains(e.target)) {
+            resultsDropdown.style.display = 'none';
+        }
+    });
+});
+</script>
+
+
+<script>
+    // 1. Отключаем стандартное восстановление скролла браузером
+    if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+    }
+
+    // 2. Функция сохранения скролла (проверяем и window, и возможный контейнер)
+    function saveScroll() {
+        const scrollY = window.scrollY || document.documentElement.scrollTop;
+        sessionStorage.setItem('scrollPosition', scrollY);
+    }
+
+    // 3. Вешаем событие на ВСЕ кнопки в корзине (удалить, добавить, перейти)
+    document.addEventListener('click', (e) => {
+        const target = e.target.closest('.buy-button, .btn-add-rec, .btn-buy, .remove-btn');
+        if (target) {
+            saveScroll();
+        }
+    });
+
+    // 4. Восстанавливаем позицию после полной загрузки (включая картинки)
+    window.addEventListener('load', () => {
+        const savedPosition = sessionStorage.getItem('scrollPosition');
+        if (savedPosition !== null) {
+            window.scrollTo({
+                top: parseInt(savedPosition, 10),
+                behavior: 'instant'
+            });
+            sessionStorage.removeItem('scrollPosition');
+        }
+    });
+</script>
+{% endblock %}
+</body>
+</html>

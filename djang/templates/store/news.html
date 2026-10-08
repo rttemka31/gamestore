@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Новости | GameStore{% endblock %}
+
+{% block extra_head %}
+<head>
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'style.css' %}?v=10">
+    <link rel="icon" type="image/png" href="{% static 'css/icons/gamestore.png' %}">
+
+    {% if user.is_authenticated and user.profile.accent_color %}
+    <style>
+        :root {
+            --accent: {{ user.profile.accent_color }};
+            --accent-color: {{ user.profile.accent_color }};
+            --accent-hover: {{ user.profile.accent_color }}cc;
+        }
+        body.no-blur, body.no-blur * {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+    </style>
+    {% endif %}
+</head>
+{% endblock %}
+
+<body>
+{% block content %}
+
+<main class="container news-container">
+    <h1 class="news-title">Новости GameStore</h1>
+
+    <!-- Панель фильтрации -->
+    <div class="news-filters">
+        <!-- Табы категорий -->
+        <div class="filter-categories">
+            <a href="?{% if selected_month %}month={{ selected_month }}{% endif %}" 
+               class="filter-chip {% if not selected_category %}active{% endif %}">
+                Все
+            </a>
+            {% for cat_code, cat_name in categories %}
+                <a href="?category={{ cat_code }}{% if selected_month %}&month={{ selected_month }}{% endif %}" 
+                   class="filter-chip {% if selected_category == cat_code %}active{% endif %}">
+                    {{ cat_name }}
+                </a>
+            {% endfor %}
+        </div>
+
+        <!-- Выбор месяца и года -->
+        <form method="get" class="filter-archive-form">
+            {% if selected_category %}
+                <input type="hidden" name="category" value="{{ selected_category }}">
+            {% endif %}
+            <select name="month" onchange="this.form.submit()" class="filter-select">
+                <option value="">Все даты</option>
+                {% for date in archive_months %}
+                    <option value="{{ date|date:'Y-m' }}" {% if selected_month == date|date:'Y-m' %}selected{% endif %}>
+                        {{ date|date:"F Y" }} г.
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <!-- Список новостей -->
+    <div class="news-list">
+        {% for news in news_list %}
+            <article class="news-card">
+                <div class="news-badge-container">
+                    <span class="news-badge news-badge-{{ news.category }}">
+                        {{ news.get_category_display }}
+                    </span>
+                </div>
+                
+                <div class="news-card-header">
+                    <h2>{{ news.title }}</h2>
+                    <span class="news-date">{{ news.created_at|date:"d b. Yг." }}</span>
+                </div>
+
+                <div class="news-description">
+                    {{ news.description|linebreaks }}
+                </div>
+            </article>
+        {% empty %}
+            <div class="empty-news">
+                Новостей по выбранным фильтрам не найдено.
+            </div>
+        {% endfor %}
+    </div>
+</main>
+
+{% endblock %}
+{% block extra_js %}
+{% endblock %}
+</body>
+</html>

@@ -1,0 +1,834 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Профиль | GameStore{% endblock %}
+
+{% block extra_head %}
+<head>
+    <link rel="stylesheet" href="{% static 'style.css' %}?v=18">
+    <link rel="icon" type="image/png" href="{% static 'css/icons/gamestore.png' %}">
+
+    {% if user.is_authenticated and user.profile.accent_color %}
+    <style>
+        :root {
+            --accent: {{ user.profile.accent_color }};
+            --accent-color: {{ user.profile.accent_color }};
+            --accent-hover: {{ user.profile.accent_color }}cc;
+        }
+        body.no-blur, body.no-blur * {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+    </style>
+    {% endif %}
+</head>
+{% endblock %}
+
+<body>
+{% block content %}
+
+<main class="container profile-container">
+    <div class="profile-layout">
+ 
+        <!-- ===== МЕНЮ СЛЕВА ===== -->
+        <aside class="profile-sidebar">
+            <a href="#profile" class="settings-nav-link active" data-tab="profile">
+                <img src="{% static 'css/icons/profile.png' %}" alt="" class="nav-icon">
+                Профиль
+            </a>
+            <a href="#friends" class="settings-nav-link" data-tab="friends">
+                <img src="{% static 'css/icons/friends.png' %}" alt="" class="nav-icon">
+                Друзья
+                {% if incoming_requests %}<span>({{ incoming_requests|length }})</span>{% endif %}
+            </a>
+        </aside>
+ 
+        <div class="profile-content">
+ 
+            <!-- ===================== ПРОФИЛЬ ===================== -->
+            <div class="profile-tab" id="tab-profile">
+ 
+                <form method="POST" action="{% url 'mfs:profile' %}" enctype="multipart/form-data" id="profileForm">
+                    {% csrf_token %}
+ 
+                    <section class="profile-card" id="profileCard">
+                        <div class="profile-banner" id="bannerPreview" style="background-image: url('{% if user.profile.banner %}{{ user.profile.banner.url }}{% else %}/static/images/default-banner.jpg{% endif %}');">
+                            <label for="bannerInput" class="banner-overlay" id="bannerOverlay" style="display: none;">📷</label>
+                        </div>
+                        <input type="file" name="banner" id="bannerInput" accept="image/*" style="display: none;">
+ 
+                        <div class="profile-main">
+ 
+                            <!-- Блок аватарки с возможностью выбора файла -->
+                            <div class="profile-avatar-wrapper">
+                                <div class="profile-avatar" id="avatarPreview">
+                                    {% if user.profile.avatar %}
+                                        <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" id="avatarImg" crossorigin="anonymous">
+                                    {% else %}
+                                        <span id="avatarLetter">{{ user.username|first|upper }}</span>
+                                    {% endif %}
+                                </div>
+ 
+                                <input type="file" name="avatar" id="avatarInput" accept="image/*" style="display: none;">
+                                <label for="avatarInput" class="avatar-overlay" id="avatarOverlay" style="display: none;">
+                                    📷
+                                </label>
+                            </div>
+ 
+                            <div class="profile-info">
+                                <h1 class="profile-title">
+                                    {{ user.username }}
+                                </h1>
+                                <p class="profile-status">
+                                    {% if user.is_superuser %}
+                                        👑 Создатель
+                                    {% elif user.is_staff %}
+                                        🛡️ Админ
+                                    {% else %}
+                                        🎮 Пользователь
+                                    {% endif %}
+                                </p>
+                                <p class="profile-status">
+                                    {% if user.profile.bio and user.profile.bio != "None" %}
+                                        {{ user.profile.bio }}
+                                    {% else %}
+                                        <span style="color: var(--text-muted);">Нет описания</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+ 
+                            <!-- Блок с кнопками -->
+                            <div class="profile-actions">
+                                <button type="button" id="editBtn" class="buy-button" style="background: var(--bg-card-hover);">
+                                    Редактировать профиль
+                                </button>
+ 
+                                <div id="editActions" style="display: none; gap: 10px;">
+                                    <button type="submit" class="buy-button" style="background: #28a745; color: white;">
+                                        Сохранить
+                                    </button>
+                                    <button type="button" id="cancelBtn" class="buy-button" style="background: #e74c3c; color: white;">
+                                        Отмена
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+ 
+                        <!-- Статистика -->
+                        {% if not user.profile.hide_stats %}
+                        <div class="profile-stats">
+                            <div class="profile-stat">
+                                <strong>{{ games_count }}</strong>
+                                <span>Игр</span>
+                            </div>
+                            <div class="profile-stat">
+                                <strong>{{ total_hours }}</strong>
+                                <span>Часов</span>
+                            </div>
+                            <div class="profile-stat">
+                                <strong>{{ user.date_joined|date:"b. Yг."  }}</strong>
+                                <span>Участник с</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </section>
+                </form>
+ 
+                <!-- Модалка кропа: после формы, вне карточки -->
+                <div class="banner-crop-modal" id="bannerCropModal" style="display: none;">
+                    <div class="banner-crop-box">
+                        <h3>Расположите обложку</h3>
+ 
+                        <div class="banner-crop-stage" id="bannerCropStage">
+                            <img id="bannerCropImg" draggable="false" alt="">
+                            <div class="banner-crop-frame" id="bannerCropFrame"></div>
+                        </div>
+ 
+                        <div class="banner-crop-controls">
+                            <button type="button" class="zoom-btn" id="zoomOutBtn" aria-label="Уменьшить">−</button>
+                            <input type="range" id="bannerZoom" min="100" max="300" value="100">
+                            <button type="button" class="zoom-btn" id="zoomInBtn" aria-label="Увеличить">+</button>
+                        </div>
+ 
+                        <div class="banner-crop-actions">
+                            <button type="button" class="btn-secondary" id="bannerCropCancel">Отмена</button>
+                            <button type="button" class="btn-primary" id="bannerCropSave">Сохранить</button>
+                        </div>
+                    </div>
+                </div>
+ 
+                <!-- Недавняя активность -->
+                <section class="profile-section">
+                    <div class="section-header">
+                        <h2>Недавняя активность</h2>
+                        <a href="{% url 'mfs:library' %}">Библиотека ➜</a>
+                    </div>
+ 
+                    <div class="activity-list">
+                        {% for item in recent_games %}
+                            <div class="activity-item">
+                                <div class="activity-cover">
+                                    {% if item.game.cover %}
+                                        <img src="{{ item.game.cover.url }}" alt="{{ item.game.title }}">
+                                    {% else %}
+                                        <span>🎮</span>
+                                    {% endif %}
+                                </div>
+                                <div class="activity-info">
+                                    <h3>{{ item.game.title }}</h3>
+                                    <div class="activity-info-t">
+                                        {{ item.hours_played|default:"0" }} ч. в игре
+                                    </div>
+                                </div>
+                                <div class="activity-time">
+                                    {{ item.last_played|timesince }} назад
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="empty-activity">Вы еще не запускали ни одной игры</p>
+                        {% endfor %}
+                    </div>
+                </section>
+ 
+                <!-- Избранное -->
+                <section class="profile-section">
+                    <div class="section-header">
+                        <h2>Избранное</h2>
+                        <span class="profile-placeholder">Пока пусто</span>
+                    </div>
+                    <div class="profile-empty">
+                        <div class="profile-empty-icon">★</div>
+                        <h3>Здесь появятся любимые игры</h3>
+                        <p>Добавляй игры в избранное, чтобы быстро находить их.</p>
+                    </div>
+                </section>
+            </div>
+            <!-- ================= /ПРОФИЛЬ ================= -->
+ 
+ 
+            <!-- ===================== ДРУЗЬЯ ===================== -->
+            <div class="profile-tab" id="tab-friends" hidden>
+ 
+                <section class="profile-section">
+                    <div class="section-header"><h2>Добавить друга</h2></div>
+                    <div class="search-box friends-search">
+                        <input type="text" id="friendSearch" placeholder="Введите имя пользователя" autocomplete="off">
+                        <div id="friendSearchResults" class="search-results" style="display: none;"></div>
+                    </div>
+                </section>
+ 
+                {% if incoming_requests %}
+                <section class="profile-section">
+                    <div class="section-header"><h2>Заявки в друзья</h2></div>
+                    <div class="activity-list">
+                        {% for f in incoming_requests %}
+                        <div class="activity-item">
+                            <div class="activity-cover">
+                                {% if f.sender.avatar %}<img src="{{ f.sender.avatar.url }}" alt="">
+                                {% else %}<span>{{ f.sender.user.username|first|upper }}</span>{% endif %}
+                            </div>
+                            <div class="activity-info">
+                                <h3><a href="{% url 'mfs:user_profile' f.sender.user.username %}" style="color:inherit;text-decoration:none;">{{ f.sender.user.username }}</a></h3>
+                            </div>
+                            <div class="activity-time">
+                                <button type="button" class="buy-button" style="background:#28a745;color:#fff;"
+                                        data-friend-action="respond" data-id="{{ f.pk }}" data-value="accept">Принять</button>
+                                <button type="button" class="buy-button" style="background:#e74c3c;color:#fff;"
+                                        data-friend-action="respond" data-id="{{ f.pk }}" data-value="reject">Отклонить</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+ 
+                <section class="profile-section">
+                    <div class="section-header"><h2>Мои друзья ({{ friends|length }})</h2></div>
+                    <div class="activity-list">
+                        {% for item in friends %}
+                        <div class="activity-item">
+                            <div class="activity-cover">
+                                {% if item.profile.avatar %}<img src="{{ item.profile.avatar.url }}" alt="">
+                                {% else %}<span>{{ item.profile.user.username|first|upper }}</span>{% endif %}
+                            </div>
+                            <div class="activity-info">
+                                <h3><a href="{% url 'mfs:user_profile' item.profile.user.username %}" style="color:inherit;text-decoration:none;">{{ item.profile.user.username }}</a></h3>
+                            </div>
+                            <div class="activity-time">
+                                <button type="button" class="buy-button" style="background: var(--bg-card-hover);"
+                                        data-friend-action="remove" data-id="{{ item.id }}">Удалить</button>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="empty-activity">Пока нет друзей. Найдите кого-нибудь через поиск выше.</p>
+                        {% endfor %}
+                    </div>
+                </section>
+ 
+                {% if outgoing_requests %}
+                <section class="profile-section">
+                    <div class="section-header"><h2>Отправленные заявки</h2></div>
+                    <div class="activity-list">
+                        {% for f in outgoing_requests %}
+                        <div class="activity-item">
+                            <div class="activity-cover">
+                                {% if f.receiver.avatar %}<img src="{{ f.receiver.avatar.url }}" alt="">
+                                {% else %}<span>{{ f.receiver.user.username|first|upper }}</span>{% endif %}
+                            </div>
+                            <div class="activity-info">
+                                <h3><a href="{% url 'mfs:user_profile' f.receiver.user.username %}" style="color:inherit;text-decoration:none;">{{ f.receiver.user.username }}</a></h3>
+                            </div>
+                            <div class="activity-time">
+                                <button type="button" class="buy-button" style="background: var(--bg-card-hover);"
+                                        data-friend-action="remove" data-id="{{ f.pk }}">Отменить</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+ 
+            </div>
+            <!-- ================= /ДРУЗЬЯ ================= -->
+ 
+        </div><!-- /profile-content -->
+    </div><!-- /profile-layout -->
+</main>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+    const EXPORT_WIDTH = 1200; // ширина готовой обложки в пикселях
+ 
+    const input = document.getElementById('bannerInput');
+    const modal = document.getElementById('bannerCropModal');
+    const stage = document.getElementById('bannerCropStage');
+    const frame = document.getElementById('bannerCropFrame');
+    const img = document.getElementById('bannerCropImg');
+    const zoomSlider = document.getElementById('bannerZoom');
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const cancelBtn = document.getElementById('bannerCropCancel');
+    const saveBtn = document.getElementById('bannerCropSave');
+    const preview = document.getElementById('bannerPreview');
+ 
+    if (!input || !modal) return;
+ 
+    let naturalW = 0, naturalH = 0;
+    let baseScale = 1; // масштаб, при котором картинка ровно закрывает РАМКУ (не всю сцену)
+    let scale = 1;
+    let offsetX = 0, offsetY = 0;
+    let dragging = false;
+    let startX = 0, startY = 0, startOffsetX = 0, startOffsetY = 0;
+ 
+    input.addEventListener('change', () => {
+        const file = input.files[0];
+        if (!file) return;
+ 
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            img.onload = () => {
+                naturalW = img.naturalWidth;
+                naturalH = img.naturalHeight;
+                openModal();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+ 
+    function openModal() {
+        modal.style.display = 'flex';
+ 
+        const frameRect = frame.getBoundingClientRect();
+        baseScale = Math.max(frameRect.width / naturalW, frameRect.height / naturalH);
+ 
+        zoomSlider.value = 100;
+        scale = baseScale;
+        offsetX = 0;
+        offsetY = 0;
+        updateZoomFill();
+        applyTransform();
+    }
+ 
+    function applyTransform() {
+        img.style.width = naturalW * scale + 'px';
+        img.style.height = naturalH * scale + 'px';
+ 
+        const stageRect = stage.getBoundingClientRect();
+        const frameRect = frame.getBoundingClientRect();
+ 
+        const imgW = naturalW * scale;
+        const imgH = naturalH * scale;
+ 
+        const maxOffsetX = Math.max(0, (imgW - frameRect.width) / 2);
+        const maxOffsetY = Math.max(0, (imgH - frameRect.height) / 2);
+        offsetX = Math.min(maxOffsetX, Math.max(-maxOffsetX, offsetX));
+        offsetY = Math.min(maxOffsetY, Math.max(-maxOffsetY, offsetY));
+ 
+        const left = (stageRect.width - imgW) / 2 + offsetX;
+        const top = (stageRect.height - imgH) / 2 + offsetY;
+        img.style.transform = `translate(${left}px, ${top}px)`;
+    }
+ 
+    function setZoom(value) {
+        zoomSlider.value = Math.min(300, Math.max(100, value));
+        scale = baseScale * (zoomSlider.value / 100);
+        updateZoomFill();
+        applyTransform();
+    }
+ 
+    function updateZoomFill() {
+        const min = Number(zoomSlider.min);
+        const max = Number(zoomSlider.max);
+        const pct = (zoomSlider.value - min) / (max - min) * 100;
+        zoomSlider.style.background =
+            `linear-gradient(to right, var(--accent, #6366f1) ${pct}%, rgba(255,255,255,.15) ${pct}%)`;
+    }
+ 
+    zoomSlider.addEventListener('input', () => setZoom(zoomSlider.value));
+    zoomInBtn.addEventListener('click', () => setZoom(Number(zoomSlider.value) + 20));
+    zoomOutBtn.addEventListener('click', () => setZoom(Number(zoomSlider.value) - 20));
+ 
+    stage.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        setZoom(Number(zoomSlider.value) + (e.deltaY < 0 ? 10 : -10));
+    }, { passive: false });
+ 
+    // --- Перетаскивание (мышь + тач через Pointer Events) ---
+    function stopDragging(e) {
+        dragging = false;
+        stage.classList.remove('dragging');
+        if (e && stage.hasPointerCapture && stage.hasPointerCapture(e.pointerId)) {
+            stage.releasePointerCapture(e.pointerId);
+        }
+    }
+ 
+    stage.addEventListener('pointerdown', (e) => {
+        dragging = true;
+        stage.classList.add('dragging');
+        stage.setPointerCapture(e.pointerId);
+        startX = e.clientX;
+        startY = e.clientY;
+        startOffsetX = offsetX;
+        startOffsetY = offsetY;
+    });
+ 
+    stage.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        offsetX = startOffsetX + (e.clientX - startX);
+        offsetY = startOffsetY + (e.clientY - startY);
+        applyTransform();
+    });
+ 
+    stage.addEventListener('pointerup', stopDragging);
+    stage.addEventListener('pointercancel', stopDragging);
+ 
+    window.addEventListener('blur', () => {
+        if (dragging) stopDragging();
+    });
+ 
+    // --- Отмена ---
+    cancelBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+        input.value = '';
+    });
+ 
+    // --- Сохранение: вырезаем именно то, что внутри РАМКИ ---
+    saveBtn.addEventListener('click', () => {
+        const stageRect = stage.getBoundingClientRect();
+        const frameRect = frame.getBoundingClientRect();
+ 
+        const left = (stageRect.width - naturalW * scale) / 2 + offsetX;
+        const top = (stageRect.height - naturalH * scale) / 2 + offsetY;
+ 
+        const frameLeftInStage = frameRect.left - stageRect.left;
+        const frameTopInStage = frameRect.top - stageRect.top;
+ 
+        const sx = (frameLeftInStage - left) / scale;
+        const sy = (frameTopInStage - top) / scale;
+        const sw = frameRect.width / scale;
+        const sh = frameRect.height / scale;
+ 
+        const exportHeight = Math.round(EXPORT_WIDTH * (frameRect.height / frameRect.width));
+ 
+        const canvas = document.createElement('canvas');
+        canvas.width = EXPORT_WIDTH;
+        canvas.height = exportHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, EXPORT_WIDTH, exportHeight);
+ 
+        canvas.toBlob((blob) => {
+            const croppedFile = new File([blob], 'banner.jpg', { type: 'image/jpeg' });
+ 
+            const dt = new DataTransfer();
+            dt.items.add(croppedFile);
+            input.files = dt.files;
+ 
+            if (preview) {
+                preview.style.backgroundImage = `url(${URL.createObjectURL(blob)})`;
+            }
+ 
+            // Сразу отправляем на сервер, не дожидаясь другого изменения в форме.
+            // window.__submitAutoSaveForm/__profileForm объявляются во втором
+            // <script> (там, где живёт сама функция submitAutoSaveForm) —
+            // см. settings-autosave-expose.js
+ 
+            modal.style.display = 'none';
+        }, 'image/jpeg', 0.9);
+    });
+})();
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Выпадающее меню профиля
+
+
+    // === ЛОГИКА РЕДАКТИРОВАНИЯ ПРОФИЛЯ ===
+    const editBtn = document.getElementById("editBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const editActions = document.getElementById("editActions");
+    const avatarOverlay = document.getElementById("avatarOverlay");
+    const avatarInput = document.getElementById("avatarInput");
+    const avatarPreview = document.getElementById("avatarPreview");
+
+    // ДОБАВИТЬ: баннер
+    const bannerOverlay = document.getElementById("bannerOverlay");
+    const bannerInput = document.getElementById("bannerInput");
+    const bannerPreview = document.getElementById("bannerPreview");
+
+    let originalAvatarHTML = avatarPreview.innerHTML;
+    // ДОБАВИТЬ: исходный фон баннера
+    let originalBannerBg = bannerPreview.style.backgroundImage;
+
+    // Включение режима редактирования
+    editBtn.addEventListener("click", () => {
+        editBtn.style.display = "none";
+        editActions.style.display = "flex";
+        avatarOverlay.style.display = "flex";
+        bannerOverlay.style.display = "flex"; // ДОБАВИТЬ
+    });
+
+    // Отмена редактирования
+    cancelBtn.addEventListener("click", () => {
+        editBtn.style.display = "block";
+        editActions.style.display = "none";
+        avatarOverlay.style.display = "none";
+        bannerOverlay.style.display = "none"; // ДОБАВИТЬ
+
+        avatarPreview.innerHTML = originalAvatarHTML;
+        avatarInput.value = "";
+
+        // ДОБАВИТЬ: сброс баннера
+        bannerPreview.style.backgroundImage = originalBannerBg;
+        bannerInput.value = "";
+    });
+
+    // Мгновенный предпросмотр новой аватарки при выборе файла
+    avatarInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                avatarPreview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const avatarPreview = document.getElementById("avatarPreview");
+    const avatarInput = document.getElementById("avatarInput");
+
+    // Функция вычисления среднего цвета картинки с затемнением
+    function setBorderFromImage(imgElement) {
+        if (!imgElement) return;
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = 1;
+        canvas.height = 1;
+
+        try {
+            ctx.drawImage(imgElement, 0, 0, 1, 1);
+            const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+
+            // Коэффициент затемнения: 0.6 = на 40% темнее
+            const factor = 0.6;
+
+            const darkR = Math.floor(r * factor);
+            const darkG = Math.floor(g * factor);
+            const darkB = Math.floor(b * factor);
+
+            // Устанавливаем затемненный цвет границы
+            avatarPreview.style.borderColor = `rgb(${darkR}, ${darkG}, ${darkB})`;
+        } catch (e) {
+            console.warn("Не удалось получить цвет аватарки:", e);
+        }
+    }
+
+    // 1. При загрузке страницы берем цвет текущего аватара
+    const currentImg = avatarPreview ? avatarPreview.querySelector("img") : null;
+    if (currentImg) {
+        if (currentImg.complete) {
+            setBorderFromImage(currentImg);
+        } else {
+            currentImg.addEventListener("load", () => setBorderFromImage(currentImg));
+        }
+    }
+
+    // 2. При предпросмотре нового аватара пересчитываем цвет динамически без мигания
+    if (avatarInput) {
+        avatarInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    // Создаем временную картинку в памяти для фонового расчета
+                    const tempImg = new Image();
+                    tempImg.src = event.target.result;
+
+                    tempImg.onload = () => {
+                        // 1. Сначала рассчитываем и задаем цвет границы
+                        setBorderFromImage(tempImg);
+
+                        // 2. И только после этого вставляем саму картинку в DOM
+                        avatarPreview.innerHTML = `<img src="${event.target.result}" id="avatarImg" alt="Preview">`;
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+}); // <-- Не хватало этой закрывающей скобки для DOMContentLoaded
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const navLinks = document.querySelectorAll('.settings-nav-link');
+    const tabs = document.querySelectorAll('.profile-tab');
+
+    function switchTab(targetHash) {
+        // Убираем активные классы и скрываем все вкладки
+        navLinks.forEach(link => link.classList.remove('active'));
+        tabs.forEach(tab => tab.setAttribute('hidden', ''));
+
+        // Формируем правильный селектор: '#profile' -> '#tab-profile'
+        const tabId = '#tab-' + targetHash.replace('#', '');
+        
+        const activeLink = document.querySelector(`.settings-nav-link[href="${targetHash}"]`);
+        const activeTab = document.querySelector(tabId);
+
+        if (activeLink && activeTab) {
+            activeLink.classList.add('active');
+            activeTab.removeAttribute('hidden');
+        } else {
+            // Фолбэк на первую вкладку
+            if (navLinks[0]) navLinks[0].classList.add('active');
+            if (tabs[0]) tabs[0].removeAttribute('hidden');
+        }
+    }
+
+    // Клик по вкладкам
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const hash = link.getAttribute('href');
+            if (hash && hash.startsWith('#')) {
+                e.preventDefault();
+                history.pushState(null, null, hash);
+                switchTab(hash);
+            }
+        });
+    });
+
+    // Обработка прямого перехода по URL с хэшем
+    const initialHash = window.location.hash || '#profile';
+    switchTab(initialHash);
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const CSRF = '{{ csrf_token }}';
+    const URLS = {
+        search:  "{% url 'mfs:friends_search' %}",
+        request: "{% url 'mfs:friend_request' %}",
+        respond: "{% url 'mfs:friend_respond' 0 %}".replace('/0/', '/__ID__/'),
+        remove:  "{% url 'mfs:friend_remove' 0 %}".replace('/0/', '/__ID__/'),
+    };
+
+    const input = document.getElementById('friendSearch');
+    const dropdown = document.getElementById('friendSearchResults');
+    let timer;
+
+    const esc = s => String(s).replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+    async function post(url, data = {}) {
+        const r = await fetch(url, {
+            method: 'POST',
+            headers: {'X-CSRFToken': CSRF},
+            body: new URLSearchParams(data),
+        });
+        let json = {};
+        try { json = await r.json(); } catch (e) {}
+        return json;
+    }
+
+    // ---------- Поиск ----------
+    const ACTIONS = {
+        none:     '<button type="button" class="friend-add-btn" data-act="add">Добавить</button>',
+        sent:     '<span class="search-badge-muted">Заявка отправлена</span>',
+        received: '<span class="search-badge-muted">Хочет дружить</span>',
+        friends:  '<span class="search-badge-muted">Уже друзья</span>',
+    };
+
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+        const q = input.value.trim();
+        if (q.length < 2) { dropdown.style.display = 'none'; return; }
+        timer = setTimeout(() => runSearch(q), 250);
+    });
+
+    async function runSearch(q) {
+        try {
+            const r = await fetch(
+                `${URLS.search}?q=${encodeURIComponent(q)}`
+            );
+
+            if (!r.ok) {
+                throw new Error(`HTTP ${r.status}`);
+            }
+
+            const data = await r.json();
+
+            if (!data.users || !data.users.length) {
+                dropdown.innerHTML = `
+                    <div class="search-result-item search-empty">
+                        Никого не найдено
+                    </div>
+                `;
+
+                dropdown.style.display = 'block';
+                return;
+            }
+
+            dropdown.innerHTML = data.users.map(u => `
+                <div
+                    class="search-result-item"
+                    data-username="${esc(u.username)}"
+                >
+
+                    <!-- Левая часть: аватар + информация -->
+                    <a
+                        href="${esc(u.url)}"
+                        class="search-result-link"
+                    >
+
+                        ${
+                            u.avatar
+                                ? `
+                                    <img
+                                        src="${esc(u.avatar)}"
+                                        alt="${esc(u.username)}"
+                                        class="search-cover search-avatar"
+                                    >
+                                `
+                                : `
+                                    <div
+                                        class="search-cover search-avatar-ph"
+                                        style="background:${esc(u.color || '#2a2a2a')}"
+                                    >
+                                        ${esc(
+                                            (u.username || '?')
+                                            .charAt(0)
+                                            .toUpperCase()
+                                        )}
+                                    </div>
+                                `
+                        }
+
+                        <div class="search-result-info">
+                            <h4 class="search-title">
+                                ${esc(u.nickname || u.username)}
+                            </h4>
+
+                            <span class="search-sub">
+                                @${esc(u.username)}
+                            </span>
+                        </div>
+
+                    </a>
+
+                    <!-- Правая часть -->
+                    <div class="search-result-right">
+
+                        ${
+                            ACTIONS[u.state] || ''
+                        }
+
+                    </div>
+
+                </div>
+            `).join('');
+
+            dropdown.style.display = 'block';
+
+        } catch (error) {
+            console.error('Ошибка поиска друзей:', error);
+
+            dropdown.innerHTML = `
+                <div class="search-result-item search-empty">
+                    Не удалось выполнить поиск
+                </div>
+            `;
+
+            dropdown.style.display = 'block';
+        }
+    }
+
+    dropdown.addEventListener('click', async e => {
+        const btn = e.target.closest('[data-act="add"]');
+        if (!btn) return;
+        btn.disabled = true;
+        const username = btn.closest('.search-result-item').dataset.username;
+
+        const res = await post(URLS.request, {username});
+        if (res.status === 'success') {
+            btn.parentElement.innerHTML = ACTIONS.sent;
+        } else {
+            alert(res.message || 'Ошибка');
+            btn.disabled = false;
+        }
+    });
+
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.friends-search')) dropdown.style.display = 'none';
+    });
+
+    // ---------- Принять / отклонить / удалить / отменить ----------
+    document.addEventListener('click', async e => {
+        const btn = e.target.closest('[data-friend-action]');
+        if (!btn) return;
+        btn.disabled = true;
+
+        const id = btn.dataset.id;
+        const res = btn.dataset.friendAction === 'respond'
+            ? await post(URLS.respond.replace('__ID__', id), {action: btn.dataset.value})
+            : await post(URLS.remove.replace('__ID__', id));
+
+        if (res.status === 'success') {
+            location.reload();   // хэш #friends сохранится, вкладка останется открытой
+        } else {
+            alert(res.message || 'Ошибка');
+            btn.disabled = false;
+        }
+    });
+});
+</script>
+
+{% endblock %}
+
+</body>
+</html>

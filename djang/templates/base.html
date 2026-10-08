@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GameStore{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=18">
+    <link rel="icon" type="image/png" href="{% static 'css/icons/gamestore.png' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <!-- Применение динамической темы на ВСЕХ страницах -->
+    {% if user.is_authenticated and user.profile.accent_color %}
+    <style>
+        :root {
+            --accent: {{ user.profile.accent_color }};
+            --accent-color: {{ user.profile.accent_color }};
+            --accent-hover: {{ user.profile.accent_color }}cc;
+            --border-accent: color-mix(in srgb, var(--accent) 40%, black);
+        }
+        body.no-blur, body.no-blur * {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+    </style>
+    {% endif %}
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="{% if request.user.is_authenticated and request.user.profile.disable_blur %}no-blur{% endif %}">
+
+    <!-- Общий Navbar для всего сайта -->
+    <header class="navbar">
+        <div class="nav-left">
+            <div class="logo">GAME<span>STORE</span></div>
+            <a href="{% url 'mfs:index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">МАГАЗИН</a>
+            <a href="{% url 'mfs:library' %}" class="nav-link {% if request.resolver_match.url_name == 'library' %}active{% endif %}">БИБЛИОТЕКА</a>
+            <a href="{% url 'mfs:news' %}" class="nav-link {% if request.resolver_match.url_name == 'news' %}active{% endif %}">НОВОСТИ</a>
+        </div>
+
+        <div class="nav-right">
+            <a href="{% url 'mfs:cart_detail' %}" class="nav-link {% if request.resolver_match.url_name == 'cart_detail' %}active{% endif %}">
+                КОРЗИНА
+                <span class="cart-badge" {% if not request.session.cart %}style="display: none;"{% endif %}>
+                    {{ request.session.cart|length }}
+                </span>
+            </a>
+            <button class="install-btn"><span class="arrow-down">➜</span> Установить</button>
+            
+            {% if request.user.is_authenticated %}
+                <div class="user-dropdown">
+                    <a href="javascript:void(0)" class="nav-link user-name" id="userMenuBtn">
+                        {{ request.user.username }} ▾
+                    </a>
+                    <div class="user-dropdown-menu" id="userDropdownMenu">
+                        <a href="{% url 'mfs:profile' %}" class="admin-item">Профиль</a>
+                        {% if request.user.is_staff %}
+                            <a href="{% url 'admin:index' %}" class="admin-item" target="_blank">Админ-панель</a>
+                        {% endif %}
+                        <a href="{% url 'mfs:settings' %}" class="admin-item">Настройки</a>
+                        <a href="{% url 'mfs:logout' %}" class="logout-item">Выйти</a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{% url 'mfs:login' %}" class="nav-link">ВХОД</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Основное содержимое каждой страницы -->
+    {% block content %}{% endblock %}
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const userMenuBtn = document.getElementById('userMenuBtn');
+        const userDropdownMenu = document.getElementById('userDropdownMenu');
+
+        if (userMenuBtn && userDropdownMenu) {
+            // Клик по имени пользователя
+            userMenuBtn.addEventListener('click', (e) => {
+                e.preventDefault();  // Запрещаем переход по ссылке
+                e.stopPropagation(); // Чтобы клик не уходил на document
+                userDropdownMenu.classList.toggle('show');
+            });
+
+            // Закрываем меню при клике в любое другое место
+            document.addEventListener('click', (e) => {
+                if (!userDropdownMenu.contains(e.target) && !userMenuBtn.contains(e.target)) {
+                    userDropdownMenu.classList.remove('show');
+                }
+            });
+        }
+    });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const installBtn = document.querySelector('.install-btn');
+            const toast = document.getElementById('installToast');
+            let toastTimeout;
+
+            if (installBtn && toast) {
+                installBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    // Сбрасываем таймер, если нажмут несколько раз подряд
+                    clearTimeout(toastTimeout);
+
+                    // Показываем плашку
+                    toast.classList.add('show');
+
+                    // Прячем через 3 секунды
+                    toastTimeout = setTimeout(() => {
+                        toast.classList.remove('show');
+                    }, 3000);
+                });
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+    <div id="installToast" class="toast-notification">
+    Приложение пока недоступно для установки
+    </div>
+</body>
+</html>

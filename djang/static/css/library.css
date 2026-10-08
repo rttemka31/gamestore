@@ -1,0 +1,1088 @@
+@font-face {
+    font-family: "MyFont";
+    src: url("fonts/unbounded.ttf") format("opentype"); /* Если файлы лежит в папке css/, замените на url("../fonts/reg.otf") */
+    font-weight: 100 900;
+    font-style: normal;
+}
+
+/* =========================
+   ОСНОВНЫЕ НАСТРОЙКИ
+========================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background: radial-gradient(
+        circle at 50% 0%,
+        #282a36 0%,
+        #17181f 35%,
+        #111216 70%
+    );
+    background-attachment: fixed;
+    color: #d6d7d8;
+    font-family: Inter, Helvetica, sans-serif;
+}
+
+/* =========================
+   CONTAINER & SEARCH
+========================= */
+
+.container {
+    width: min(1200px, 90%);
+    margin: 0 auto;
+    padding: 20px 0 100px;
+}
+
+.search-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.search-area h1 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 32px;
+}
+
+/* Указываем display: inline-block явно */
+/* Универсальный класс для <a>, <button> и <input> */
+
+/* =========================
+   SECTIONS & GRID
+========================= */
+
+.games-section {
+    margin-bottom: 55px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 25px;
+}
+
+.section-header h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 24px;
+}
+
+.last-launch-info {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 16px;
+    text-shadow: 0 6px 6px rgba(0, 0, 0, 1);
+}
+
+.last-launch-text {
+    font-weight: var(--text-normal);
+}
+
+.last-launch-wrapper {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.section-header a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 16px;
+    transition: 0.2s;
+}
+
+.section-header a:hover {
+    color: var(--text-primary);
+}
+
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 15px;
+    align-items: start;
+}
+
+/* =========================
+   GAME CARD
+========================= */
+
+.game-image {
+    position: relative;
+    width: 100%;
+    height: 150px;
+    overflow: hidden;
+}
+
+.game-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s, filter 0.35s;
+}
+
+.game-card:hover .game-image img {
+    filter: brightness(1.15);
+}
+
+.game-card .no-cover {
+    width: 100%;
+    height: 150px;
+    background: #2b303a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #777;
+    font-size: 14px;
+}
+
+.game-info {
+    padding: var(--padding-sm2);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.game-info h3 {
+    margin: 0 0 10px;
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: var(--text-semibold);
+}
+
+.game-info p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 20px;
+}
+
+.release-date {
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.game-bottom {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: auto;
+    min-height: 30px;
+}
+
+.not-on-steam-badge2 {
+  font-family: "MyFont", Inter, sans-serif;
+  border: 2px solid var(--border);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  backdrop-filter: blur(5px); background: rgba(0, 0, 0, 0.6); color: #fff;
+}
+
+.buy-button {
+    border: none;
+    background:  var(--accent);
+    color: var(--text-primary);
+    padding: 11px 27px;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-weight: var(--text-semibold);
+    cursor: pointer;
+    will-change: transform;
+    transform: perspective(1px) translateZ(0) rotate(0.01deg);
+    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+    display: inline-block; /* ОБЯЗАТЕЛЬНО: разрешает браузеру применять transform и анимации */
+    text-decoration: none;
+
+    /* 2. Анимируем строго свойство transform */
+    transition: transform 0.175s ease-out;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.buy-button:hover {
+    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+}
+
+.buy-button:active {
+    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+}
+
+.purchase-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 25px;
+    padding-top: 30px;
+    border-top: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+.purchase-price {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.detail-section {
+    margin-bottom: 50px;
+}
+
+.detail-section h2 {
+    color: var(--text-primary);
+    font-size: 24px;
+    margin-bottom: 25px;
+}
+
+.description-box {
+    padding: var(--padding-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border:
+        2px solid var(--border);
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* =========================
+   АДАПТИВ
+========================= */
+
+@media (max-width: 900px) {
+    .navbar {
+        padding: 0 4%;
+    }
+
+    .nav-left {
+        gap: 15px;
+    }
+
+    .logo {
+        margin-right: 5px;
+    }
+
+    .profile {
+        display: none;
+    }
+
+    .featured {
+        grid-template-columns: 1fr;
+    }
+
+    .featured > img {
+        min-height: 250px;
+    }
+
+    .games-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .search-area {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+
+    .game-detail {
+        grid-template-columns: 1fr;
+    }
+
+    .game-detail-cover img {
+        min-height: 300px;
+    }
+}
+
+@media (max-width: 600px) {
+    .navbar {
+        height: auto;
+        padding: 20px 5%;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .nav-left {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .nav-right {
+        display: none;
+    }
+
+    .container {
+        width: 92%;
+        padding-top: 30px;
+    }
+
+    /* Исправлено: на смартфонах выводим по 1 карточке в ряд */
+    .games-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .featured-info {
+        padding: 25px;
+    }
+
+    .featured-info h2 {
+        font-size: 32px;
+    }
+
+    .game-detail-title {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .game-detail-title h1 {
+        font-size: 32px;
+    }
+
+    .purchase-box {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .buy-button {
+        width: 100%;
+    }
+}
+
+/* =========================
+   ВСПЛЫВАЮЩЕЕ УВЕДОМЛЕНИЕ (СВЕРХУ)
+========================= */
+
+.toast-notification {
+    position: fixed;
+    top: -75px; /* Изначально спрятана за верхним краем */
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 2px solid var(--danger);
+    padding: 11px 27px;
+    border-radius: var(--radius-md);
+    font-size: 16px;
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
+    transition: top 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s;
+    opacity: 0;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+/* Класс для показа плашки */
+.toast-notification.show {
+    top: 85px; /* Появляется прямо под вашей шапкой (navbar height 74px) */
+    opacity: 1;
+}
+.arrow-down {
+    display: inline-block;
+    transform: rotate(90deg);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb::before {
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--bg-card-hover);
+}
+
+.logout-btn {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: var(--text-semibold);
+    padding: 9px 14px;
+    border:
+        2px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: 0.2s;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 59, 48, 0.2);
+    border-color: var(--danger);
+}
+
+.install-btn {
+    border: none;
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+    padding: 9px 14px;
+    border-radius: var(--radius-sm);
+    font-weight: var(--text-semibold);
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform var(--transition);
+    will-change: transform;
+    transform: perspective(1px) translateZ(0) rotate(0.01deg);
+    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+
+    /* 2. Анимируем строго свойство transform */
+    transition: transform 0.2s ease-out;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.install-btn:hover {
+    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+}
+
+.install-btn:active {
+    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+}
+
+.cart-badge {
+    background: var(--accent);
+    color: white;
+    font-size: 14px;
+    padding: 2px 10px;
+    border-radius: 15px;
+    margin-left: 5px;
+}
+
+
+
+
+
+
+
+
+
+body {
+    margin: 0;
+    background-color: #171a21;
+    color: #f3f3f3;
+    font-family: 'Inter', sans-serif;
+}
+
+.steam-container {
+    display: flex;
+    height: calc(100vh - 60px);
+    overflow: hidden;
+}
+
+/* --- ЛЕВАЯ ПАНЕЛЬ (SIDEBAR) --- */
+.steam-sidebar {
+    width: 250px;
+    min-width: 250px;
+    background-color: var(--bg-primary);
+    border-right: 2px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-title {
+    padding: var(--padding-sm2);
+    font-size: 14px;
+    font-weight: var(--text-semibold);
+    letter-spacing: 0.3px;
+    color: var(--text-muted);
+}
+
+.sidebar-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    &::-webkit-scrollbar {
+        display: none;
+    }
+    
+    scrollbar-width: none;
+    -ms-overflow-style: none; 
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    cursor: pointer;
+    color: var(--text-muted);
+    border-radius: 2.5px;
+    font-size: 14px;
+    border-left: 3px solid transparent;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    text-decoration: none;
+    font-weight: var(--text-semibold);
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.sidebar-item:hover {
+    transform: translateX(5px);
+    background-color: var(--bg-card) 5%;
+    color: var(--text-primary);
+    border-left: 3px solid var(--accent);
+}
+
+.sidebar-item.active {
+    background-color: var(--bg-card-hover);
+    color: var(--text-primary);
+    font-weight: var(--text-semibold);
+}
+
+.game-icon {
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+.sidebar-empty {
+    padding: var(--padding-md);
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+/* --- ПРАВАЯ ЧАСТЬ (СТРАНИЦА ИГРЫ) --- */
+.steam-main {
+    flex: 1;
+    background-color: var(--bg-primary);
+    overflow-y: auto;
+}
+
+.game-detail-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100%;
+}
+
+/* СТИМОВСКИЙ БАННЕР */
+/* 1. Блок-контейнер (Центрируем сам блок и включаем обрезку) */
+.hero-header {
+    position: relative;
+    width: 100%;
+    margin: 0 auto; /* Центрирует блок по горизонтали */
+    height: 250px;
+    background-color: #000;
+    overflow: hidden;
+    max-width: 1700px;    /* Ограничивает максимальную ширину карточки */
+    height: 400px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 2. Картинка (Центрируется по оси Х и У внутри контейнера) */
+.hero-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 30%; /* Идеальное центрирование картинки */
+    z-index: 1;
+}
+
+.hero::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none; /* чтобы клики проходили сквозь слой */
+}
+
+/* 3. Размытие краев к черному (box-shadow) + нижнее затемнение для текста */
+.hero-overlay {
+    position: absolute;
+    content: "";
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 60px; /* Увеличили высоту для плавности */
+    /* Тень создаёт размытие краев, а linear-gradient притемняет низ под заголовок */
+    z-index: 2;
+    pointer-events: none; /* Пропускает клики */
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        color-mix(in srgb, var(--bg-secondary, #1a1c25) 20%, transparent) 30%,
+        color-mix(in srgb, var(--bg-secondary, #1a1c25) 70%, transparent) 70%,
+        var(--bg-surface, #1a1c25) 100%
+    );
+}
+
+/* 4. Заголовок и иконка должны быть выше размытия */
+.hero-title-container {
+    position: absolute;
+    bottom: 5px;
+    left: 40px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 3; /* Поднимаем над оверлеем */
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: var(--radius-md);
+    padding: var(--padding-sm2);
+    backdrop-filter: blur(5px);
+}
+
+.hero-title {
+    /* position: absolute; — УДАЛИТЬ */
+    /* bottom: 0px; — УДАЛИТЬ */
+    /* left: 70px; — УДАЛИТЬ */
+    
+    margin: 0;
+    font-size: 32px;
+    font-weight: var(--text-semibold);
+    color: var(--text-primary);
+    text-shadow: 0 6px 6px rgba(0, 0, 0, 1);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 800px;
+    line-height: 1.5;
+}
+
+/* ПАНЕЛЬ ДЕЙСТВИЯ */
+.action-bar {
+    background-color: var(--bg-primary);
+    padding: 30px 40px;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid var(--border-subtle);
+}
+
+.play-button {
+    border: none;
+    background: var(--accent);
+    color: var(--text-primary);
+    padding: 11px 27px;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    margin-right: var(--padding-sm);
+    cursor: pointer;
+    font-weight: var(--text-semibold);
+
+    /* 1. Готовим слой для GPU и отключаем скачки субпикселей */
+    will-change: transform;
+    transform: perspective(1px) translateZ(0) rotate(0.01deg);
+    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+
+    /* 2. Анимируем строго свойство transform */
+    transition: transform 0.175s ease-out;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-decoration: none;
+}
+
+.status-running {
+    background: var(--success);
+    color: var(--text-primary);
+    padding: 11px 27px;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: var(--text-semibold);
+}
+
+.status-dot {
+    background-color: var(--success);
+}
+
+.play-button:hover {
+    /* 3. Scale 1.04–1.05 выглядит аккуратнее и не раздувает буквы */
+    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+}
+
+.play-button:active {
+    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+}
+
+.play-button a {
+    text-decoration: none;
+}
+
+/* ОПИСАНИЕ */
+.detail-body {
+    padding: var(--padding-big);
+    max-width: 900px;
+}
+
+.section-block h3 {
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: #67c1f5;
+    margin-bottom: 15px;
+}
+
+.description-text {
+    color: var(--text-secondary);
+    font-size: 16px;
+    line-height: 1.75;
+    background-color: rgba(0, 0, 0, 0.25);
+    padding: var(--padding-md);
+    border-radius: 10px;
+    border-left: 3px solid #67c1f5;
+    margin: 0;
+}
+
+/* ПУСТОЕ СОСТОЯНИЕ */
+.empty-state {
+    margin: auto;
+    text-align: center;
+    padding-top: 100px;
+    color: var(--text-primary);
+}
+
+.empty-state.h2  {
+    color: var(--text-primary);
+    font-size: 22px;
+    font-weight: var(--text-semibold) !important;
+}
+
+.store-btn {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 24px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: var(--text-semibold);
+
+    will-change: transform;
+    transform: perspective(1px) translateZ(0) rotate(0.01deg);
+    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+
+    /* 2. Анимируем строго свойство transform */
+    transition: transform 0.175s ease-out;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.store-btn:hover {
+    /* 3. Scale 1.04–1.05 выглядит аккуратнее и не раздувает буквы */
+    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+}
+
+.store-btn:active {
+    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+}
+
+/* Иконка в левом списке (как в Steam) */
+.sidebar-game-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    border-radius: 2.5px;
+    flex-shrink: 0;
+}
+
+/* Иконка рядом с заголовком на главном баннере */
+.hero-title-container {
+    position: absolute;
+    bottom: 25px;
+    left: 40px;
+    display: flex;
+    align-items: center; /* Выравнивает иконку и текст по центральной оси */
+    gap: 15px;           /* Расстояние между иконкой и текстом */
+    z-index: 2;
+}
+
+.hero-icon {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    display: block;      /* Убирает базовый нижний отступ картинки */
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+}
+
+.action-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.settings-dropdown {
+    position: relative;
+}
+
+.settings-btn {
+    border: none;
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+    padding: 7px 6px;
+    border-radius: var(--radius-sm);
+    font-weight: var(--text-semibold);
+    font-size: 22px;
+    cursor: pointer;
+    transition: transform var(--transition);
+    will-change: transform;
+    transform: perspective(1px) translateZ(0) rotate(0.01deg);
+    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+
+    /* 2. Анимируем строго свойство transform */
+    transition: transform 0.2s ease-out;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.settings-btn:hover {
+    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+}
+
+.settings-btn:active {
+    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    background: var(--bg-secondary);
+    border:
+        2px solid var(--border);
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    min-width: 220px;
+    overflow: hidden;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-item {
+    width: 100%;
+    background: none;
+    border: none;
+    color: #c6d4df;
+    padding: 12px 16px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.dropdown-item.delete-item:hover {
+    background-color: var(--danger);
+    color: var(--text-primary);
+}
+
+/* Контейнер профиля */
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.user-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    right: auto;
+    background-color: var(--bg-secondary);
+    border:
+        2px solid var(--border);
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.6);
+    border-radius: 5px;
+    z-index: 1000;
+    min-width: 130px;
+    padding: 0px 0;
+    text-align: center;
+    white-space: nowrap;
+
+    /* Скрытое состояние по умолчанию */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(-6px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+}
+
+/* Показываем меню при наличии класса .show (от клика) */
+.user-dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(6px);
+}
+
+.user-dropdown-menu .logout-item {
+    display: block;
+    padding: 12px 16px;
+    color: #c6d4df !important;
+    text-decoration: none !important;
+    font-size: 14px;
+    font-weight: var(--text-normal);
+    border-radius: 5px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.user-dropdown-menu .logout-item:hover {
+    background-color: var(--danger);
+    color: var(--text-primary);
+}
+
+.user-dropdown-menu .admin-item {
+    display: block;
+    padding: 12px 16px;
+    color: var(--text-secondary);
+    text-decoration: none !important;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: var(--text-normal);
+    transition: background 0.2s, color 0.2s, filter 0.2s;
+}
+
+.user-dropdown-menu .admin-item:hover {
+    filter: brightness(1.10);
+    background-color: var(--bg-card-hover);
+    color: var(--text-primary) ;
+}
+
+/* =========================
+   NAVBAR (Единый стиль)
+========================= */
+
+.navbar {
+    width: 100%;
+    height: 74px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 7%;
+    background: rgba(11, 18, 26, 0.96);
+    border-bottom: 1px solid var(--border-subtle);
+    box-shadow: 0 15px 25px var(--shadow);
+    backdrop-filter: blur(5px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.logo {
+    font-family: "MyFont", Inter, sans-serif;
+    font-size: 24px;
+    font-weight: var(--text-bold);
+    letter-spacing: 1px;
+    color: var(--text-primary);
+}
+
+.logo span {
+    color: var(--accent);
+}
+
+.nav-link {
+    position: relative;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: var(--text-semibold);
+    transition: 0.2s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--accent);
+}
+
+.nav-link.active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -8px;
+    height: 2px;
+    background-color: var(--accent);
+    border-radius: 5px;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+:root {
+    /* Colors */
+    --bg-primary: #111216;
+    --bg-secondary: #17181f;
+    --bg-surface: #20222b;
+    --bg-card: #252833;
+    --bg-card-hover: #313442;
+
+    --text-primary: #ffffff;
+    --text-secondary: #b4c1ce;
+    --text-muted: #71808d;
+
+    --success: #22c55e;
+    --danger: #c7312a;
+
+    /* Borders */
+    --border: rgba(255, 255, 255, 0.2);
+    --border-subtle: rgba(255, 255, 255, 0.1);
+
+    /* Shadows */
+    --shadow: rgba(0, 0, 0, 0.2);
+
+    /* Radius */
+    --radius-sm: 5px;
+    --radius-md: 10px;
+    --radius-big: 50px;
+
+    /* Padding */
+    --padding-sm: 7.5px;
+    --padding-sm2: 15px;
+    --padding-md: 20px;
+    --padding-big: 30px;
+
+    --text-normal: 500;
+    --text-semibold: 600;
+    --text-bold: 700;
+
+    /* Animation */
+    --transition: 0.2s ease;
+}

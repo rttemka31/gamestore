@@ -1,0 +1,45 @@
+{% extends 'base_mini.html' %}
+{% load static %}
+{% load l10n %}
+
+{% block title %}404 | GameStore{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static '/css/404.css' %}?v=4">
+    <link rel="icon" type="image/png" href="{% static '/css/icons/gamestore.png' %}">
+
+    {% if user.is_authenticated and user.profile.accent_color %}
+    <style>
+        :root {
+            --accent: {{ user.profile.accent_color }};
+            --accent-color: {{ user.profile.accent_color }};
+            --accent-hover: {{ user.profile.accent_color }}cc;
+        }
+        body.no-blur, body.no-blur * {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+    </style>
+    {% endif %}
+{% endblock %}
+<body>
+    {% block content %}
+
+<div class="error-container">
+    <div class="error-badge">404</div>
+    <h1 class="error-title">Запрошенный адрес не существует</h1>
+
+    <div class="error-reasons">
+        <h3>Возможные причины:</h3>
+        <ul>
+            <li>Вы не вошли в аккаунт или еще не зарегистрировались.</li>
+            <li>Запрашиваемая страница, игра или новость была удалена.</li>
+            <li>В адресе ссылки допущена ошибка или опечатка.</li>
+        </ul>
+    </div>
+
+</div>
+
+</body>
+{% endblock %}
+</html>

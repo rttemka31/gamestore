@@ -1,0 +1,784 @@
+/* settings.css — стили только для страницы настроек.
+   Использует те же тона, что уже есть на сайте (тёмный фон, фиолетовый акцент).
+   Если у вас уже объявлены переменные (--accent, --card-bg и т.п.) в style.css,
+   можно удалить блок :root ниже и подставить свои имена переменных. */
+:root {
+    /* Colors */
+    --bg-primary: #111216;
+    --bg-secondary: #17181f;
+    --bg-surface: #20222b;
+    --bg-card: #252833;
+    --bg-card-hover: #313442;
+
+    --text-primary: #ffffff;
+    --text-secondary: #bcc9d6;
+    --text-muted: #7f8b96;
+
+    --accent: #6366f1;
+    --success: #22c55e;
+    --danger: #c7312a;
+
+    /* Borders */
+    --border: rgba(255, 255, 255, 0.2);
+    --border-accent: #3e3e70;
+    --border-subtle: rgba(255, 255, 255, 0.1);
+
+    /* Shadows */
+    --shadow: rgba(0, 0, 0, 0.2);
+
+    /* Radius */
+    --radius-sm: 5px;
+    --radius-md: 10px;
+    --radius-big: 50px;
+
+    /* Padding */
+    --padding-sm: 7.5px;
+    --padding-sm2: 15px;
+    --padding-md: 20px;
+    --padding-big: 30px;
+
+    /* Text Weight */
+    --text-normal: 500;
+    --text-semibold: 600;
+    --text-bold: 700;
+
+    /* Animation */
+    --transition: 0.2s ease;
+}
+
+.navbar {
+    width: 100%;
+    height: 74px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 7%;
+    background: rgba(11, 18, 26, 0.96);
+    border-bottom: 1px solid var(--border-subtle);
+    box-shadow: 0 15px 25px var(--shadow);
+    backdrop-filter: blur(5px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.settings-page {
+    max-width: 1350px;
+}
+
+h1 {
+    margin: 0 0 30px;
+    font-weight: var(--text-semibold);
+}
+
+.settings-head p {
+    margin: 0 0 32px;
+    color: var(--text-muted);
+}
+
+.settings-layout {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 30px;
+    align-items: start;
+    padding: 0;
+    margin: 0;
+}
+
+/* Левая навигация */
+.settings-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    position: sticky;
+    top: 90px; /* Отступ меню от верхнего края экрана при скролле */
+    align-self: start;
+    background-color: none;
+    padding: var(--padding-sm);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+}
+
+.settings-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 10px;
+    cursor: pointer;
+    color: var(--text-muted);
+    border-radius: 2.5px;
+    font-size: 14px;
+    border-left: 3px solid transparent;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    text-decoration: none;
+    font-weight: var(--text-semibold);
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.settings-nav-link .nav-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0; /* Не дает иконке сжиматься */
+    transition: transform 0.2s ease;
+}
+
+.settings-nav-link:hover {
+    transform: translateX(5px);
+    background-color: var(--bg-card);
+    color: #ffffff;
+    border-left: 3px solid var(--accent);
+}
+
+.settings-nav-link.active {
+    background-color: var(--bg-card-hover);
+    color: #ffffff;
+}
+
+.settings-nav-link.settings-nav-danger {
+    color: var(--danger);
+    text-decoration: none;
+    font-weight: var(--text-semibold);
+    border-left: 3px solid transparent;
+    margin-top: 15px;
+}
+
+.settings-nav-link.settings-nav-danger:hover,
+.settings-nav-link.settings-nav-danger.active {
+    background-color: var(--bg-card-hover);
+    color: var(--danger);
+    border-left: 3px solid var(--danger); /* <-- Полоска только при hover/active */
+}
+
+/* Карточки разделов */
+.settings-card {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 25px;
+    scroll-margin-top: 100px;
+}
+
+.settings-card h2 {
+    margin-top: var(--padding-sm);
+    color: var(--text-primary);
+    font-size: 24px;
+    font-weight: var(--text-semibold);
+}
+
+.settings-card-danger {
+    border-color: rgba(239, 68, 68, .25);
+}
+
+/* Аватар */
+.settings-avatar-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.settings-avatar {
+    position: relative; /* ОБЯЗАТЕЛЬНО: чтобы overlay привязался к этому блоку */
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    overflow: hidden;    /* Обрезает оверлей по кругу */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    border: 4px solid var(--border, #444);
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+    background: #2a2a2a;
+    font-size: 64px;
+    font-weight: var(--text-semibold);
+    color: var(--text-primary);
+}
+ 
+.settings-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+ 
+.avatar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    
+    z-index: 3; /* Чтобы overlay был поверх аватара, но под другими элементами */
+    opacity: 0;
+    pointer-events: none; /* пока невидим — не перехватывает клики */
+    transition: opacity 0.2s ease, background 0.2s ease;
+}
+ 
+/* Фикс: overlay — потомок .settings-avatar, а не .settings-avatar-wrapper
+   (такого класса не было в HTML), поэтому наводим прямо на .settings-avatar */
+.settings-avatar:hover .avatar-overlay {
+    opacity: 1;
+    pointer-events: auto; /* теперь можно кликнуть и открыть file input */
+}
+ 
+.avatar-overlay:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.settings-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: #fff;
+    font-weight: var(--text-semibold);
+    font-size: 22px;
+}
+
+/* Поля форм */
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.settings-field {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.settings-field label {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.settings-field input,
+.settings-field select,
+.settings-field textarea {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-accent);
+    border-radius: var(--radius-sm);
+    padding: 9px 14px;
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    transition: 0.2s;
+    margin: 0;
+    color: var(--text-secondary);
+    height: 42px;
+}
+
+.settings-field input:focus,
+.settings-field select:focus,
+.settings-field textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.1);
+}
+
+.settings-hint {
+    margin: 5px 0 5px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+/* Переключатели (toggle) */
+.settings-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--card-border);
+    cursor: pointer;
+}
+
+.settings-toggle-row:last-of-type {
+    border-bottom: none;
+}
+
+.settings-toggle-title {
+    display: block;
+    font-size: 14px;
+    color: #fff;
+}
+
+.settings-toggle {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 50px;
+    height: 25px;
+    border-radius: 50px; /* Делаем идеальную овальную форму (pill) */
+    background: rgba(255, 255, 255, .12);
+    position: relative;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: background .2s ease;
+    outline: none;
+}
+
+/* Ползуночек */
+.settings-toggle::after {
+    content: "";
+    position: absolute;
+    top: 3.5px;
+    left: 3.5px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%; /* Идеально круглый ползунок */
+    background: #fff;
+    transition: transform .2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.settings-toggle:checked {
+    background: var(--accent);
+}
+
+.settings-toggle:checked::after {
+    transform: translateX(25px);
+}
+
+/* Кнопки (при отсутствии этих классов в style.css) */
+.btn-primary {
+    border: none;
+    background: var(--accent);
+    color: var(--text-primary);
+    padding: 9px 14px;
+    border-radius: var(--radius-sm);
+    align-self: flex-start;
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: var(--text-semibold);
+    cursor: pointer;
+
+    will-change: transform;
+    transform: perspective(1px) translateZ(0) rotate(0.01deg);
+    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+
+    /* 2. Анимируем строго свойство transform */
+    transition: transform 0.175s ease-out;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.btn-primary:hover {
+    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+}
+
+.btn-primary:active {
+    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+}
+
+.btn-secondary {
+    border: none;
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+    padding: 9px 14px;
+    border-radius: var(--radius-sm);
+    font-weight: var(--text-semibold);
+    font-size: 14px;
+    cursor: pointer;
+    flex-shrink: 0;
+    align-self: flex-start;
+    transition: transform var(--transition);
+    will-change: transform;
+    transform: perspective(1px) translateZ(0) rotate(0.01deg);
+    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+
+    /* 2. Анимируем строго свойство transform */
+    transition: transform 0.2s ease-out;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.btn-secondary:hover {
+    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+}
+
+.btn-secondary:active {
+    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+}
+
+.btn-danger {
+    align-self: flex-start;
+    background: transparent;
+    border: 2px solid var(--danger);
+    color: var(--danger);
+    border-radius: var(--radius-sm);
+    margin-top: 15px;
+    padding: 9px 14px;
+    font-size: 14px;
+    font-weight: var(--text-semibold);
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-danger:hover {
+    background: rgba(199, 49, 42, 0.2);
+    border-color: var(--danger);
+    color: #ffffff;
+}
+
+/* Мобильная версия */
+@media (max-width: 720px) {
+    .settings-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-nav {
+        position: static;
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 10px;
+        padding-bottom: 5px;
+    }
+
+    .settings-nav-link {
+        white-space: nowrap;
+        border-left: none;
+        border-bottom: 2px solid transparent;
+    }
+
+    .settings-nav-link.active {
+        border-left: none;
+        border-bottom-color: var(--accent);
+    }
+}
+
+/* Исправление выпадающего меню в CSS */
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.user-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    right: auto;
+    background-color: var(--bg-secondary);
+    border: 2px solid var(--border);
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.6);
+    border-radius: var(--radius-sm);
+    z-index: 1000;
+    min-width: 130px;
+    padding: 0px 0;
+    text-align: center;
+    white-space: nowrap;
+
+    /* Скрытое состояние по умолчанию */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(-6px);
+    transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
+}
+
+/* Показываем меню при наличии класса .show (от клика) */
+.user-dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(6px);
+}
+
+.user-dropdown-menu .logout-item {
+    display: block;
+    padding: 12px 16px;
+    color: var(--text-secondary);
+    text-decoration: none !important;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: var(--text-normal);
+    transition: background 0.2s, color 0.2s;
+}
+
+.user-dropdown-menu .logout-item:hover {
+    background-color: var(--danger);
+    color: var(--text-primary) ;
+}
+
+.user-dropdown-menu .admin-item {
+    display: block;
+    padding: 12px 16px;
+    color: var(--text-secondary);
+    text-decoration: none !important;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: var(--text-normal);
+    transition: background 0.2s, color 0.2s, filter 0.2s;
+}
+
+.user-dropdown-menu .admin-item:hover {
+    filter: brightness(1.10);
+    background-color: var(--bg-card-hover);
+    color: var(--text-primary) ;
+}
+
+.banner-wrapper {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    border-radius: 5px;
+    box-sizing: border-box;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    overflow: hidden; /* обрезка по скруглённым углам — только здесь */
+}
+/* Контейнер баннера */
+.settings-banner {
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-card-hover, #1a1b26);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Оверлей поверх баннера (по умолчанию скрыт) */
+.banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 3;
+    
+    /* Делаем плавание/появление при ховере: */
+    opacity: 0;
+    transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+/* При наведении на баннер — плавно показываем оверлей */
+.settings-banner:hover .banner-overlay {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(2.5px);
+}
+
+
+
+
+
+
+
+
+
+.avatar-wrapper {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+    margin-bottom: 15px;
+}
+ 
+/* .settings-avatar больше не держит border — только картинку/букву и обрезку по кругу */
+.settings-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    background: #2a2a2a;
+    font-size: 64px;
+    font-weight: var(--text-semibold);
+    color: var(--text-primary);
+}
+ 
+.avatar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;   /* теперь 100% считается от .avatar-wrapper — то есть от размера РАМКИ включительно */
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+ 
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, background 0.2s ease;
+}
+/* Наводим на .avatar-wrapper — общего родителя для .settings-avatar и .avatar-overlay */
+.avatar-wrapper:hover .avatar-overlay {
+    opacity: 1;
+    pointer-events: auto;
+}
+ 
+.avatar-overlay:hover {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(1px);
+}
+
+.banner-crop-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+ 
+.banner-crop-box {
+    background: var(--card-bg, #1a1c25);
+    border: 2px solid var(--card-border, rgba(255, 255, 255, .08));
+    border-radius: var(--radius-md);
+    padding: 20px;
+    width: min(680px, 100%);
+}
+ 
+.banner-crop-box h3 {
+    margin: 0 0 15px;
+    font-size: 16px;
+    font-weight: var(--text-semibold);
+}
+ 
+/* "Сцена" — заметно выше, чем сама рамка баннера, чтобы было видно
+   картинку целиком, а не только то, что попадёт в кадр */
+.banner-crop-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 1;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: #000;
+    cursor: grab;
+    touch-action: none;
+}
+ 
+.banner-crop-stage.dragging {
+    cursor: grabbing;
+}
+ 
+.banner-crop-stage img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    max-width: none;
+    user-select: none;
+    pointer-events: none;
+    will-change: transform;
+}
+ 
+/* Рамка — реальное соотношение сторон баннера на сайте.
+   Берётся автоматически из её собственных размеров в JS,
+   ничего вручную синхронизировать не нужно. */
+.banner-crop-frame {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    aspect-ratio: 4.3 / 1; /* было 5.7/1 — пересчитано под высоту 200px */
+    transform: translateY(-50%);
+    pointer-events: none;
+    border: 2px solid rgba(255, 255, 255, .9);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, .65); /* затемняет всё, что вне рамки */
+}
+ 
+.banner-crop-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+ 
+.zoom-btn {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid var(--card-border, rgba(255, 255, 255, .12));
+    background: rgba(255, 255, 255, .06);
+    color: #fff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s;
+}
+ 
+.zoom-btn:hover {
+    background: rgba(255, 255, 255, .14);
+}
+ 
+#bannerZoom {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .15); /* перезаписывается JS-ом для заливки по значению */
+    outline: none;
+}
+ 
+#bannerZoom::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--accent);
+    cursor: pointer;
+}
+ 
+#bannerZoom::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--accent);
+    cursor: pointer;
+}
+ 
+#bannerZoom::-moz-range-track {
+    height: 5px;
+    border-radius: 999px;
+    background: transparent;
+}
+ 
+.banner-crop-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}

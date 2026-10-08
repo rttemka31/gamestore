@@ -1,0 +1,765 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load l10n %}
+
+{% block title %}Настройки | GameStore{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static '/css/settings.css' %}?v=10">
+    <link rel="icon" type="image/png" href="{% static 'css/icons/gamestore.png' %}">
+
+    {% if user.is_authenticated and user.profile.accent_color %}
+    <style>
+        :root {
+            --accent: {{ user.profile.accent_color }};
+            --accent-color: {{ user.profile.accent_color }};
+            --accent-hover: {{ user.profile.accent_color }}cc;
+            --border-accent: color-mix(in srgb, var(--accent) 35%, black);
+        }
+
+        body.no-blur, body.no-blur * {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+        .settings-content {
+            padding-bottom: 50vh !important;
+        }
+
+        /* Стиль плавающего уведомления об автосохранении */
+
+        .save-status {
+            position: fixed;
+            bottom: 35px;
+            right: 35px;
+            border: 2px solid var(--border);
+            z-index: 1000;
+            /* 1. УБРАЛИ display: none; */
+            /* Управление видимостью и анимацией */
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+
+            /* Стили оформления */
+            font-size: 14px;
+            font-weight: var(--text-normal);
+            white-space: nowrap;
+            line-height: 1;
+            font-family: "MyFont", Inter, sans-serif;
+            background: rgba(0, 0, 0, 0.6);
+            color: var(--text-primary);
+            border-radius: var(--radius-sm);
+            padding: 9px 14px; /* Поправил боковой padding для аккуратности */
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            backdrop-filter: blur(5px);
+        }
+        .save-status.show {
+            /* 2. УБРАЛИ display: block; */
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0); /* Плавно поднимается на место */
+        }
+        .banner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 999;
+
+            /* Делаем плавание/появление при ховере: */
+            opacity: 0;
+            transition: opacity 0.2s ease, background 0.2s ease;
+        }
+
+        /* При наведении на баннер — плавно показываем оверлей */
+        .settings-banner:hover .banner-overlay {
+            opacity: 1;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(2.5px);
+        }
+        .save-status.error { 
+            border-color: #c7312a; 
+            color: #c7312a; 
+        }
+    </style>
+    {% endif %}
+{% endblock %}
+{% block content %}
+    <!-- Основной контейнер -->
+    <main class="container settings-page">
+
+        <h1>Настройки</h1>
+
+        <div class="settings-layout">
+
+            <!-- Левая навигация по разделам -->
+            <nav class="settings-nav">
+                <a href="#profile" class="settings-nav-link active">
+                    <img src="{% static 'css/icons/profile.png' %}" alt="" class="nav-icon">
+                    Профиль
+                </a>
+                <a href="#security" class="settings-nav-link">
+                    <img src="{% static 'css/icons/savety.png' %}" alt="" class="nav-icon">
+                    Безопасность
+                </a>
+                <a href="#appearance" class="settings-nav-link">
+                    <img src="{% static 'css/icons/appearance.png' %}" alt="" class="nav-icon">
+                    Внешний вид
+                </a>
+                <a href="#privacy" class="settings-nav-link">
+                    <img src="{% static 'css/icons/privacy.png' %}" alt="" class="nav-icon">
+                    Приватность
+                </a>
+                <a href="#danger" class="settings-nav-link settings-nav-danger">
+                    <img src="{% static 'css/icons/delete.png' %}" alt="" class="nav-icon">
+                    Удалить аккаунт
+                </a>
+            </nav>
+
+            <!-- Правая колонка с формами -->
+            <div class="settings-content">
+
+                <!-- Профиль -->
+                <section id="profile" class="settings-card">
+                    <h2>Профиль</h2>
+                    <form method="post" action="{% url 'mfs:settings' %}" enctype="multipart/form-data" class="settings-form" id="profileForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="form" value="profile">
+
+                        <div class="settings-field">
+                            <label>Аватар</label>
+                            <div class="avatar-wrapper" id="avatarWrapper">
+                                <div class="settings-avatar" id="avatarPreview">
+                                    {% if user.profile.avatar %}
+                                        <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" id="avatarImg">
+                                    {% else %}
+                                        <span id="avatarLetter">{{ user.username|first|upper }}</span>
+                                    {% endif %}
+                                </div>
+                            
+                                <label for="avatarInput" class="avatar-overlay" id="avatarOverlay" style="font-size: 24px;">📷</label>
+                            </div>
+                            <input type="file" name="avatar" id="avatarInput" accept="image/*" style="display: none;">
+                        </div>
+
+                        <div class="settings-field">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <label for="username">Имя пользователя</label>
+                                <small id="NameCounter" style="color: var(--text-muted); font-size: 13px;">0 / 24</small>
+                            </div>
+                            <input type="text" id="username" name="username" value="{{ user.username }}" maxlength="24">
+                        </div>
+
+                        <div class="settings-field">
+                            <label for="email">Почта</label>
+                            <input type="email" id="email" name="email" value="{{ user.email }}">
+                        </div>
+
+                        <div class="settings-field">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <label for="bio">О себе</label>
+                                <small id="bioCounter" style="color: var(--text-muted); font-size: 13px;">0 / 150</small>
+                            </div>
+                            <textarea id="bio" name="bio" rows="3" maxlength="150" placeholder="Нет описания">{% if user.profile.bio and user.profile.bio != "None" %}{{ user.profile.bio }}{% endif %}</textarea>
+                        </div>
+
+                        <div class="settings-field">
+                            <label>Обложка профиля</label>
+                            <div class="banner-wrapper" id="bannerWrapper">
+                                <div class="settings-banner" id="bannerPreview" style="background-image: url('{% if user.profile.banner %}{{ user.profile.banner.url }}{% endif %}');">
+                                    <label for="bannerInput" class="banner-overlay" style="font-size: 24px;">📷</label>
+                                </div>
+                            </div>
+                            <input type="file" name="banner" id="bannerInput" accept="image/*" style="display: none;">
+                        </div>
+
+                        <div class="banner-crop-modal" id="bannerCropModal" style="display: none;">
+                            <div class="banner-crop-box">
+                                <h3>Расположите обложку</h3>
+                            
+                                <div class="banner-crop-stage" id="bannerCropStage">
+                                    <img id="bannerCropImg" draggable="false" alt="">
+                                    <div class="banner-crop-frame" id="bannerCropFrame"></div>
+                                </div>
+                            
+                                <div class="banner-crop-controls">
+                                    <button type="button" class="zoom-btn" id="zoomOutBtn" aria-label="Уменьшить">−</button>
+                                    <input type="range" id="bannerZoom" min="100" max="300" value="100">
+                                    <button type="button" class="zoom-btn" id="zoomInBtn" aria-label="Увеличить">+</button>
+                                </div>
+                            
+                                <div class="banner-crop-actions">
+                                    <button type="button" class="btn-secondary" id="bannerCropCancel">Отмена</button>
+                                    <button type="button" class="btn-primary" id="bannerCropSave">Сохранить</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Безопасность -->
+                <section id="security" class="settings-card">
+                    <h2>Безопасность</h2>
+                    <form method="post" action="{% url 'mfs:settings' %}" class="settings-form" id="passwordForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="form" value="password">
+
+                        <div class="settings-field">
+                            <label for="old_password">Текущий пароль</label>
+                            <input type="password" id="old_password" name="old_password">
+                        </div>
+
+                        <div class="settings-field">
+                            <label for="new_password">Новый пароль</label>
+                            <input type="password" id="new_password" name="new_password">
+                        </div>
+
+                        <div class="settings-field">
+                            <label for="confirm_password">Подтверждение пароля</label>
+                            <input type="password" id="confirm_password" name="confirm_password">
+                        </div>
+
+                        <button type="submit" class="btn-primary" style="margin-top: 10px;">Сменить пароль</button>
+                    </form>
+                </section>
+
+                <!-- Внешний вид -->
+                <section id="appearance" class="settings-card">
+                    <h2>Внешний вид</h2>
+                    <form method="post" action="{% url 'mfs:settings' %}" class="settings-form" id="appearanceForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="form" value="appearance">
+
+                        <label class="settings-toggle-row">
+                            <div>
+                                <span class="settings-toggle-title">Отключить размытие</span>
+                            </div>
+                            <input type="checkbox" name="disable_blur" id="disableBlurToggle" class="settings-toggle" {% if user.profile.disable_blur %}checked{% endif %}>
+                        </label>
+
+                        <div class="settings-field" style="margin-top: 16px;">
+                            <label class="settings-toggle-row">
+                                <div>
+                                    <span class="settings-toggle-title">Акцентный цвет сайта</span>
+                                </div>
+                            </label>
+                            <div class="color-presets">
+                                <button type="button" class="color-dot {% if user.profile.accent_color == '#6865f2' or not user.profile.accent_color %}active{% endif %}" data-color="#6865f2" style="background: #6865f2;"></button>
+                                <button type="button" class="color-dot {% if user.profile.accent_color == '#10b981' %}active{% endif %}" data-color="#10b981" style="background: #10b981;"></button>
+                                <button type="button" class="color-dot {% if user.profile.accent_color == '#f43f5e' %}active{% endif %}" data-color="#f43f5e" style="background: #f43f5e;"></button>
+                                <button type="button" class="color-dot {% if user.profile.accent_color == '#38b7ee' %}active{% endif %}" data-color="#38b7ee" style="background: #38b7ee;"></button>
+                                <button type="button" class="color-dot {% if user.profile.accent_color == '#ee9b0c' %}active{% endif %}" data-color="#ee9b0c" style="background: #ee9b0c;"></button>
+                            </div>
+                            <input type="hidden" name="accent_color" id="accentColorInput" value="{{ user.profile.accent_color|default:'#6865f2' }}">
+                        </div>
+
+                        <label class="settings-toggle-row">
+                            <div>
+                                <span class="settings-toggle-title">Скрыть статистику</span>
+                                <span class="settings-hint">Прячет количество игр и часов в профиле</span>
+                            </div>
+                            <input type="checkbox" name="hide_stats" class="settings-toggle" {% if user.profile.hide_stats %}checked{% endif %}>
+                        </label>
+                    </form>
+                </section>
+
+                <!-- Приватность -->
+                <section id="privacy" class="settings-card">
+                    <h2>Приватность</h2>
+                    <form method="post" action="{% url 'mfs:settings' %}" class="settings-form" id="privacyForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="form" value="privacy">
+
+                        <div class="settings-field">
+                            <span class="settings-toggle-title">Кто видит ваш профиль</span>
+                            <select id="profile_visibility" name="profile_visibility">
+                                <option value="everyone" {% if user.profile.profile_visibility == 'everyone' %}selected{% endif %}>Все</option>
+                                <option value="friends" {% if user.profile.profile_visibility == 'friends' %}selected{% endif %}>Только друзья</option>
+                                <option value="private" {% if user.profile.profile_visibility == 'private' %}selected{% endif %}>Только я</option>
+                            </select>
+                        </div>
+
+                        <label class="settings-toggle-row">
+                            <div>
+                                <span class="settings-toggle-title">Показывать библиотеку игр</span>
+                                <span class="settings-hint">Другие пользователи увидят список ваших игр</span>
+                            </div>
+                            <input type="checkbox" name="show_library" class="settings-toggle" {% if user.profile.show_library %}checked{% endif %}>
+                        </label>
+                    </form>
+                </section>
+
+                <!-- Опасная зона -->
+                <section id="danger" class="settings-card settings-card-danger">
+                    <h2>Удаление аккаунта</h2>
+                    <p class="settings-hint">Это действие необратимо. Все данные профиля, библиотека и история заказов будут удалены навсегда.</p>
+
+                    <form method="post" action="{% url 'mfs:settings' %}" class="settings-form" onsubmit="return confirm('Удалить аккаунт без возможности восстановления?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="form" value="delete_account">
+                        <button type="submit" class="btn-danger">Удалить аккаунт</button>
+                    </form>
+                </section>
+
+            </div>
+        </div>
+    </main>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Индикатор автосохранения -->
+<div id="saveStatus" class="save-status"></div>
+<script>
+(function () {
+    const EXPORT_WIDTH = 1200; // ширина готовой обложки в пикселях
+ 
+    const input = document.getElementById('bannerInput');
+    const modal = document.getElementById('bannerCropModal');
+    const stage = document.getElementById('bannerCropStage');
+    const frame = document.getElementById('bannerCropFrame');
+    const img = document.getElementById('bannerCropImg');
+    const zoomSlider = document.getElementById('bannerZoom');
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const cancelBtn = document.getElementById('bannerCropCancel');
+    const saveBtn = document.getElementById('bannerCropSave');
+    const preview = document.getElementById('bannerPreview');
+ 
+    if (!input || !modal) return;
+ 
+    let naturalW = 0, naturalH = 0;
+    let baseScale = 1; // масштаб, при котором картинка ровно закрывает РАМКУ (не всю сцену)
+    let scale = 1;
+    let offsetX = 0, offsetY = 0;
+    let dragging = false;
+    let startX = 0, startY = 0, startOffsetX = 0, startOffsetY = 0;
+ 
+    input.addEventListener('change', () => {
+        const file = input.files[0];
+        if (!file) return;
+ 
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            img.onload = () => {
+                naturalW = img.naturalWidth;
+                naturalH = img.naturalHeight;
+                openModal();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+ 
+    function openModal() {
+        modal.style.display = 'flex';
+ 
+        const frameRect = frame.getBoundingClientRect();
+        baseScale = Math.max(frameRect.width / naturalW, frameRect.height / naturalH);
+ 
+        zoomSlider.value = 100;
+        scale = baseScale;
+        offsetX = 0;
+        offsetY = 0;
+        updateZoomFill();
+        applyTransform();
+    }
+ 
+    function applyTransform() {
+        img.style.width = naturalW * scale + 'px';
+        img.style.height = naturalH * scale + 'px';
+ 
+        const stageRect = stage.getBoundingClientRect();
+        const frameRect = frame.getBoundingClientRect();
+ 
+        const imgW = naturalW * scale;
+        const imgH = naturalH * scale;
+ 
+        const maxOffsetX = Math.max(0, (imgW - frameRect.width) / 2);
+        const maxOffsetY = Math.max(0, (imgH - frameRect.height) / 2);
+        offsetX = Math.min(maxOffsetX, Math.max(-maxOffsetX, offsetX));
+        offsetY = Math.min(maxOffsetY, Math.max(-maxOffsetY, offsetY));
+ 
+        const left = (stageRect.width - imgW) / 2 + offsetX;
+        const top = (stageRect.height - imgH) / 2 + offsetY;
+        img.style.transform = `translate(${left}px, ${top}px)`;
+    }
+ 
+    function setZoom(value) {
+        zoomSlider.value = Math.min(300, Math.max(100, value));
+        scale = baseScale * (zoomSlider.value / 100);
+        updateZoomFill();
+        applyTransform();
+    }
+ 
+    function updateZoomFill() {
+        const min = Number(zoomSlider.min);
+        const max = Number(zoomSlider.max);
+        const pct = (zoomSlider.value - min) / (max - min) * 100;
+        zoomSlider.style.background =
+            `linear-gradient(to right, var(--accent, #6366f1) ${pct}%, rgba(255,255,255,.15) ${pct}%)`;
+    }
+ 
+    zoomSlider.addEventListener('input', () => setZoom(zoomSlider.value));
+    zoomInBtn.addEventListener('click', () => setZoom(Number(zoomSlider.value) + 20));
+    zoomOutBtn.addEventListener('click', () => setZoom(Number(zoomSlider.value) - 20));
+ 
+    stage.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        setZoom(Number(zoomSlider.value) + (e.deltaY < 0 ? 10 : -10));
+    }, { passive: false });
+ 
+    // --- Перетаскивание (мышь + тач через Pointer Events) ---
+    function stopDragging(e) {
+        dragging = false;
+        stage.classList.remove('dragging');
+        if (e && stage.hasPointerCapture && stage.hasPointerCapture(e.pointerId)) {
+            stage.releasePointerCapture(e.pointerId);
+        }
+    }
+ 
+    stage.addEventListener('pointerdown', (e) => {
+        dragging = true;
+        stage.classList.add('dragging');
+        stage.setPointerCapture(e.pointerId);
+        startX = e.clientX;
+        startY = e.clientY;
+        startOffsetX = offsetX;
+        startOffsetY = offsetY;
+    });
+ 
+    stage.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        offsetX = startOffsetX + (e.clientX - startX);
+        offsetY = startOffsetY + (e.clientY - startY);
+        applyTransform();
+    });
+ 
+    stage.addEventListener('pointerup', stopDragging);
+    stage.addEventListener('pointercancel', stopDragging);
+ 
+    window.addEventListener('blur', () => {
+        if (dragging) stopDragging();
+    });
+ 
+    // --- Отмена ---
+    cancelBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+        input.value = '';
+    });
+ 
+    // --- Сохранение: вырезаем именно то, что внутри РАМКИ ---
+    saveBtn.addEventListener('click', () => {
+        const stageRect = stage.getBoundingClientRect();
+        const frameRect = frame.getBoundingClientRect();
+ 
+        const left = (stageRect.width - naturalW * scale) / 2 + offsetX;
+        const top = (stageRect.height - naturalH * scale) / 2 + offsetY;
+ 
+        const frameLeftInStage = frameRect.left - stageRect.left;
+        const frameTopInStage = frameRect.top - stageRect.top;
+ 
+        const sx = (frameLeftInStage - left) / scale;
+        const sy = (frameTopInStage - top) / scale;
+        const sw = frameRect.width / scale;
+        const sh = frameRect.height / scale;
+ 
+        const exportHeight = Math.round(EXPORT_WIDTH * (frameRect.height / frameRect.width));
+ 
+        const canvas = document.createElement('canvas');
+        canvas.width = EXPORT_WIDTH;
+        canvas.height = exportHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, EXPORT_WIDTH, exportHeight);
+ 
+        canvas.toBlob((blob) => {
+            const croppedFile = new File([blob], 'banner.jpg', { type: 'image/jpeg' });
+ 
+            const dt = new DataTransfer();
+            dt.items.add(croppedFile);
+            input.files = dt.files;
+ 
+            if (preview) {
+                preview.style.backgroundImage = `url(${URL.createObjectURL(blob)})`;
+            }
+ 
+            // Сразу отправляем на сервер, не дожидаясь другого изменения в форме.
+            // window.__submitAutoSaveForm/__profileForm объявляются во втором
+            // <script> (там, где живёт сама функция submitAutoSaveForm) —
+            // см. settings-autosave-expose.js
+            if (window.__submitAutoSaveForm && window.__profileForm) {
+                window.__submitAutoSaveForm(window.__profileForm);
+            }
+ 
+            modal.style.display = 'none';
+        }, 'image/jpeg', 0.9);
+    });
+})();
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const avatarPreview = document.getElementById("avatarPreview");
+    const avatarInput = document.getElementById("avatarInput");
+
+    // Функция вычисления среднего цвета картинки с затемнением
+    function setBorderFromImage(imgElement) {
+        if (!imgElement) return;
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = 1;
+        canvas.height = 1;
+
+        try {
+            ctx.drawImage(imgElement, 0, 0, 1, 1);
+            const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+
+            // Коэффициент затемнения: 0.6 = на 40% темнее
+            const factor = 0.6;
+
+            const darkR = Math.floor(r * factor);
+            const darkG = Math.floor(g * factor);
+            const darkB = Math.floor(b * factor);
+
+            // Устанавливаем затемненный цвет границы
+            avatarPreview.style.borderColor = `rgb(${darkR}, ${darkG}, ${darkB})`;
+        } catch (e) {
+            console.warn("Не удалось получить цвет аватарки:", e);
+        }
+    }
+
+    // 1. При загрузке страницы берем цвет текущего аватара
+    const currentImg = avatarPreview ? avatarPreview.querySelector("img") : null;
+    if (currentImg) {
+        if (currentImg.complete) {
+            setBorderFromImage(currentImg);
+        } else {
+            currentImg.addEventListener("load", () => setBorderFromImage(currentImg));
+        }
+    }
+
+    // 2. При предпросмотре нового аватара пересчитываем цвет динамически без мигания
+    if (avatarInput) {
+        avatarInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    // Создаем временную картинку в памяти для фонового расчета
+                    const tempImg = new Image();
+                    tempImg.src = event.target.result;
+
+                    tempImg.onload = () => {
+                        // 1. Сначала рассчитываем и задаем цвет границы
+                        setBorderFromImage(tempImg);
+
+                        // 2. И только после этого вставляем саму картинку в DOM
+                        avatarPreview.innerHTML = `<img src="${event.target.result}" id="avatarImg" alt="Preview">`;
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+}); // <-- Не хватало этой закрывающей скобки для DOMContentLoaded
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const saveStatus = document.querySelector('.save-status');
+        const autoSaveForms = document.querySelectorAll('#profileForm, #appearanceForm, #privacyForm');
+        let statusTimeout;
+
+        function showStatus(text, isError = false) {
+            if (!saveStatus) return;
+            saveStatus.textContent = text;
+            saveStatus.classList.toggle('error', isError);
+            saveStatus.classList.add('show');
+
+            clearTimeout(statusTimeout);
+            setTimeout(() => {
+                saveStatus.classList.remove('show');
+            }, 3000);
+        }
+
+        // Автосохранение форм через AJAX
+        function submitAutoSaveForm(form) {
+            const formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showStatus('Изменения сохранены');
+                } else {
+                    showStatus(data.message || 'Ошибка сохранения', true);
+                }
+            })
+            .catch(() => showStatus('Ошибка сети', true));
+        }
+
+        let debounceTimer;
+        autoSaveForms.forEach(form => {
+            form.addEventListener('change', (e) => {
+                if (e.target.type !== 'file') {
+                    submitAutoSaveForm(form);
+                }
+            });
+
+            form.addEventListener('input', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => submitAutoSaveForm(form), 800);
+                }
+            });
+        });
+
+        // Загрузка фото/баннера
+        const avatarInput = document.getElementById('avatarInput');
+        const bannerInput = document.getElementById('bannerInput');
+        const profileForm = document.getElementById('profileForm');
+        window.__submitAutoSaveForm = submitAutoSaveForm;
+        window.__profileForm = profileForm;
+
+        if (avatarInput) {
+            avatarInput.addEventListener('change', () => {
+                if (avatarInput.files && avatarInput.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        let img = document.getElementById('avatarImg');
+                        if (!img) {
+                            const preview = document.getElementById('avatarPreview');
+                            const letter = document.getElementById('avatarLetter');
+                            if (letter) letter.remove();
+                            img = document.createElement('img');
+                            img.id = 'avatarImg';
+                            preview.insertBefore(img, preview.firstChild);
+                        }
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(avatarInput.files[0]);
+                    submitAutoSaveForm(profileForm);
+                }
+            });
+        }
+
+        const navLinks = document.querySelectorAll('.settings-nav-link');
+        const sections = document.querySelectorAll('.settings-card');
+
+        // 1. Переключение класса active при клике
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 2. Автоматическое переключение active при прокрутке страницы
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -60% 0px', // Зона срабатывания вверху экрана
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    navLinks.forEach(link => {
+                        if (link.getAttribute('href') === `#${id}`) {
+                            link.classList.add('active');
+                        } else {
+                            link.classList.remove('active');
+                        }
+                    });
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => observer.observe(section));
+
+        // Выбор акцентного цвета
+        const colorDots = document.querySelectorAll('.color-dot');
+        const accentInput = document.getElementById('accentColorInput');
+        const appearanceForm = document.getElementById('appearanceForm');
+
+        colorDots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                colorDots.forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+                const selectedColor = dot.getAttribute('data-color');
+
+                accentInput.value = selectedColor;
+
+                // Обновляем все акцентные переменные "на лету"
+                document.documentElement.style.setProperty('--accent', selectedColor);
+                document.documentElement.style.setProperty('--accent-color', selectedColor);
+                document.documentElement.style.setProperty('--accent-hover', selectedColor + 'cc');
+
+                submitAutoSaveForm(appearanceForm);
+            });
+        });
+
+        // Выключение блюра на лету
+        const disableBlurToggle = document.getElementById('disableBlurToggle');
+        if (disableBlurToggle) {
+            disableBlurToggle.addEventListener('change', (e) => {
+                document.body.classList.toggle('no-blur', e.target.checked);
+            });
+        }
+
+        // Счетчики символов
+        function setupCounter(inputId, counterId, maxLen) {
+            const input = document.getElementById(inputId);
+            const counter = document.getElementById(counterId);
+            if (!input || !counter) return;
+
+            const update = () => {
+                counter.textContent = `${input.value.length} / ${maxLen}`;
+            };
+            input.addEventListener('input', update);
+            update();
+        }
+        setupCounter('username', 'NameCounter', 24);
+        setupCounter('bio', 'bioCounter', 150);
+
+        // Форма смены пароля
+        const passwordForm = document.getElementById('passwordForm');
+        if (passwordForm) {
+            passwordForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(passwordForm);
+                fetch(passwordForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showStatus(data.message || 'Пароль изменён');
+                        passwordForm.reset();
+                    } else {
+                        showStatus(data.message || 'Ошибка', true);
+                    }
+                })
+                .catch(() => showStatus('Ошибка сети', true));
+            });
+        }
+    });
+</script>
+{% endblock %}

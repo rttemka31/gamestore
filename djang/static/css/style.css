@@ -1,0 +1,2512 @@
+@font-face {
+    font-family: "MyFont";
+    src: url("fonts/unbounded.ttf") format("opentype"); /* Если файлы лежит в папке css/, замените на url("../fonts/reg.otf") */
+    font-weight: 100 900;
+    font-style: normal;
+}
+/* =========================
+   ОСНОВНЫЕ НАСТРОЙКИ
+========================= */
+:root {
+    /* Colors */
+    --bg-primary: #111216;
+    --bg-secondary: #17181f;
+    --bg-surface: #20222b;
+    --bg-card: #252833;
+    --bg-card-hover: #313442;
+
+    --text-primary: #ffffff;
+    --text-secondary: #bcc9d6;
+    --text-muted: #7f8b96;
+
+    --accent: #6366f1;
+    --success: #22c55e;
+    --danger: #c7312a;
+
+    /* Borders */
+    --border: rgba(255, 255, 255, 0.2);
+    --border-accent: #3e3e70;
+    --border-subtle: rgba(255, 255, 255, 0.1);
+
+    /* Shadows */
+    --shadow: rgba(0, 0, 0, 0.2);
+
+    /* Radius */
+    --radius-sm: 5px;
+    --radius-md: 10px;
+    --radius-big: 50px;
+
+    /* Padding */
+    --padding-sm: 7.5px;
+    --padding-sm2: 15px;
+    --padding-md: 20px;
+    --padding-big: 30px;
+
+    /* Text Weight */
+    --text-normal: 500;
+    --text-semibold: 600;
+    --text-bold: 700;
+
+    /* Animation */
+    --transition: 0.2s ease;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background: radial-gradient(
+        circle at 50% 0%,
+        #282a36 0%,
+        var(--bg-secondary) 35%,
+        var(--bg-primary) 70%
+    );
+    background-attachment: fixed;
+    color: var(--text-primary);
+    font-family: Inter, Helvetica, sans-serif;
+}
+
+/* =========================
+   NAVBAR
+========================= */
+
+.navbar {
+    width: 100%;
+    height: 74px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 7%;
+    background: rgba(11, 18, 26, 0.96);
+    border-bottom: 1px solid var(--border-subtle);
+    box-shadow: 0 15px 25px var(--shadow);
+    backdrop-filter: blur(5px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+.nav-left.button {
+    display: flex;
+    align-items: center;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: transform var(--transition);
+    text-decoration: none;
+    will-change: transform;
+    transform: perspective(1px) translateZ(0) rotate(0.01deg);
+    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+
+    /* 2. Анимируем строго свойство transform */
+    transition: transform 0.175s ease-out;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.nav-left.button:hover {
+    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+}
+
+.nav-left.button:active {
+    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+}
+.logo {
+    font-family: "MyFont", Inter, sans-serif;
+    font-size: 24px;
+    font-weight: var(--text-bold);
+    letter-spacing: 1px;
+    color: white;
+    margin-right: 25px;
+}
+
+.logo span {
+    color: var(--accent);
+}
+
+.nav-link {
+    font-family: "MyFont", Inter, sans-serif;
+    position: relative;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: var(--text-semibold);
+    transition: 0.2s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--accent);
+}
+
+.nav-link.active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -8px;
+    height: 2px;
+    background-color: var(--accent);
+    border-radius: var(--radius-sm);
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.profile {
+    color: var(--text-secondary);
+    font-size: 16px;
+}
+
+/* =========================
+   CONTAINER & SEARCH
+========================= */
+
+.container {
+    width: min(1200px, 90%);
+    margin: 0 auto;
+    padding: 20px 0 100px;
+}
+
+.search-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.search-area h1 {
+    margin: 0;
+    color: white;
+    font-size: 32px;
+    font-weight: var(--text-semibold);
+}
+
+.search-box {
+    display: flex;
+    width: 500px;
+    height: 42px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-accent);
+    box-shadow: 0 15px 25px var(--shadow);
+    border-radius: var(--radius-sm);
+    overflow: hidden; /* Аккуратно срезает углы у инпута и кнопки */
+    transition: 0.2s;
+}
+
+/* Красивая подсветка ВСЕГО блока при клике на поиск */
+.search-box:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
+}
+
+.search-box input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: var(--padding-sm);
+    color: white;
+    background: transparent;
+    font-size: 14px;
+}
+
+.search-box input::placeholder {
+    color: var(--text-muted);
+}
+
+.search-box button {
+    width: 42px;
+    height: 42px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+    font-size: 22px;
+    transition: 0.2s;
+}
+
+.search-box button:hover {
+    filter: brightness(1.15);
+}
+
+/* =========================
+   FEATURED GAME
+========================= */
+
+.featured {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr;
+    min-height: 375px;
+    max-height: 375px;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    box-shadow: 0 15px 25px var(--shadow);
+    margin-bottom: 50px;
+    border: none; 
+    transition: 0.2s;
+}
+
+.featured::after {
+    content: '';
+    position: absolute;
+    inset: 0; /* Растягивает на всю карточку */
+    border-radius: var(--radius-md);
+    border: 2px solid transparent; /* Рамка есть всегда, но прозрачная */
+    transition: border-color 0.3s, filter 0.3s;
+    pointer-events: none; /* Клики проходят сквозь рамку на ссылку */
+    z-index: 2; /* Ставим СВЕРХУ картинки */
+}
+
+.featured:hover {
+    background: var(--bg-card-hover);
+    filter: brightness(1.10);
+}
+
+/* При ховере меняем цвет рамки у псевдоэлемента */
+.featured:hover::after {
+    border-color: var(--border);
+}
+
+.featured > img {
+    width: 100%;
+    height: 100%;
+    min-height: 375px;
+    object-fit: cover;
+    display: block;
+}
+
+.featured-info {
+    padding: var(--padding-md);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.featured-label {
+    font-family: "MyFont", Inter, sans-serif;
+    color: var(--accent);
+    font-size: 16px;
+    font-weight: var(--text-bold);
+    letter-spacing: 1px;
+    margin-bottom: 0;
+    flex-wrap: nowrap;
+}
+
+.featured-info h2 {
+    margin: 0 0 15px;
+    color: white;
+    font-size: 32px;
+    font-weight: var(--text-semibold);
+}
+
+.featured-info p {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.75;
+    font-size: 16px;
+    max-width: 390px;
+}
+
+.featured-link {
+    text-decoration: none;
+}
+
+.price-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.featured-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--padding-big);
+}
+
+.featured-price {
+    font-size: 22px;
+    color: white;
+    font-weight: var(--text-semibold);
+}
+
+.old-featured-price {
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1;
+    text-decoration: line-through;
+}
+
+.buy-button {
+    border: none;
+    background: var(--accent);
+    color: white;
+    padding: 11px 27px;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-weight: var(--text-semibold);
+    cursor: pointer;
+    transition: transform var(--transition);
+    text-decoration: none;
+    will-change: transform;
+    transform: perspective(1px) translateZ(0) rotate(0.01deg);
+    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+
+    /* 2. Анимируем строго свойство transform */
+    transition: transform 0.175s ease-out;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.buy-button:hover {
+    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+}
+
+.buy-button:active {
+    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+}
+
+/* =========================
+   SECTIONS & GRID
+========================= */
+
+.games-section {
+    margin-bottom: 55px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-weight: var(--text-semibold);
+}
+
+.section-header h2 {
+    margin-bottom: var(--padding-sm);
+    color: white;
+    font-size: 24px;
+    font-weight: var(--text-semibold);
+}
+
+.section-header a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: var(--text-semibold);
+    font-size: 16px;
+    transition: 0.2s;
+}
+
+.section-header a:hover {
+    color: white;
+}
+
+.section-header-2 {
+    text-align: center; /* Центрирует саму ссылку внутри контейнера */
+    margin-top: var(--padding-sm2);
+}
+
+.section-header-2 a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 16px;
+    transition: 0.2s;
+    font-weight: var(--text-semibold);
+    padding: var(--padding-sm);
+    align-items: center;
+    justify-content: center;
+}
+
+.section-header-2 a:hover {
+    color: white;
+}
+
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 15px;
+    align-items: start;
+}
+
+/* =========================
+   GAME CARD
+========================= */
+
+a.game-card {
+    position: relative; /* Обязательно для позиционирования ::after */
+    min-width: 250px;
+    max-width: 500px;
+    height: 100%; /* Карточка должна занимать всю доступную высоту в сетке */
+    overflow: hidden;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+    border: none; 
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text-primary) ;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Создаем наложение для рамки */
+a.game-card::after {
+    content: '';
+    position: absolute;
+    inset: 0; /* Растягивает на всю карточку */
+    border-radius: var(--radius-md);
+    border: 2px solid transparent; /* Рамка есть всегда, но прозрачная */
+    transition: border-color 0.3s, filter 0.3s;
+    pointer-events: none; /* Клики проходят сквозь рамку на ссылку */
+    z-index: 2; /* Ставим СВЕРХУ картинки */
+}
+
+a.game-card:hover {
+    transform: translateY(-8px);
+    background: var(--bg-card-hover);
+    filter: brightness(1.10);
+    box-shadow: 0 15px 25px var(--shadow);
+}
+
+/* При ховере меняем цвет рамки у псевдоэлемента */
+a.game-card:hover::after {
+    border-color: var(--border);
+}
+
+.game-image {
+    position: relative;
+    width: 100%;
+    height: 150px; /* Фиксируем комфортную высоту картинки в карточке */
+    overflow: hidden;
+}
+
+.game-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Картинка заполнит блок, сохранит пропорции и обрежет лишние края без искажений */
+    display: block;
+    transition: transform 0.3s, filter 0.3s;
+}
+
+.game-card .no-cover {
+    width: 100%;
+    max-height: 150px; /* Синхронизируем высоту заглушки */
+    background: var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.game-card:hover .game-image img {
+    filter: brightness(1.10);
+}
+
+.game-info {
+    padding: var(--padding-sm2);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.game-info h3 {
+    margin: 0 0 8px;
+    color: white;
+    font-size: 18px;
+    font-weight: var(--text-semibold);
+}
+
+.game-info p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 20px;
+}
+
+.release-date {
+    margin-top: 0px;
+    margin-bottom: 25px;
+    color: var(--text-muted);
+    font-weight: var(--text-normal);
+    font-size: 14px;
+    line-height: 1.75;
+}
+
+.game-bottom {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: auto;
+    min-height: 30px;
+}
+
+.price-block {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+}
+
+.old-price {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1;
+    text-decoration: line-through;
+}
+
+.price {
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: var(--text-semibold);
+    line-height: 1;
+}
+
+.price.hot-discount {
+    color: var(--danger) ;
+    font-weight: var(--text-semibold);
+    text-shadow: 0 0 10px rgba(255, 59, 48, 0.3);
+}
+
+.featured-price.hot-discount {
+    color: var(--danger) ;
+    font-size: 22px; /* Увеличьте до нужного размера (базовый 22px) */
+    font-weight: var(--text-semibold);
+    text-shadow: 0 0 10px rgba(255, 59, 48, 0.3); /* Красивое неоновое свечение */
+}
+
+.featured-release-date {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.75;
+}
+
+.discount {
+    font-family: "MyFont", Inter, sans-serif;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--success);
+    color: var(--bg-primary);
+    padding: 7px 6px;
+    font-size: 16px;
+    border-radius: var(--radius-sm);
+    font-weight: var(--text-semibold);
+    line-height: 1;
+    letter-spacing: 0.3px;
+}
+
+.not-on-steam-badge2 {
+    display: inline-block;
+    font-family: "MyFont", Inter, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 7px 6px;
+    font-size: 14px;
+    font-weight: var(--text-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    backdrop-filter: blur(5px);
+    line-height: 1;
+}
+
+/* =========================
+   GAME DETAIL PAGE
+========================= */
+
+.game-detail-title {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: var(--padding-big);
+}
+
+.game-detail-title h1 {
+    margin: 0;
+    color: white;
+    font-size: 32px;
+    font-weight: var(--text-semibold);
+}
+
+.game-detail {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr; /* Картинка занимает ~57% ширины, описание ~43% */
+    gap: 30px;
+    margin-bottom: 15px;
+    align-items: start; /* Предотвращает насильное растягивание картинки по высоте текста */
+}
+
+.game-detail-cover {
+    width: 100%;
+    height: auto; /* Высота подстраивается под пропорции картинки */
+    overflow: hidden;
+    border-radius: var(--radius-md);
+}
+
+.game-detail-cover .no-cover {
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.game-detail-info {
+    padding: var(--padding-md);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+}
+
+.game-detail-info h2 {
+    margin-top: 0;
+    color: white;
+    font-size: 24px;
+    font-weight: var(--text-semibold);
+}
+
+.game-short-description {
+    color: var(--text-secondary);
+    line-height: 1.75;
+    margin-bottom: 30px;
+    font-size: 16px;
+}
+
+.detail-row {
+    display: flex;
+    gap: 10px;
+    padding: var(--padding-sm);
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.detail-label {
+    color: var(--text-muted);
+    min-width: 130px;
+}
+
+.purchase-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 15px;
+    padding-top: 30px;
+    
+}
+
+.purchase-price {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.detail-section {
+    margin-bottom: 50px;
+}
+
+.detail-section h2 {
+    color: white;
+    font-size: 24px;
+    margin-bottom: var(--padding-md);
+    font-weight: var(--text-semibold);
+}
+
+.description-box {
+    padding: var(--padding-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* =========================
+   АДАПТИВ
+========================= */
+
+@media (max-width: 900px) {
+    .navbar {
+        padding: 0 4%;
+    }
+
+    .nav-left {
+        gap: 15px;
+    }
+
+    .logo {
+        margin-right: 5px;
+    }
+
+    .profile {
+        display: none;
+    }
+
+    .featured {
+        grid-template-columns: 1fr;
+    }
+
+    .featured > img {
+        min-height: 250px;
+    }
+
+    .games-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .search-area {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+
+    .game-detail {
+        grid-template-columns: 1fr;
+    }
+
+    .game-detail-cover img {
+        min-height: 300px;
+    }
+}
+
+@media (max-width: 600px) {
+    .navbar {
+        height: auto;
+        padding: 20px 5%;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .nav-left {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .nav-right {
+        display: none;
+    }
+
+    .container {
+        width: 92%;
+        padding-top: 30px;
+    }
+
+    /* Исправлено: на смартфонах выводим по 1 карточке в ряд */
+    .games-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .featured-info {
+        padding: 25px;
+    }
+
+    .featured-info h2 {
+        font-size: 32px;
+    }
+
+    .game-detail-title {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .game-detail-title h1 {
+        font-size: 32px;
+    }
+
+    .purchase-box {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .buy-button {
+        width: 100%;
+    }
+}
+
+/* =========================
+   ВСПЛЫВАЮЩЕЕ УВЕДОМЛЕНИЕ (СВЕРХУ)
+========================= */
+
+.toast-notification {
+    position: fixed;
+    top: -75px; /* Изначально спрятана за верхним краем */
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 2px solid var(--danger);
+    padding: 11px 27px;
+    border-radius: var(--radius-md);
+    font-size: 16px;
+    box-shadow: 0 15px 25px var(--shadow);
+    transition: top 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s;
+    opacity: 0;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+/* Класс для показа плашки */
+.toast-notification.show {
+    top: 85px; /* Появляется прямо под вашей шапкой (navbar height 74px) */
+    opacity: 1;
+}
+.arrow-down {
+    display: inline-block;
+    transform: rotate(90deg);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb::before {
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--bg-card-hover);
+}
+
+/* =========================
+   АВТОРИЗАЦИЯ
+========================= */
+
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 65vh;
+}
+
+.auth-box {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--padding-md);
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 15px 25px var(--shadow);
+}
+
+.auth-box h2 {
+    margin-top: 0;
+    margin-bottom: 30px;
+    color: white;
+    text-align: center;
+    font-size: 32px;
+    font-weight: var(--text-semibold);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.form-group input {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-accent);
+    border-radius: var(--radius-sm);
+    padding: 9px 14px;
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    transition: 0.2s;
+}
+
+.form-group input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.1);
+}
+
+.auth-submit {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.auth-errors {
+    background-color: rgba(19, 1, 0, 0.6);
+    border: 2px solid var(--danger);
+    color: var(--danger);
+    padding: var(--padding-sm);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.logout-btn {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: var(--text-semibold);
+    padding: 9px 14px;
+    border: 2px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    transition: 0.2s;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 59, 48, 0.2);
+    border-color: var(--danger);
+}
+
+.install-btn {
+    border: none;
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+    padding: 9px 14px;
+    border-radius: var(--radius-sm);
+    font-weight: var(--text-semibold);
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform var(--transition);
+    will-change: transform;
+    transform: perspective(1px) translateZ(0) rotate(0.01deg);
+    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+
+    /* 2. Анимируем строго свойство transform */
+    transition: transform 0.2s ease-out;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.install-btn:hover {
+    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+}
+
+.install-btn:active {
+    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+}
+
+.cart-badge {
+    background: var(--accent);
+    color: white;
+    font-size: 14px;
+    padding: 2px 10px;
+    border-radius: var(--radius-big);
+    margin-left: 5px;
+}
+
+/* =========================
+   ГАЛЕРЕЯ
+========================= */
+
+.gallery-container {
+    margin-bottom: 25px;
+}
+
+/* Главная большая картинка */
+.main-image-box {
+    width: 100%;
+    height: 350px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 2px solid var(--border);
+}
+
+.main-image-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Лента миниатюр */
+.thumbnails-list {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+}
+
+/* Строгий размер для миниатюр */
+.thumbnails-list img.thumb {
+    width: 100px !important;
+    height: 55px !important;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    opacity: 0.5;
+    border: 2px solid transparent;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.thumbnails-list img.thumb:hover {
+    opacity: 0.7;
+}
+
+.thumbnails-list img.thumb.active {
+    opacity: 1;
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
+}
+
+/* Оформление миниатюры видео */
+/* Единый размер и скругление для всех миниатюр */
+.thumb {
+    width: 100px;
+    height: 55px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    object-fit: cover;
+    flex-shrink: 0;
+    box-sizing: border-box; /* Чтобы рамка не раздувала размер миниатюры */
+    border: 2px solid transparent; /* Заранее резервируем место под рамку */
+    transition: all var(--transition);
+}
+
+/* Специфичные стили для контейнера трейлера */
+.video-thumb {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;      /* Обрезает картинку по скругленным углам */
+    border-radius: var(--radius-sm);    /* Скругление углов для контейнера */
+}
+
+.video-thumb img {
+    width: 100px !important;
+    height: 55px !important;
+    object-fit: cover;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+.video-thumb img:hover {
+    opacity: 0.7;
+}
+.thumb.active {
+    border-color: var(--accent);
+    border-width: 2px;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
+}
+
+/* Увеличиваем прозрачность картинки внутри трейлера, когда он активен */
+.video-thumb.active img {
+    opacity: 1;
+}
+
+/* Компактная иконка Play */
+.play-badge {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background: var(--accent);
+    border-radius: var(--radius-big);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    padding-left: 2px;
+    pointer-events: none;  /* Пропускает клик на родительский div */
+}
+
+/* Контейнер пользователя в шапке */
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.user-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    right: auto;
+    background-color: var(--bg-secondary);
+    border: 2px solid var(--border);
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.6);
+    border-radius: var(--radius-sm);
+    z-index: 1000;
+    min-width: 130px;
+    padding: 0px 0;
+    text-align: center;
+    white-space: nowrap;
+
+    /* Скрытое состояние по умолчанию */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(-6px);
+    transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
+}
+
+/* Показываем меню при наличии класса .show (от клика) */
+.user-dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(6px);
+}
+
+.user-dropdown-menu .logout-item {
+    display: block;
+    padding: 12px 16px;
+    color: var(--text-secondary);
+    text-decoration: none !important;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: var(--text-normal);
+    transition: background 0.2s, color 0.2s;
+}
+
+.user-dropdown-menu .logout-item:hover {
+    background-color: var(--danger);
+    color: var(--text-primary) ;
+}
+
+.user-dropdown-menu .admin-item {
+    display: block;
+    padding: 12px 16px;
+    color: var(--text-secondary);
+    text-decoration: none !important;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: var(--text-normal);
+    transition: background 0.2s, color 0.2s, filter 0.2s;
+}
+
+.user-dropdown-menu .admin-item:hover {
+    filter: brightness(1.10);
+    background-color: var(--bg-card-hover);
+    color: var(--text-primary) ;
+}
+
+/* Контейнер для правильного позиционирования плашки */
+.search-box-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px; /* Ограничиваем максимальную ширину строки поиска */
+    margin-bottom: -20px; /* Добавляем отступ снизу для визуального разделения */
+}
+
+/* Сама выпадающая плашка */
+/* Строка с одной игрой (ссылка) */
+/* Выпадающий контейнер */
+.search-results {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    width: 100%; /* Если нужно сделать ширину фиксированной (как в корзине), укажите: min-width: 600px; */
+    background-color: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    z-index: 3;
+    box-shadow: 0 15px 25px var(--shadow);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* Карточка товара в поиске (полный аналог .cart-item) */
+.search-result-item {
+    display: flex;
+    align-items: center;
+    height: 130px; /* Жесткая фиксированная высота */
+    padding: var(--padding-sm); /* Изменено с 10px 15px на 10px, как в .cart-item */
+    background: var(--bg-surface);
+    text-decoration: none;
+    color: var(--text-secondary);
+    transition: filter 0.3s, background 0.3s;
+    border-bottom: 2px solid var(--border);
+    box-sizing: border-box; /* Гарантирует, что padding входит в 130px высоты */
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background: var(--bg-card);
+    filter: brightness(1.10);
+}
+
+/* Обложка (аналог .cart-cover img) */
+.search-result-item img {
+    width: 200px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    margin-right: 15px; /* Отступ до текста */
+    flex-shrink: 0;
+}
+
+/* Контентная часть */
+.search-result-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    overflow: hidden;
+}
+
+.search-result-info h2 {
+    font-weight: var(--text-normal);
+    color: var(--text-primary);
+    /* Если название слишком длинное — оно скроется в три точки */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    margin:
+        0 0 8px;
+    font-size: 18px;
+}
+
+.search-result-info .search-price {
+    color: white;
+    font-size: 18px;
+    font-weight: var(--text-semibold);
+}
+
+.search-price-block .search-price {
+    color: white;
+    font-size: 18px;
+    font-weight: var(--text-semibold);
+}
+
+/* Позиционирование крестика внутри search-box */
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-box input {
+    padding-right: 40px; /* Делаем отступ справа, чтобы текст не залезал на крестик */
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 55px; /* Размещаем перед кнопкой лупы */
+    font-size: 28px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+    transition: color var(--transition);
+    padding: 0 0px;
+}
+
+.clear-search-btn:hover {
+    color: var(--text-primary); /* Подсветка белым при наведении */
+}
+
+/* Элемент списка */
+.search-result-item {
+    display: flex;
+    align-items: center;
+    height: 130px;
+    padding: 12px 16px;
+    background: var(--bg-surface);
+    text-decoration: none;
+    color: var(--text-secondary);
+    transition: filter 0.3s, background 0.3s;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    box-sizing: border-box;
+}
+
+.search-result-item:hover {
+    background: var(--bg-card);
+    filter: brightness(1.10);
+}
+
+/* Обложка */
+.search-cover {
+    width: 150px;
+    height: 75px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.search-price-block .old-price {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-decoration: line-through;
+    line-height: 1;
+}
+
+/* Инфо (Название и Жанры) */
+.search-result-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    overflow: hidden;
+}
+
+.search-title {
+    font-weight: var(--text-semibold);
+    color: var(--text-primary);
+    /* Если название слишком длинное — оно скроется в три точки */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    margin:
+        0 0 10px;
+    color: white;
+    font-size: 18px;
+}
+
+/* Правая часть (Бейджи и Цена) */
+.search-result-right {
+    margin-left: auto; /* Прижимает весь блок вправо */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Выравнивает бейджи и текст по правому краю */
+    gap: 10px;
+    flex-shrink: 0;
+    padding-left: 15px;
+}
+
+/* Бейджи */
+.search-badges {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.badge-exclusive {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 2px solid var(--border);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: var(--text-semibold);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+/* Блок цен */
+.search-price-block {
+    display: flex;
+    flex-direction: column; /* Ставит старую цену над новой */
+    align-items: flex-end;  /* Выравнивает цены по правому краю */
+    justify-content: center;
+    flex: 1;
+    min-width: 0;
+    padding: 0 0px;
+    gap: 10px;
+}
+
+/* =========================
+   NEWS
+========================= */
+
+.news-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 50px;
+}
+
+.news-title {
+    margin-bottom: var(--padding-big);
+    color: white;
+    font-size: 32px;
+    font-weight: var(--text-semibold);
+}
+
+.news-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--padding-md);
+}
+
+.news-card {
+    position: relative; /* 1. Фиксируем ::after внутри карточки */
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--padding-md);
+    overflow: hidden; /* 2. Чтобы контент и картинки не вылезали за скругления */
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+    gap: var(--padding-sm);
+}
+
+.news-card::after {
+    content: '';
+    position: absolute;
+    inset: -2px; /* 3. Перекрываем внешнюю рамку родителя (смещение на толщину border) */
+    border-radius: var(--radius-md);
+    border: 2px solid transparent;
+    transition: border-color 0.3s;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.news-card:hover {
+    background: var(--bg-surface);
+    box-shadow: 0 15px 25px var(--shadow);
+}
+
+.news-card:hover::after {
+    border-color: var(--border-accent, #4a90e2); /* Укажите ваш акцентный цвет ховера */
+}
+
+.news-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--padding-sm2);
+    flex-wrap: wrap;
+    border-bottom: 2px transparent solid; /* 1. Резервируем место под рамку, чтобы не прыгал контент */
+    padding-bottom: var(--padding-sm);
+    transition: border-color 0.2s; /* Плавная смена цвета рамки */
+}
+.news-card:hover .news-card-header {
+    border-bottom: 2px solid var(--border-subtle);
+}
+
+/* Заголовок */
+.news-card h2 {
+    font-size: 22px;
+    line-height: 1.25;
+    font-family: "MyFont", Inter, sans-serif;
+    margin-bottom: var(--padding-sm);
+    font-weight: var(--text-normal);
+    color: var(--text-primary);
+}
+/* Описание */
+.news-description {
+    color: var(--text-secondary);
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.news-date {
+    color: var(--text-primary);
+    font-size: 16px;
+    margin-top: 0px;
+    line-height: 1;
+}
+
+.news-description p {
+    margin: 0 0 var(--padding-sm2) 0;
+}
+
+.news-description p:first-child {
+    margin-bottom: var(--padding-sm); /* Заработает после нажатия 2x Enter в админке */
+}
+
+.news-description ul, 
+.news-description ol {
+    margin: 8px 0 16px 20px;
+    padding: 0;
+}
+
+.news-description li {
+    margin-bottom: var(--padding-sm);
+}
+
+.news-description strong,
+.news-description b {
+    color: var(--text-primary, #ffffff);
+    display: inline-block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-size: 16px;
+}
+
+.empty-news {
+    padding: var(--padding-big);
+    text-align: center;
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+/* Блок фильтрации */
+.news-filters {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--padding-sm2);
+    margin-top: var(--padding-sm2);
+    margin-bottom: var(--padding-big);
+    flex-wrap: wrap;
+}
+
+/* Табы категорий */
+.filter-categories {
+    display: flex;
+    gap: var(--padding-sm);
+    flex-wrap: wrap;
+}
+
+.filter-chip {
+    margin-left: var(--padding-sm);
+    outline: none;
+
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: var(--text-semibold);
+    font-size: 16px;
+    transition: 0.2s;
+}
+
+.filter-chip:hover, .filter-chip.active {
+    color: var(--text-primary);
+}
+
+/* Дропдаун архива дат */
+.filter-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-accent);
+    border-radius: var(--radius-sm);
+    padding: 9px 14px;
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    transition: 0.2s;
+    margin: 0;
+}
+
+.filter-select::-ms-expand {
+    display: none;
+}
+
+.filter-select:hover, .filter-select:focus {
+    border-color: var(--accent, #6865f2);
+}
+
+.filter-select option {
+    background: var(--bg-secondary, #1a1b26);
+    color: var(--text-primary, #ffffff);
+}
+
+a.game-card {
+    position: relative; /* Обязательно для позиционирования ::after */
+    min-width: 250px;
+    overflow: hidden;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+    border: none; 
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text-primary) ;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Создаем наложение для рамки */
+a.game-card::after {
+    content: '';
+    position: absolute;
+    inset: 0; /* Растягивает на всю карточку */
+    border-radius: var(--radius-md);
+    border: 2px solid transparent; /* Рамка есть всегда, но прозрачная */
+    transition: border-color 0.3s, filter 0.3s;
+    pointer-events: none; /* Клики проходят сквозь рамку на ссылку */
+    z-index: 2; /* Ставим СВЕРХУ картинки */
+}
+
+a.game-card:hover {
+    transform: translateY(-8px);
+    background: var(--bg-card-hover);
+    filter: brightness(1.10);
+    box-shadow: 0 15px 25px var(--shadow);
+}
+
+a.game-card:hover::after {
+    border-color: var(--border);
+}
+
+.timer-label {
+    font-size: 14px;
+    color: #8f98a0;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.timer-box {
+    font-size: 18px;
+    font-weight: var(--text-normal);
+    color: var(--accent);
+    font-family: monospace;
+    white-space: nowrap;
+    /* Если визуально текст кажется чуть выше/ниже из-за моноширинного шрифта, 
+       можно добавить line-height: 1 */
+    line-height: 1;
+
+    display: inline-block;
+    font-family: "MyFont", Inter, sans-serif;
+    background: rgba(0, 0, 0, 0.6);
+    color: var(--text-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 7px 6px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    backdrop-filter: blur(5px);
+    margin-left: 100px;
+}
+
+.gotw-header {
+    display: grid;
+    /* max-content гарантирует, что первая и последняя колонки подстроятся под ширину текста */
+    grid-template-columns: max-content 1fr max-content;
+    align-items: center;
+    margin-bottom: var(--padding-sm2);
+}
+
+.timer-container {
+    justify-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.news-badge {
+    font-size: 14px;
+    font-family: "MyFont", Inter, sans-serif;
+    font-weight: var(--text-semibold);
+    padding: 7px 6px;
+    border-radius: var(--radius-sm);
+    line-height: 1;
+    white-space: nowrap;
+    height: fit-content;
+    width: fit-content;
+    background: rgba(3, 0, 26, 0.6);
+    color: #6366f1;
+    border: 2px solid var(--border);
+    border-color: rgba(99, 102, 241, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    backdrop-filter: blur(5px);
+}
+
+/* (Опционально) Кастомные цвета под разные типы */
+.news-badge-announcement {
+    background: rgba(26, 12, 0, 0.6);
+    color: #ffab00;
+    border-color: rgba(255, 171, 0, 0.3);
+}
+
+.news-badge-tech {
+    background-color: rgba(19, 1, 0, 0.6);
+    color: var(--danger);
+    border-color: rgba(233, 56, 47, 0.3);
+}
+
+/* Контейнер бейджа сверху */
+.news-badge-container {
+    margin-bottom: var(--padding-sm2);
+}
+
+/* Строка: Дата слева, Название сразу за ней */
+.news-card-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: var(--padding-sm2);
+}
+
+.news-date {
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1;
+    height: fit-content;
+    white-space: nowrap; /* Не даёт дате разрываться */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================
+   ПРОФИЛЬ
+   ========================= */
+.profile-layout {
+    display: flex;
+    position: relative;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 20px 50px;
+    box-sizing: border-box;
+    align-items: flex-start;
+}
+/* Главная карточка */
+.profile-card {
+    background: var(--bg-surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0; /* Убираем отступы у самой карточки */
+    overflow: hidden; /* Обрезает верхние углы баннера по форме карточки */
+    margin-bottom: 30px;
+}
+.profile-banner {
+    width: 100%;
+    height: 200px; /* Высота баннера */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 10px 10px 0 0;
+ 
+    /* нужно для позиционирования градиента */
+    position: relative;
+    overflow: hidden;
+}
+ 
+.profile-banner::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 30px; /* высота зоны перехода — чем больше, тем мягче и заметнее */
+    background: linear-gradient(to bottom, transparent, var(--bg-surface, #1a1c25));
+    pointer-events: none; /* чтобы не мешал кликам по баннеру, если они есть */
+}
+.banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 999;
+    
+    /* Делаем плавание/появление при ховере: */
+    opacity: 0;
+    transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+/* При наведении на баннер — плавно показываем оверлей */
+.profile-banner:hover .banner-overlay {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(2.5px);
+}
+.profile-main {
+    padding: 0 30px 30px 30px; /* Левый, правый и нижний отступы */
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+.profile-avatar {
+    width: 130px;
+    height: 130px;
+    min-width: 130px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    position: relative; /* Чтобы absolute оверлея позиционировался относительно аватара */
+    justify-content: center;
+    background: var(--accent);
+    font-size: 64px;
+    font-weight: var(--text-semibold);
+    color: var(--text-primary);
+    background: #2a2a2a;
+
+    border: 4px solid var(--border, #444); 
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+.profile-avatar-wrapper {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    margin-top: 0px; /* Нахлест на баннер */
+    z-index: 2;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Оверлей (полупрозрачная плашка с камерой при редактировании) */
+.avatar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    display: flex; /* больше не display:none по умолчанию — видимость решает opacity */
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+ 
+    opacity: 0;
+    pointer-events: none; /* пока невидим — не перехватывает клики по аватару/инпутам под ним */
+    transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.profile-avatar-wrapper:hover .avatar-overlay {
+    opacity: 1;
+    pointer-events: auto; /* теперь можно кликнуть по лейблу и открыть file input */
+}
+ 
+.avatar-overlay:hover {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(1px);
+}
+ 
+/* Оверлей показываем только в режиме редактирования — управляем классом,
+   а не инлайновым style="display:none" из HTML */
+.profile-avatar-wrapper:not(.editing) .avatar-overlay {
+    display: none;
+}
+
+.profile-actions {
+    display: flex;
+    align-items: center;
+}
+.profile-info {
+    flex: 1;
+}
+.profile-info h1 {
+    margin: 0 0 7.5px;
+    font-size: 24px;
+    font-family: "MyFont";
+    font-weight: var(--text-semibold);
+}
+.profile-status {
+    margin: 0 0 7.5px;
+    color: var(--text-secondary);
+    font-size: 16px;
+    white-space: normal;
+    word-break: break-word; /* Чтобы длинные слова без пробелов тоже перенослись */
+
+    /* 3. Ограничиваем ровно 3 строками с многоточием */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Статистика */
+.profile-stats {
+    display: flex;
+    margin-top: 30px;
+    gap: 30px;
+    padding: 20px 30px;
+    padding-top: var(--padding-md);
+    border-top: 2px solid var(--border-subtle);
+}
+.profile-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+/* Линия-разделитель для всех элементов, кроме последнего */
+.profile-stat:not(:last-child) {
+    border-right: 2px solid var(--border-subtle);
+    padding-right: var(--padding-md); /* Отступ от текста до линии */
+    margin-right: -5px;  /* Отступ от линии до следующего элемента */
+}
+.profile-stat strong {
+    font-size: 22px;
+    font-weight: var(--text-semibold);
+}
+.profile-stat span {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+/* Секции */
+
+.profile-section {
+    margin-bottom: 30px;
+}
+
+/* Активность */
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.activity-item {
+    position: relative; /* Обязательно: делает карточку точкой отсчета для ::after */
+    display: flex;
+    align-items: center;
+    padding: var(--padding-sm);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    transition: 0.2s;
+    min-height: 130px;
+    max-height: 130px;
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s; 
+}
+.activity-item:hover {
+    filter: brightness(1.10);
+}
+
+.activity-item::after {
+    content: ''; /* Обязательно: генерирует псевдоэлемент в DOM */
+    position: absolute; /* Обязательно: привязывает inset: 0 к .cart-item */
+    inset: 0;
+    border-radius: var(--radius-md);
+    border: 2px solid transparent;
+    transition: border-color 0.3s, filter 0.3s;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.activity-item:hover::after {
+    border-color: var(--border); /* Используем переменную для цвета рамки */
+}
+.activity-cover {
+    height: 100px;          /* Жестко задаем высоту под пропорцию обложки */
+    width: 200px;            /* Жестко задаем ширину */
+    flex-shrink: 0;         /* ЗАПРЕЩАЕМ Flexbox сжимать блок обложки */
+    border-radius: var(--radius-sm);     /* Скругление углов */
+    overflow: hidden;       /* Обрезаем картинку по границам скругления */
+    background-color: #0f1622; /* Цвет фона, если картинка долго грузится */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Сама картинка внутри обложки */
+.activity-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;      /* Заполняет весь блок без искажения пропорций */
+    display: block;
+}
+.activity-info {
+    margin-left: var(--padding-sm2);
+}
+.activity-info-t {
+    font-size: 16px;
+    color: var(--text-muted);
+    font-weight: var(--text-normal);
+}
+.activity-info h3 {
+    margin: 0 0 5px;
+    font-size: 18px;
+    font-weight: var(--text-semibold);
+}
+.empty-activity {
+    margin: 0;
+
+    color: var(--text-muted);
+    font-size: 16px;
+}
+.activity-time {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: 16px;
+}
+
+/* Избранное */
+.profile-empty {
+    padding: 45px 20px;
+    text-align: center;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+}
+.profile-empty-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+.profile-empty h3 {
+    margin: 0 0 15px;
+    font-weight: var(--text-semibold);
+}
+.profile-empty p {
+    margin: 0;
+    color: var(--text-muted);
+}
+.profile-placeholder {
+    color: var(--text-muted);
+    font-size: 16px;
+}
+
+/* Достижения */
+
+.achievements {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.achievement {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--bg-surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: var(--text-normal);
+}
+.achievement.locked {
+    opacity: 0.5;
+}
+
+/* Отключение блюра при наличии класса no-blur на body */
+body.no-blur,
+body.no-blur * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Сетка выбора акцентного цвета */
+.color-presets {
+    display: flex;
+    gap: var(--padding-sm2);
+    margin-top: var(--padding-sm);
+}
+
+.social-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--padding-sm2);
+    margin-top: var(--padding-sm2);
+}
+
+.color-dot {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.color-dot:hover {
+    transform: scale(1.2);
+}
+
+.color-dot.active {
+    border-color: var(--text-primary);
+}
+
+.banner-crop-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+ 
+.banner-crop-box {
+    background: var(--card-bg, #1a1c25);
+    border: 2px solid var(--card-border, rgba(255, 255, 255, .08));
+    border-radius: var(--radius-md);
+    padding: 20px;
+    width: min(680px, 100%);
+}
+ 
+.banner-crop-box h3 {
+    margin: 0 0 15px;
+    font-size: 16px;
+    font-weight: var(--text-semibold);
+}
+ 
+/* "Сцена" — заметно выше, чем сама рамка баннера, чтобы было видно
+   картинку целиком, а не только то, что попадёт в кадр */
+.banner-crop-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 1;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: #000;
+    cursor: grab;
+    touch-action: none;
+}
+ 
+.banner-crop-stage.dragging {
+    cursor: grabbing;
+}
+ 
+.banner-crop-stage img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    max-width: none;
+    user-select: none;
+    pointer-events: none;
+    will-change: transform;
+}
+ 
+/* Рамка — реальное соотношение сторон баннера на сайте.
+   Берётся автоматически из её собственных размеров в JS,
+   ничего вручную синхронизировать не нужно. */
+.banner-crop-frame {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    aspect-ratio: 4.3 / 1; /* было 5.7/1 — пересчитано под высоту 200px */
+    transform: translateY(-50%);
+    pointer-events: none;
+    border: 2px solid rgba(255, 255, 255, .9);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, .65); /* затемняет всё, что вне рамки */
+}
+ 
+.banner-crop-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+ 
+.zoom-btn {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid var(--card-border, rgba(255, 255, 255, .12));
+    background: rgba(255, 255, 255, .06);
+    color: #fff;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s;
+}
+ 
+.zoom-btn:hover {
+    background: rgba(255, 255, 255, .14);
+}
+ 
+#bannerZoom {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .15); /* перезаписывается JS-ом для заливки по значению */
+    outline: none;
+}
+ 
+#bannerZoom::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--accent);
+    cursor: pointer;
+}
+ 
+#bannerZoom::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--accent);
+    cursor: pointer;
+}
+ 
+#bannerZoom::-moz-range-track {
+    height: 5px;
+    border-radius: 999px;
+    background: transparent;
+}
+ 
+.banner-crop-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-primary {
+    border: none;
+    background: var(--accent);
+    color: var(--text-primary);
+    padding: 9px 14px;
+    border-radius: var(--radius-sm);
+    align-self: flex-start;
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: var(--text-semibold);
+    cursor: pointer;
+
+    will-change: transform;
+    transform: perspective(1px) translateZ(0) rotate(0.01deg);
+    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+
+    /* 2. Анимируем строго свойство transform */
+    transition: transform 0.175s ease-out;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.btn-primary:hover {
+    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+}
+
+.btn-primary:active {
+    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+}
+
+.btn-secondary {
+    border: none;
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+    padding: 9px 14px;
+    border-radius: var(--radius-sm);
+    font-weight: var(--text-semibold);
+    font-size: 14px;
+    cursor: pointer;
+    flex-shrink: 0;
+    align-self: flex-start;
+    transition: transform var(--transition);
+    will-change: transform;
+    transform: perspective(1px) translateZ(0) rotate(0.01deg);
+    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+
+    /* 2. Анимируем строго свойство transform */
+    transition: transform 0.2s ease-out;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.btn-secondary:hover {
+    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+}
+
+.btn-secondary:active {
+    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+}
+
+/* Основной контейнер: меню слева, контент справа */
+
+/* Левая боковая панель (меню) */
+.profile-sidebar {
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    margin-right: 30px;
+    position: sticky;
+    top: 90px; /* Отступ меню от верхнего края экрана при скролле */
+    align-self: start;
+    background-color: none;
+    padding: var(--padding-sm);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+}
+
+/* Ссылки-вкладки */
+.settings-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 10px;
+    cursor: pointer;
+    color: var(--text-muted);
+    border-radius: 2.5px;
+    font-size: 14px;
+    border-left: 3px solid transparent;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    text-decoration: none;
+    font-weight: var(--text-semibold);
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.settings-nav-link .nav-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0; /* Не дает иконке сжиматься */
+    transition: transform 0.2s ease;
+}
+
+.nav-icon {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0; /* Не дает иконке сжиматься */
+    transition: transform 0.2s ease;
+    border-radius: 50%;
+}
+
+.nav-icon-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    padding: 0px; /* Задаёт отступ от картинки до рамки */
+    text-decoration: none;
+    line-height: 0; /* Исключаем влияния шрифтовых отступов */
+    width: 42px;  /* Фиксируем размеры точно по картинке */
+    height: 42px;
+}
+
+.nav-icon-wrapper::after {
+    content: '';
+    position: absolute;
+    /* Отрицательные значения inset выносят рамку СНАРУЖИ */
+    inset: -4px; 
+    border-radius: 50%;
+    border: 2px solid transparent; /* Прозрачная рамка по умолчанию */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    pointer-events: none;
+}
+
+/* Анимация появления границы при наведении */
+.nav-icon-wrapper:hover::after {
+    border-color: var(--border);
+}
+
+.settings-nav-link:hover {
+    transform: translateX(5px);
+    background-color: var(--bg-card);
+    color: #ffffff;
+    border-left: 3px solid var(--accent);
+}
+
+.settings-nav-link.active {
+    background-color: var(--bg-card-hover);
+    color: #ffffff;
+}
+
+/* Счетчик возле "Друзья" */
+.settings-nav-link span {
+    font-size: 14px;
+    opacity: 0.85;
+}
+
+/* Правая часть с профилем */
+.profile-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-tab[hidden] {
+    display: none;
+}
+
+.profile-content {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+}
+.profile-tab { grid-area: 1 / 1; }          /* все вкладки в одной ячейке */
+.profile-tab[hidden] {
+    display: block;                          /* оставляем в раскладке, чтобы считалась высота */
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Поиск друзей */
+.friends-search { position: relative; }
+#friendSearchResults {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 50;
+}
+.search-result-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+}
+.search-avatar-ph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #fff;
+    border-radius: 50%;
+}
+.search-sub, .search-badge-muted { font-size: 12px; color: var(--text-muted); }
+.friend-add-btn {
+    background: #6865f2;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}

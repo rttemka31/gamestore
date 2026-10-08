@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ target.user.username }} | GameStore{% endblock %}
+
+{% block content %}
+<main class="container profile-container">
+    <section class="profile-card">
+        <div class="profile-banner" style="background-image: url('{% if target.banner %}{{ target.banner.url }}{% else %}/static/images/default-banner.jpg{% endif %}');"></div>
+
+        <div class="profile-main">
+            <div class="profile-avatar-wrapper">
+                <div class="profile-avatar">
+                    {% if target.avatar %}<img src="{{ target.avatar.url }}" alt="">
+                    {% else %}<span>{{ target.user.username|first|upper }}</span>{% endif %}
+                </div>
+            </div>
+
+            <div class="profile-info">
+                <h1 class="profile-title">{{ target.user.username }}</h1>
+                <p class="profile-status">{{ target.bio|default:"Нет описания" }}</p>
+            </div>
+
+            <div class="profile-actions">
+                {% if state == 'none' %}
+                    <button type="button" id="addFriendBtn" class="buy-button" data-username="{{ target.user.username }}">Добавить в друзья</button>
+                {% elif state == 'sent' %}
+                    <button type="button" class="buy-button" disabled>Заявка отправлена</button>
+                {% elif state == 'received' %}
+                    <a href="{% url 'mfs:profile' %}#friends" class="buy-button">Ответить на заявку</a>
+                {% else %}
+                    <button type="button" class="buy-button" disabled>Вы друзья</button>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if not target.hide_stats %}
+        <div class="profile-stats">
+            <div class="profile-stat"><strong>{{ target.user.date_joined|date:"Y" }}</strong><span>Участник с</span></div>
+        </div>
+        {% endif %}
+    </section>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('addFriendBtn')?.addEventListener('click', async e => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    const r = await fetch("{% url 'mfs:friend_request' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        body: new URLSearchParams({username: btn.dataset.username}),
+    });
+    const data = await r.json();
+    if (data.status === 'success') btn.textContent = 'Заявка отправлена';
+    else { alert(data.message || 'Ошибка'); btn.disabled = false; }
+});
+</script>
+{% endblock %}

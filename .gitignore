@@ -1,0 +1,14 @@
+venv/
+.venv/
+ENV/
+__pycache__/
+*.py[cod]
+*.sqlite3
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+staticfiles/
+djang/media/
+djang/fix_db.py

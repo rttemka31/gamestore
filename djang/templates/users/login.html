@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+{% extends 'base_mini.html' %}
+{% load static %}
+{% load socialaccount %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    {% block title %}Вход | GameStore{% endblock %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=3">
+    <link rel="icon" type="image/png" href="{% static 'css/icons/gamestore.png' %}">
+</head>
+<body>
+    {% block content %}
+    <div class="auth-container">
+        <div class="auth-box">
+            <h2>Вход</h2>
+            
+            {% if messages %}
+                <div class="form-errors" style="color: #ef4444; margin-bottom: 15px; font-size: 14px;">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="id_username">Имя пользователя</label>
+                    <input type="text" name="username" id="id_username" required placeholder="Введите логин">
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_password">Пароль</label>
+                    <input type="password" name="password" id="id_password" required placeholder="Введите пароль">
+                </div>
+                
+                <button type="submit" class="buy-button auth-submit">Войти</button>
+                <!-- Внутри формы или под кнопкой "Войти" -->
+                <div class="social-login">
+                    <a href="{% provider_login_url 'google' %}" class="nav-icon-wrapper" title="Войти через Google">
+                        <img src="{% static 'css/icons/google.png' %}" alt="Google" class="nav-icon">
+                    </a>
+                    <a href="{% provider_login_url 'discord' %}" class="nav-icon-wrapper" title="Войти через Discord" style="text-decoration: none; display: inline-block;">
+                        <img src="{% static 'css/icons/discord.png' %}" alt="" class="nav-icon">
+                    </a>
+                </div>
+                <div class="section-header-2">
+                    Нет аккаунта? <a href="{% url 'mfs:register' %}">Регистрация</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+{% endblock %}
+</html>
