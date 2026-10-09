@@ -18,6 +18,5 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Если нужна регистрация и вход через гугл и дискорд заполни `.env` своими значениями
-(смотри `example.env`).
+Перед запуском заполни `.env` своими значениями (смотри `example.env`).
 Сайт будет доступен на http://127.0.0.1:8000/
