@@ -56,7 +56,7 @@
                 <option value="">Все даты</option>
                 {% for date in archive_months %}
                     <option value="{{ date|date:'Y-m' }}" {% if selected_month == date|date:'Y-m' %}selected{% endif %}>
-                        {{ date|date:"F Y" }} г.
+                        {{ date|date:"b. Yг."}}
                     </option>
                 {% endfor %}
             </select>

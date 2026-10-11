@@ -13,7 +13,6 @@ from django.contrib import messages
 from django.http import JsonResponse, request
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from django.urls import reverse
 from django.utils import timezone
 from django.conf import settings
 from django.db.models import Prefetch, Sum, Q
@@ -535,11 +534,6 @@ def _my_profile(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
     return profile
 
-
-from django.db.models import Q
-from django.urls import reverse
-
-
 @login_required
 def friends_search(request):
     me = _my_profile(request)
@@ -555,7 +549,8 @@ def friends_search(request):
             Q(nickname__icontains=q)
         )
         .exclude(pk=me.pk)
-        .select_related('user')[:8]
+        .select_related('user')
+        .order_by('user__username')[:8]
     )
 
     relations = {}
@@ -564,8 +559,7 @@ def friends_search(request):
         Q(sender=me) | Q(receiver=me)
     ):
         other_id = (
-            f.receiver_id
-            if f.sender_id == me.id
+            f.receiver_id if f.sender_id == me.id
             else f.sender_id
         )
         relations[other_id] = f
@@ -577,26 +571,17 @@ def friends_search(request):
 
         if f is None or f.status == Friendship.Status.REJECTED:
             state = 'none'
-
         elif f.status == Friendship.Status.ACCEPTED:
             state = 'friends'
-
         else:
-            state = (
-                'sent'
-                if f.sender_id == me.id
-                else 'received'
-            )
+            state = 'sent' if f.sender_id == me.id else 'received'
 
         users.append({
             'username': p.user.username,
             'nickname': p.nickname or p.user.username,
             'avatar': p.avatar.url if p.avatar else '',
             'color': p.avatar_color or '#2a2a2a',
-            'url': reverse(
-                'mfs:user_profile',
-                args=[p.user.username]
-            ),
+            'url': reverse('mfs:user_profile', args=[p.user.username]),
             'state': state,
         })
 

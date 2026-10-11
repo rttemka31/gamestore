@@ -4,12 +4,46 @@
     font-weight: 100 900;
     font-style: normal;
 }
-* {
-    box-sizing: border-box;
-}
 
-html {
-    scroll-behavior: smooth;
+/* =========================
+   ОСНОВНЫЕ НАСТРОЙКИ
+========================= */
+
+:root {
+    --bg-primary: #111216;
+    --bg-secondary: #17181f;
+    --bg-surface: #20222b;
+    --bg-card: #252833;
+    --bg-card-hover: #313442;
+
+    --font-display: "MyFont", Inter, sans-serif;
+    --text-primary: #ffffff;
+    --text-secondary: #b4c1ce;
+    --text-muted: #7f8b96;
+
+    --accent: #6366f1;
+    --success: #22c55e;
+    --danger: #c7312a;
+
+    --border: rgba(255, 255, 255, 0.2);
+    --border-accent: #3e3e70;
+    --border-subtle: rgba(255, 255, 255, 0.1);
+
+    --shadow: rgba(0, 0, 0, 0.2);
+    --shadow2: 0 15px 25px rgba(0, 0, 0, 0.5);
+    --radius-sm: 5px;
+    --radius-md: 10px;
+    --radius-big: 50px;
+
+    --padding-sm: 7.5px;
+    --padding-sm2: 15px;
+    --padding-md: 20px;
+    --padding-big: 30px;
+
+    --text-normal: 500;
+    --text-semibold: 600;
+    --text-bold: 700;
+    --transition: 0.2s ease;
 }
 
 body {
@@ -33,6 +67,13 @@ body {
         sans-serif;
 }
 
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
 
 /* =========================
    NAVBAR
@@ -64,7 +105,7 @@ body {
 
 
 .logo {
-    font-family: "MyFont", Inter, sans-serif;
+    font-family: var(--font-display);
     font-size: 24px;
     font-weight: var(--text-bold);
     letter-spacing: 1px;
@@ -78,7 +119,7 @@ body {
 }
 
 .nav-link {
-    font-family: "MyFont", Inter, sans-serif;
+    font-family: var(--font-display);
     position: relative;
     color: var(--text-secondary);
     text-decoration: none;
@@ -311,19 +352,19 @@ body {
 }
 
 .exclusive {
-  font-family: "MyFont", Inter, sans-serif;
-  border: 2px solid var(--border);
-  background: transparent;
-  display: inline-flex;
-  align-items: center;
-  color: #e2e8f0;
-  position: absolute;
-  right: 100px;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  backdrop-filter: blur(5px); background: rgba(0, 0, 0, 0.6); color: #fff;
-  margin:
+    font-family: var(--font-display);
+    border: 2px solid var(--border);
+    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    color: #e2e8f0;
+    position: absolute;
+    right: 100px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    backdrop-filter: blur(5px); background: rgba(0, 0, 0, 0.6); color: #fff;
+    margin:
         0 0 12px;
 }
 
@@ -399,7 +440,7 @@ body {
 }
 
 .discount {
-    font-family: "MyFont", Inter, sans-serif;
+    font-family: var(--font-display);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -849,7 +890,7 @@ body {
 }
 
 .logo {
-    font-family: "MyFont", Inter, sans-serif;
+    font-family: var(--font-display);
     font-size: 24px;
     font-weight: var(--text-bold);
     letter-spacing: 1px;
@@ -1094,7 +1135,7 @@ a.game-card:hover {
 
 /* Для Chromium / Safari */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 9px;
 }
 
 ::-webkit-scrollbar-track {
@@ -1113,47 +1154,4 @@ a.game-card:hover {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--bg-card-hover);
-}
-
-:root {
-    /* Colors */
-    --bg-primary: #111216;
-    --bg-secondary: #17181f;
-    --bg-surface: #20222b;
-    --bg-card: #252833;
-    --bg-card-hover: #313442;
-
-    --text-primary: #ffffff;
-    --text-secondary: #b4c1ce;
-    --text-muted: #7f8b96;
-
-    --accent: #6366f1;
-    --success: #22c55e;
-    --danger: #c7312a;
-
-    /* Borders */
-    --border: rgba(255, 255, 255, 0.2);
-    --border-accent: #3e3e70;
-    --border-subtle: rgba(255, 255, 255, 0.1);
-
-    /* Shadows */
-    --shadow: rgba(0, 0, 0, 0.2);
-    --shadow2: 0 15px 25px rgba(0, 0, 0, 0.5);
-
-    /* Radius */
-    --radius-sm: 5px;
-    --radius-md: 10px;
-    --radius-big: 50px;
-
-    --padding-sm: 7.5px;
-    --padding-sm2: 15px;
-    --padding-md: 20px;
-    --padding-big: 30px;
-
-    --text-normal: 500;
-    --text-semibold: 600;
-    --text-bold: 700;
-
-    /* Animation */
-    --transition: 0.2s ease;
 }

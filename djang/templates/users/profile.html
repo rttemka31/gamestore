@@ -5,7 +5,7 @@
 
 {% block extra_head %}
 <head>
-    <link rel="stylesheet" href="{% static 'style.css' %}?v=18">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=18">
     <link rel="icon" type="image/png" href="{% static 'css/icons/gamestore.png' %}">
 
     {% if user.is_authenticated and user.profile.accent_color %}
@@ -661,6 +661,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('friendSearch');
     const dropdown = document.getElementById('friendSearchResults');
     let timer;
+    let searchController = null;
+    let searchSequence = 0;
 
     const esc = s => String(s).replace(/[&<>"']/g, c =>
         ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -685,105 +687,111 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     input.addEventListener('input', () => {
-        clearTimeout(timer);
-        const q = input.value.trim();
-        if (q.length < 2) { dropdown.style.display = 'none'; return; }
-        timer = setTimeout(() => runSearch(q), 250);
-    });
+    clearTimeout(timer);
 
-    async function runSearch(q) {
-        try {
-            const r = await fetch(
-                `${URLS.search}?q=${encodeURIComponent(q)}`
-            );
+    const q = input.value.trim();
 
-            if (!r.ok) {
-                throw new Error(`HTTP ${r.status}`);
-            }
+    // Отменяем предыдущий запрос и делаем его устаревшим.
+    searchSequence++;
 
-            const data = await r.json();
+    if (searchController) {
+        searchController.abort();
+        searchController = null;
+    }
 
-            if (!data.users || !data.users.length) {
-                dropdown.innerHTML = `
-                    <div class="search-result-item search-empty">
-                        Никого не найдено
-                    </div>
-                `;
+    if (q.length < 2) {
+        dropdown.innerHTML = '';
+        dropdown.style.display = 'none';
+        return;
+    }
 
-                dropdown.style.display = 'block';
-                return;
-            }
+    dropdown.innerHTML = `
+        <div class="search-result-item search-empty">
+            Поиск...
+        </div>
+    `;
+    dropdown.style.display = 'block';
 
-            dropdown.innerHTML = data.users.map(u => `
-                <div
-                    class="search-result-item"
-                    data-username="${esc(u.username)}"
-                >
+    timer = setTimeout(() => runSearch(q), 250);
+});
 
-                    <!-- Левая часть: аватар + информация -->
-                    <a
-                        href="${esc(u.url)}"
-                        class="search-result-link"
-                    >
+async function runSearch(q) {
+    const sequence = searchSequence;
+    searchController = new AbortController();
 
-                        ${
-                            u.avatar
-                                ? `
-                                    <img
-                                        src="${esc(u.avatar)}"
-                                        alt="${esc(u.username)}"
-                                        class="search-cover search-avatar"
-                                    >
-                                `
-                                : `
-                                    <div
-                                        class="search-cover search-avatar-ph"
-                                        style="background:${esc(u.color || '#2a2a2a')}"
-                                    >
-                                        ${esc(
-                                            (u.username || '?')
-                                            .charAt(0)
-                                            .toUpperCase()
-                                        )}
-                                    </div>
-                                `
-                        }
+    try {
+        const r = await fetch(
+            `${URLS.search}?q=${encodeURIComponent(q)}`,
+            { signal: searchController.signal }
+        );
+
+        if (!r.ok) {
+            throw new Error(`HTTP ${r.status}`);
+        }
+
+        const data = await r.json();
+
+        // Не показываем результаты старого запроса.
+        if (sequence !== searchSequence || input.value.trim() !== q) {
+            return;
+        }
+
+        if (!data.users || data.users.length === 0) {
+            dropdown.innerHTML = `
+                <div class="search-result-item search-empty">
+                    Никого не найдено
+                </div>
+            `;
+            dropdown.style.display = 'block';
+            return;
+        }
+
+        dropdown.innerHTML = data.users.map(u => {
+            const username = esc(u.username);
+            const nickname = esc(u.nickname || u.username);
+            const avatar = u.avatar
+                ? `<img src="${esc(u.avatar)}"
+                        alt=""
+                        class="search-avatar">`
+                : `<div class="search-avatar-ph"
+                        style="background:${esc(u.color || '#2a2a2a')}">
+                        ${esc((u.username || '?').charAt(0).toUpperCase())}
+                   </div>`;
+
+            return `
+                <div class="search-result-item"
+                     data-username="${username}">
+
+                    <a href="${esc(u.url)}" class="search-result-link">
+                        ${avatar}
 
                         <div class="search-result-info">
-                            <h4 class="search-title">
-                                ${esc(u.nickname || u.username)}
-                            </h4>
-
-                            <span class="search-sub">
-                                @${esc(u.username)}
-                            </span>
+                            <span class="search-title">${nickname}</span>
+                            <span class="search-sub">@${username}</span>
                         </div>
-
                     </a>
 
-                    <!-- Правая часть -->
                     <div class="search-result-right">
-
-                        ${
-                            ACTIONS[u.state] || ''
-                        }
-
+                        ${ACTIONS[u.state] || ''}
                     </div>
-
                 </div>
-            `).join('');
+            `;
+        }).join('');
 
-            dropdown.style.display = 'block';
+        dropdown.style.display = 'block';
 
         } catch (error) {
+            if (error.name === 'AbortError') return;
+        
             console.error('Ошибка поиска друзей:', error);
-
+        
+            if (sequence !== searchSequence) return;
+        
             dropdown.innerHTML = `
                 <div class="search-result-item search-empty">
                     Не удалось выполнить поиск
                 </div>
             `;
-
             dropdown.style.display = 'block';
         }
     }

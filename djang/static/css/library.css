@@ -9,6 +9,43 @@
    ОСНОВНЫЕ НАСТРОЙКИ
 ========================= */
 
+:root {
+    /* Colors */
+    --bg-primary: #111216;
+    --bg-secondary: #17181f;
+    --bg-surface: #20222b;
+    --bg-card: #252833;
+    --bg-card-hover: #313442;
+
+    --font-display: "MyFont", Inter, sans-serif;
+    --text-primary: #ffffff;
+    --text-secondary: #bcc9d6;
+    --text-muted: #7f8b96;
+
+    --accent: #6366f1;
+    --success: #22c55e;
+    --danger: #c7312a;
+
+    --border: rgba(255, 255, 255, 0.2);
+    --border-accent: #3e3e70;
+    --border-subtle: rgba(255, 255, 255, 0.1);
+
+    --shadow: rgba(0, 0, 0, 0.2);
+    --radius-sm: 5px;
+    --radius-md: 10px;
+    --radius-big: 50px;
+
+    --padding-sm: 7.5px;
+    --padding-sm2: 15px;
+    --padding-md: 20px;
+    --padding-big: 30px;
+
+    --text-normal: 500;
+    --text-semibold: 600;
+    --text-bold: 700;
+    --transition: 0.2s ease;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -185,14 +222,14 @@ body {
 }
 
 .not-on-steam-badge2 {
-  font-family: "MyFont", Inter, sans-serif;
-  border: 2px solid var(--border);
-  background: transparent;
-  color: var(--text-primary);
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  backdrop-filter: blur(5px); background: rgba(0, 0, 0, 0.6); color: #fff;
+    font-family: var(--font-display);
+    border: 2px solid var(--border);
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    backdrop-filter: blur(5px); background: rgba(0, 0, 0, 0.6); color: #fff;
 }
 
 .buy-button {
@@ -389,7 +426,6 @@ body {
     pointer-events: none;
 }
 
-/* Класс для показа плашки */
 .toast-notification.show {
     top: 85px; /* Появляется прямо под вашей шапкой (navbar height 74px) */
     opacity: 1;
@@ -400,7 +436,7 @@ body {
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 9px;
 }
 
 ::-webkit-scrollbar-track {
@@ -483,13 +519,6 @@ body {
 
 
 
-
-body {
-    margin: 0;
-    background-color: #171a21;
-    color: #f3f3f3;
-    font-family: 'Inter', sans-serif;
-}
 
 .steam-container {
     display: flex;
@@ -640,21 +669,6 @@ body {
         color-mix(in srgb, var(--bg-secondary, #1a1c25) 70%, transparent) 70%,
         var(--bg-surface, #1a1c25) 100%
     );
-}
-
-/* 4. Заголовок и иконка должны быть выше размытия */
-.hero-title-container {
-    position: absolute;
-    bottom: 5px;
-    left: 40px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    z-index: 3; /* Поднимаем над оверлеем */
-    background: rgba(0, 0, 0, 0.6);
-    border-radius: var(--radius-md);
-    padding: var(--padding-sm2);
-    backdrop-filter: blur(5px);
 }
 
 .hero-title {
@@ -809,6 +823,21 @@ body {
     object-fit: contain;
     border-radius: 2.5px;
     flex-shrink: 0;
+}
+
+/* 4. Заголовок и иконка должны быть выше размытия */
+.hero-title-container {
+    position: absolute;
+    bottom: 5px;
+    left: 40px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 3; /* Поднимаем над оверлеем */
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: var(--radius-md);
+    padding: var(--padding-sm2);
+    backdrop-filter: blur(5px);
 }
 
 /* Иконка рядом с заголовком на главном баннере */
@@ -1004,7 +1033,7 @@ body {
 }
 
 .logo {
-    font-family: "MyFont", Inter, sans-serif;
+    font-family: var(--font-display);
     font-size: 24px;
     font-weight: var(--text-bold);
     letter-spacing: 1px;
@@ -1044,45 +1073,4 @@ body {
     display: flex;
     align-items: center;
     gap: 25px;
-}
-
-:root {
-    /* Colors */
-    --bg-primary: #111216;
-    --bg-secondary: #17181f;
-    --bg-surface: #20222b;
-    --bg-card: #252833;
-    --bg-card-hover: #313442;
-
-    --text-primary: #ffffff;
-    --text-secondary: #b4c1ce;
-    --text-muted: #71808d;
-
-    --success: #22c55e;
-    --danger: #c7312a;
-
-    /* Borders */
-    --border: rgba(255, 255, 255, 0.2);
-    --border-subtle: rgba(255, 255, 255, 0.1);
-
-    /* Shadows */
-    --shadow: rgba(0, 0, 0, 0.2);
-
-    /* Radius */
-    --radius-sm: 5px;
-    --radius-md: 10px;
-    --radius-big: 50px;
-
-    /* Padding */
-    --padding-sm: 7.5px;
-    --padding-sm2: 15px;
-    --padding-md: 20px;
-    --padding-big: 30px;
-
-    --text-normal: 500;
-    --text-semibold: 600;
-    --text-bold: 700;
-
-    /* Animation */
-    --transition: 0.2s ease;
 }

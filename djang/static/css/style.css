@@ -4,17 +4,19 @@
     font-weight: 100 900;
     font-style: normal;
 }
+
 /* =========================
    ОСНОВНЫЕ НАСТРОЙКИ
 ========================= */
+
 :root {
-    /* Colors */
     --bg-primary: #111216;
     --bg-secondary: #17181f;
     --bg-surface: #20222b;
     --bg-card: #252833;
     --bg-card-hover: #313442;
 
+    --font-display: "MyFont", Inter, sans-serif;
     --text-primary: #ffffff;
     --text-secondary: #bcc9d6;
     --text-muted: #7f8b96;
@@ -23,31 +25,23 @@
     --success: #22c55e;
     --danger: #c7312a;
 
-    /* Borders */
     --border: rgba(255, 255, 255, 0.2);
     --border-accent: #3e3e70;
     --border-subtle: rgba(255, 255, 255, 0.1);
 
-    /* Shadows */
     --shadow: rgba(0, 0, 0, 0.2);
-
-    /* Radius */
     --radius-sm: 5px;
     --radius-md: 10px;
     --radius-big: 50px;
 
-    /* Padding */
     --padding-sm: 7.5px;
     --padding-sm2: 15px;
     --padding-md: 20px;
     --padding-big: 30px;
 
-    /* Text Weight */
     --text-normal: 500;
     --text-semibold: 600;
     --text-bold: 700;
-
-    /* Animation */
     --transition: 0.2s ease;
 }
 
@@ -97,33 +91,9 @@ body {
     align-items: center;
     gap: 25px;
 }
-.nav-left.button {
-    display: flex;
-    align-items: center;
-    border: none;
-    background: none;
-    cursor: pointer;
-    transition: transform var(--transition);
-    text-decoration: none;
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
-    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
 
-    /* 2. Анимируем строго свойство transform */
-    transition: transform 0.175s ease-out;
-
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-.nav-left.button:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
-}
-
-.nav-left.button:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
-}
 .logo {
-    font-family: "MyFont", Inter, sans-serif;
+    font-family: var(--font-display);
     font-size: 24px;
     font-weight: var(--text-bold);
     letter-spacing: 1px;
@@ -136,7 +106,7 @@ body {
 }
 
 .nav-link {
-    font-family: "MyFont", Inter, sans-serif;
+    font-family: var(--font-display);
     position: relative;
     color: var(--text-secondary);
     text-decoration: none;
@@ -167,80 +137,10 @@ body {
     gap: 25px;
 }
 
-.profile {
-    color: var(--text-secondary);
-    font-size: 16px;
-}
-
-/* =========================
-   CONTAINER & SEARCH
-========================= */
-
 .container {
     width: min(1200px, 90%);
     margin: 0 auto;
     padding: 20px 0 100px;
-}
-
-.search-area {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-}
-
-.search-area h1 {
-    margin: 0;
-    color: white;
-    font-size: 32px;
-    font-weight: var(--text-semibold);
-}
-
-.search-box {
-    display: flex;
-    width: 500px;
-    height: 42px;
-    background: var(--bg-secondary);
-    border: 2px solid var(--border-accent);
-    box-shadow: 0 15px 25px var(--shadow);
-    border-radius: var(--radius-sm);
-    overflow: hidden; /* Аккуратно срезает углы у инпута и кнопки */
-    transition: 0.2s;
-}
-
-/* Красивая подсветка ВСЕГО блока при клике на поиск */
-.search-box:focus-within {
-    border-color: var(--accent);
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
-}
-
-.search-box input {
-    flex: 1;
-    border: none;
-    outline: none;
-    padding: var(--padding-sm);
-    color: white;
-    background: transparent;
-    font-size: 14px;
-}
-
-.search-box input::placeholder {
-    color: var(--text-muted);
-}
-
-.search-box button {
-    width: 42px;
-    height: 42px;
-    border: none;
-    background: var(--accent);
-    color: white;
-    cursor: pointer;
-    font-size: 22px;
-    transition: 0.2s;
-}
-
-.search-box button:hover {
-    filter: brightness(1.15);
 }
 
 /* =========================
@@ -298,7 +198,7 @@ body {
 }
 
 .featured-label {
-    font-family: "MyFont", Inter, sans-serif;
+    font-family: var(--font-display);
     color: var(--accent);
     font-size: 16px;
     font-weight: var(--text-bold);
@@ -350,36 +250,6 @@ body {
     font-size: 16px;
     line-height: 1;
     text-decoration: line-through;
-}
-
-.buy-button {
-    border: none;
-    background: var(--accent);
-    color: white;
-    padding: 11px 27px;
-    border-radius: var(--radius-sm);
-    font-size: 16px;
-    font-weight: var(--text-semibold);
-    cursor: pointer;
-    transition: transform var(--transition);
-    text-decoration: none;
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
-    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
-
-    /* 2. Анимируем строго свойство transform */
-    transition: transform 0.175s ease-out;
-
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-.buy-button:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
-}
-
-.buy-button:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
 }
 
 /* =========================
@@ -460,7 +330,7 @@ a.game-card {
     border: none; 
     cursor: pointer;
     text-decoration: none;
-    color: var(--text-primary) ;
+    color: var(--text-primary);
     display: flex;
     flex-direction: column;
 }
@@ -579,19 +449,6 @@ a.game-card:hover::after {
     line-height: 1;
 }
 
-.price.hot-discount {
-    color: var(--danger) ;
-    font-weight: var(--text-semibold);
-    text-shadow: 0 0 10px rgba(255, 59, 48, 0.3);
-}
-
-.featured-price.hot-discount {
-    color: var(--danger) ;
-    font-size: 22px; /* Увеличьте до нужного размера (базовый 22px) */
-    font-weight: var(--text-semibold);
-    text-shadow: 0 0 10px rgba(255, 59, 48, 0.3); /* Красивое неоновое свечение */
-}
-
 .featured-release-date {
     margin-top: 0px;
     margin-bottom: 0px;
@@ -601,7 +458,7 @@ a.game-card:hover::after {
 }
 
 .discount {
-    font-family: "MyFont", Inter, sans-serif;
+    font-family: var(--font-display);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -617,7 +474,7 @@ a.game-card:hover::after {
 
 .not-on-steam-badge2 {
     display: inline-block;
-    font-family: "MyFont", Inter, sans-serif;
+    font-family: var(--font-display);
     background: var(--bg-primary);
     color: var(--text-primary);
     border: 2px solid var(--border);
@@ -881,7 +738,7 @@ a.game-card:hover::after {
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 9px;
 }
 
 ::-webkit-scrollbar-track {
@@ -903,7 +760,7 @@ a.game-card:hover::after {
 }
 
 /* =========================
-   АВТОРИЗАЦИЯ
+   AUTORIZATION
 ========================= */
 
 .auth-container {
@@ -992,53 +849,14 @@ a.game-card:hover::after {
     border-color: var(--danger);
 }
 
-.install-btn {
-    border: none;
-    background: var(--bg-card-hover);
-    color: var(--text-primary);
-    padding: 9px 14px;
-    border-radius: var(--radius-sm);
-    font-weight: var(--text-semibold);
-    font-size: 16px;
-    cursor: pointer;
-    transition: transform var(--transition);
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
-    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
-
-    /* 2. Анимируем строго свойство transform */
-    transition: transform 0.2s ease-out;
-
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-.install-btn:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
-}
-
-.install-btn:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
-}
-
-.cart-badge {
-    background: var(--accent);
-    color: white;
-    font-size: 14px;
-    padding: 2px 10px;
-    border-radius: var(--radius-big);
-    margin-left: 5px;
-}
-
 /* =========================
-   ГАЛЕРЕЯ
+   GALLERY
 ========================= */
 
 .gallery-container {
     margin-bottom: 25px;
 }
 
-/* Главная большая картинка */
 .main-image-box {
     width: 100%;
     height: 350px;
@@ -1055,7 +873,6 @@ a.game-card:hover::after {
     display: block;
 }
 
-/* Лента миниатюр */
 .thumbnails-list {
     display: flex;
     gap: 10px;
@@ -1065,7 +882,6 @@ a.game-card:hover::after {
     padding: 5px;
 }
 
-/* Строгий размер для миниатюр */
 .thumbnails-list img.thumb {
     width: 100px !important;
     height: 55px !important;
@@ -1088,8 +904,6 @@ a.game-card:hover::after {
     box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
 }
 
-/* Оформление миниатюры видео */
-/* Единый размер и скругление для всех миниатюр */
 .thumb {
     width: 100px;
     height: 55px;
@@ -1102,7 +916,6 @@ a.game-card:hover::after {
     transition: all var(--transition);
 }
 
-/* Специфичные стили для контейнера трейлера */
 .video-thumb {
     position: relative;
     display: flex;
@@ -1128,12 +941,10 @@ a.game-card:hover::after {
     box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
 }
 
-/* Увеличиваем прозрачность картинки внутри трейлера, когда он активен */
 .video-thumb.active img {
     opacity: 1;
 }
 
-/* Компактная иконка Play */
 .play-badge {
     position: absolute;
     width: 30px;
@@ -1149,7 +960,10 @@ a.game-card:hover::after {
     pointer-events: none;  /* Пропускает клик на родительский div */
 }
 
-/* Контейнер пользователя в шапке */
+/* =========================
+   DROPDOWN MENU
+========================= */
+
 .user-dropdown {
     position: relative;
     display: inline-block;
@@ -1170,7 +984,6 @@ a.game-card:hover::after {
     text-align: center;
     white-space: nowrap;
 
-    /* Скрытое состояние по умолчанию */
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -1178,7 +991,6 @@ a.game-card:hover::after {
     transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
 }
 
-/* Показываем меню при наличии класса .show (от клика) */
 .user-dropdown-menu.show {
     opacity: 1;
     visibility: visible;
@@ -1199,7 +1011,7 @@ a.game-card:hover::after {
 
 .user-dropdown-menu .logout-item:hover {
     background-color: var(--danger);
-    color: var(--text-primary) ;
+    color: var(--text-primary);
 }
 
 .user-dropdown-menu .admin-item {
@@ -1216,10 +1028,13 @@ a.game-card:hover::after {
 .user-dropdown-menu .admin-item:hover {
     filter: brightness(1.10);
     background-color: var(--bg-card-hover);
-    color: var(--text-primary) ;
+    color: var(--text-primary);
 }
 
-/* Контейнер для правильного позиционирования плашки */
+/* =========================
+   SEARCH
+========================= */
+
 .search-box-container {
     position: relative;
     width: 100%;
@@ -1227,9 +1042,6 @@ a.game-card:hover::after {
     margin-bottom: -20px; /* Добавляем отступ снизу для визуального разделения */
 }
 
-/* Сама выпадающая плашка */
-/* Строка с одной игрой (ссылка) */
-/* Выпадающий контейнер */
 .search-results {
     position: absolute;
     top: calc(100% + 5px);
@@ -1244,7 +1056,6 @@ a.game-card:hover::after {
     box-sizing: border-box;
 }
 
-/* Карточка товара в поиске (полный аналог .cart-item) */
 .search-result-item {
     display: flex;
     align-items: center;
@@ -1267,7 +1078,6 @@ a.game-card:hover::after {
     filter: brightness(1.10);
 }
 
-/* Обложка (аналог .cart-cover img) */
 .search-result-item img {
     width: 200px;
     height: 100px;
@@ -1275,15 +1085,6 @@ a.game-card:hover::after {
     border-radius: var(--radius-sm);
     margin-right: 15px; /* Отступ до текста */
     flex-shrink: 0;
-}
-
-/* Контентная часть */
-.search-result-info {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 10px;
-    overflow: hidden;
 }
 
 .search-result-info h2 {
@@ -1337,25 +1138,6 @@ a.game-card:hover::after {
     color: var(--text-primary); /* Подсветка белым при наведении */
 }
 
-/* Элемент списка */
-.search-result-item {
-    display: flex;
-    align-items: center;
-    height: 130px;
-    padding: 12px 16px;
-    background: var(--bg-surface);
-    text-decoration: none;
-    color: var(--text-secondary);
-    transition: filter 0.3s, background 0.3s;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-    box-sizing: border-box;
-}
-
-.search-result-item:hover {
-    background: var(--bg-card);
-    filter: brightness(1.10);
-}
-
 /* Обложка */
 .search-cover {
     width: 150px;
@@ -1407,12 +1189,55 @@ a.game-card:hover::after {
     padding-left: 15px;
 }
 
-/* Бейджи */
-.search-badges {
+.search-area {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 10px;
+    margin-bottom: 30px;
 }
+
+.search-area h1 {
+    margin: 0;
+    color: white;
+    font-size: 32px;
+    font-weight: var(--text-semibold);
+}
+
+.search-box {
+    display: flex;
+    width: 500px;
+    height: 42px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-accent);
+    box-shadow: 0 15px 25px var(--shadow);
+    border-radius: var(--radius-sm);
+    overflow: hidden; /* Аккуратно срезает углы у инпута и кнопки */
+    transition: 0.2s;
+}
+
+/* Красивая подсветка ВСЕГО блока при клике на поиск */
+.search-box:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
+}
+
+.search-box input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: var(--padding-sm);
+    color: white;
+    background: transparent;
+    font-size: 14px;
+}
+
+.search-box input::placeholder {
+    color: var(--text-muted);
+}
+
+/* =========================
+   BUTTONS & BADGES
+========================= */
 
 .badge-exclusive {
     background: var(--bg-primary);
@@ -1426,7 +1251,51 @@ a.game-card:hover::after {
     text-transform: uppercase;
 }
 
-/* Блок цен */
+.cart-badge {
+    background: var(--accent);
+    color: white;
+    font-size: 14px;
+    padding: 2px 10px;
+    border-radius: var(--radius-big);
+    margin-left: 5px;
+}
+
+.news-badge {
+    font-size: 14px;
+    font-family: var(--font-display);
+    font-weight: var(--text-semibold);
+    padding: 7px 6px;
+    border-radius: var(--radius-sm);
+    line-height: 1;
+    white-space: nowrap;
+    height: fit-content;
+    width: fit-content;
+    background: rgba(3, 0, 26, 0.6);
+    color: #6366f1;
+    border: 2px solid var(--border);
+    border-color: rgba(99, 102, 241, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    backdrop-filter: blur(5px);
+}
+
+/* (Опционально) Кастомные цвета под разные типы */
+.news-badge-announcement {
+    background: rgba(26, 12, 0, 0.6);
+    color: #ffab00;
+    border-color: rgba(255, 171, 0, 0.3);
+}
+
+.news-badge-tech {
+    background-color: rgba(19, 1, 0, 0.6);
+    color: var(--danger);
+    border-color: rgba(233, 56, 47, 0.3);
+}
+
+.news-badge-container {
+    margin-bottom: var(--padding-sm2);
+}
+
 .search-price-block {
     display: flex;
     flex-direction: column; /* Ставит старую цену над новой */
@@ -1436,6 +1305,122 @@ a.game-card:hover::after {
     min-width: 0;
     padding: 0 0px;
     gap: 10px;
+}
+
+.search-badges {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+
+.search-box button {
+    width: 42px;
+    height: 42px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+    font-size: 22px;
+    transition: 0.2s;
+}
+
+.search-box button:hover {
+    filter: brightness(1.15);
+}
+
+.nav-left.button {
+    display: flex;
+    align-items: center;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: transform var(--transition);
+    text-decoration: none;
+}
+
+.buy-button {
+    border: none;
+    background: var(--accent);
+    color: white;
+    padding: 11px 27px;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-weight: var(--text-semibold);
+    cursor: pointer;
+    transition: transform var(--transition);
+    text-decoration: none;
+}
+
+.friend-add-btn {
+    background: #6865f2;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.nav-left.button,
+.buy-button,
+.install-btn,
+.btn-primary,
+.btn-secondary {
+    will-change: transform;
+    transform: perspective(1px) translateZ(0) rotate(0.01deg);
+    outline: 1px solid transparent;
+    transition: transform 0.175s ease-out;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.install-btn {
+    border: none;
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+    padding: 9px 14px;
+    border-radius: var(--radius-sm);
+    font-weight: var(--text-semibold);
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform var(--transition);
+}
+
+.zoom-btn {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid var(--card-border, rgba(255, 255, 255, .12));
+    background: rgba(255, 255, 255, .06);
+    color: #fff;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s;
+}
+ 
+.zoom-btn:hover {
+    background: rgba(255, 255, 255, .14);
+}
+
+.nav-left.button:hover,
+.buy-button:hover,
+.install-btn:hover,
+.btn-primary:hover,
+.btn-secondary:hover {
+    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+}
+
+.nav-left.button:active,
+.buy-button:active,
+.install-btn:active,
+.btn-primary:active,
+.btn-secondary:active {
+    transform: perspective(1px) scale(0.9) rotate(0.01deg);
 }
 
 /* =========================
@@ -1506,16 +1491,15 @@ a.game-card:hover::after {
     border-bottom: 2px solid var(--border-subtle);
 }
 
-/* Заголовок */
 .news-card h2 {
     font-size: 22px;
     line-height: 1.25;
-    font-family: "MyFont", Inter, sans-serif;
+    font-family: var(--font-display);
     margin-bottom: var(--padding-sm);
     font-weight: var(--text-normal);
     color: var(--text-primary);
 }
-/* Описание */
+
 .news-description {
     color: var(--text-secondary);
     font-size: 16px;
@@ -1565,7 +1549,6 @@ a.game-card:hover::after {
     border-radius: var(--radius-md);
 }
 
-/* Блок фильтрации */
 .news-filters {
     display: flex;
     justify-content: space-between;
@@ -1576,7 +1559,6 @@ a.game-card:hover::after {
     flex-wrap: wrap;
 }
 
-/* Табы категорий */
 .filter-categories {
     display: flex;
     gap: var(--padding-sm);
@@ -1598,7 +1580,6 @@ a.game-card:hover::after {
     color: var(--text-primary);
 }
 
-/* Дропдаун архива дат */
 .filter-select {
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -1628,44 +1609,6 @@ a.game-card:hover::after {
     color: var(--text-primary, #ffffff);
 }
 
-a.game-card {
-    position: relative; /* Обязательно для позиционирования ::after */
-    min-width: 250px;
-    overflow: hidden;
-    background: var(--bg-card);
-    border-radius: var(--radius-md);
-    transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
-    border: none; 
-    cursor: pointer;
-    text-decoration: none;
-    color: var(--text-primary) ;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Создаем наложение для рамки */
-a.game-card::after {
-    content: '';
-    position: absolute;
-    inset: 0; /* Растягивает на всю карточку */
-    border-radius: var(--radius-md);
-    border: 2px solid transparent; /* Рамка есть всегда, но прозрачная */
-    transition: border-color 0.3s, filter 0.3s;
-    pointer-events: none; /* Клики проходят сквозь рамку на ссылку */
-    z-index: 2; /* Ставим СВЕРХУ картинки */
-}
-
-a.game-card:hover {
-    transform: translateY(-8px);
-    background: var(--bg-card-hover);
-    filter: brightness(1.10);
-    box-shadow: 0 15px 25px var(--shadow);
-}
-
-a.game-card:hover::after {
-    border-color: var(--border);
-}
-
 .timer-label {
     font-size: 14px;
     color: #8f98a0;
@@ -1677,14 +1620,11 @@ a.game-card:hover::after {
     font-size: 18px;
     font-weight: var(--text-normal);
     color: var(--accent);
-    font-family: monospace;
+    font-family: var(--font-display);
     white-space: nowrap;
-    /* Если визуально текст кажется чуть выше/ниже из-за моноширинного шрифта, 
-       можно добавить line-height: 1 */
     line-height: 1;
 
     display: inline-block;
-    font-family: "MyFont", Inter, sans-serif;
     background: rgba(0, 0, 0, 0.6);
     color: var(--text-primary);
     border: 2px solid var(--border);
@@ -1713,43 +1653,6 @@ a.game-card:hover::after {
     white-space: nowrap;
 }
 
-.news-badge {
-    font-size: 14px;
-    font-family: "MyFont", Inter, sans-serif;
-    font-weight: var(--text-semibold);
-    padding: 7px 6px;
-    border-radius: var(--radius-sm);
-    line-height: 1;
-    white-space: nowrap;
-    height: fit-content;
-    width: fit-content;
-    background: rgba(3, 0, 26, 0.6);
-    color: #6366f1;
-    border: 2px solid var(--border);
-    border-color: rgba(99, 102, 241, 0.4);
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    backdrop-filter: blur(5px);
-}
-
-/* (Опционально) Кастомные цвета под разные типы */
-.news-badge-announcement {
-    background: rgba(26, 12, 0, 0.6);
-    color: #ffab00;
-    border-color: rgba(255, 171, 0, 0.3);
-}
-
-.news-badge-tech {
-    background-color: rgba(19, 1, 0, 0.6);
-    color: var(--danger);
-    border-color: rgba(233, 56, 47, 0.3);
-}
-
-/* Контейнер бейджа сверху */
-.news-badge-container {
-    margin-bottom: var(--padding-sm2);
-}
-
 /* Строка: Дата слева, Название сразу за ней */
 .news-card-header {
     display: flex;
@@ -1766,21 +1669,10 @@ a.game-card:hover::after {
     white-space: nowrap; /* Не даёт дате разрываться */
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 /* =========================
-   ПРОФИЛЬ
+   PROFILE
    ========================= */
+
 .profile-layout {
     display: flex;
     position: relative;
@@ -1791,7 +1683,7 @@ a.game-card:hover::after {
     box-sizing: border-box;
     align-items: flex-start;
 }
-/* Главная карточка */
+
 .profile-card {
     background: var(--bg-surface);
     border: 2px solid var(--border);
@@ -1843,18 +1735,19 @@ a.game-card:hover::after {
     transition: opacity 0.2s ease, background 0.2s ease;
 }
 
-/* При наведении на баннер — плавно показываем оверлей */
 .profile-banner:hover .banner-overlay {
     opacity: 1;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(2.5px);
 }
+
 .profile-main {
     padding: 0 30px 30px 30px; /* Левый, правый и нижний отступы */
     display: flex;
     align-items: center;
     gap: 20px;
 }
+
 .profile-avatar {
     width: 130px;
     height: 130px;
@@ -1889,7 +1782,6 @@ a.game-card:hover::after {
     object-fit: cover;
 }
 
-/* Оверлей (полупрозрачная плашка с камерой при редактировании) */
 .avatar-overlay {
     position: absolute;
     top: 0;
@@ -1919,9 +1811,7 @@ a.game-card:hover::after {
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(1px);
 }
- 
-/* Оверлей показываем только в режиме редактирования — управляем классом,
-   а не инлайновым style="display:none" из HTML */
+
 .profile-avatar-wrapper:not(.editing) .avatar-overlay {
     display: none;
 }
@@ -1936,7 +1826,7 @@ a.game-card:hover::after {
 .profile-info h1 {
     margin: 0 0 7.5px;
     font-size: 24px;
-    font-family: "MyFont";
+    font-family: var(--font-display);
     font-weight: var(--text-semibold);
 }
 .profile-status {
@@ -1953,7 +1843,6 @@ a.game-card:hover::after {
     overflow: hidden;
 }
 
-/* Статистика */
 .profile-stats {
     display: flex;
     margin-top: 30px;
@@ -1967,7 +1856,7 @@ a.game-card:hover::after {
     flex-direction: column;
     gap: 5px;
 }
-/* Линия-разделитель для всех элементов, кроме последнего */
+
 .profile-stat:not(:last-child) {
     border-right: 2px solid var(--border-subtle);
     padding-right: var(--padding-md); /* Отступ от текста до линии */
@@ -1981,13 +1870,11 @@ a.game-card:hover::after {
     color: var(--text-muted);
     font-size: 14px;
 }
-/* Секции */
 
 .profile-section {
     margin-bottom: 30px;
 }
 
-/* Активность */
 .activity-list {
     display: flex;
     flex-direction: column;
@@ -2005,6 +1892,7 @@ a.game-card:hover::after {
     max-height: 130px;
     transition: transform 0.3s, box-shadow 0.3s, background 0.3s; 
 }
+
 .activity-item:hover {
     filter: brightness(1.10);
 }
@@ -2023,6 +1911,7 @@ a.game-card:hover::after {
 .activity-item:hover::after {
     border-color: var(--border); /* Используем переменную для цвета рамки */
 }
+
 .activity-cover {
     height: 100px;          /* Жестко задаем высоту под пропорцию обложки */
     width: 200px;            /* Жестко задаем ширину */
@@ -2067,7 +1956,6 @@ a.game-card:hover::after {
     font-size: 16px;
 }
 
-/* Избранное */
 .profile-empty {
     padding: 45px 20px;
     text-align: center;
@@ -2092,8 +1980,6 @@ a.game-card:hover::after {
     font-size: 16px;
 }
 
-/* Достижения */
-
 .achievements {
     display: flex;
     gap: 10px;
@@ -2115,14 +2001,12 @@ a.game-card:hover::after {
     opacity: 0.5;
 }
 
-/* Отключение блюра при наличии класса no-blur на body */
 body.no-blur,
 body.no-blur * {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
 }
 
-/* Сетка выбора акцентного цвета */
 .color-presets {
     display: flex;
     gap: var(--padding-sm2);
@@ -2178,9 +2062,7 @@ body.no-blur * {
     font-size: 16px;
     font-weight: var(--text-semibold);
 }
- 
-/* "Сцена" — заметно выше, чем сама рамка баннера, чтобы было видно
-   картинку целиком, а не только то, что попадёт в кадр */
+
 .banner-crop-stage {
     position: relative;
     width: 100%;
@@ -2203,12 +2085,8 @@ body.no-blur * {
     max-width: none;
     user-select: none;
     pointer-events: none;
-    will-change: transform;
 }
  
-/* Рамка — реальное соотношение сторон баннера на сайте.
-   Берётся автоматически из её собственных размеров в JS,
-   ничего вручную синхронизировать не нужно. */
 .banner-crop-frame {
     position: absolute;
     left: 0;
@@ -2227,27 +2105,6 @@ body.no-blur * {
     align-items: center;
     gap: 10px;
     margin-top: 15px;
-}
- 
-.zoom-btn {
-    width: 42px;
-    height: 42px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    border: 1px solid var(--card-border, rgba(255, 255, 255, .12));
-    background: rgba(255, 255, 255, .06);
-    color: #fff;
-    font-size: 18px;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background .15s;
-}
- 
-.zoom-btn:hover {
-    background: rgba(255, 255, 255, .14);
 }
  
 #bannerZoom {
@@ -2303,24 +2160,6 @@ body.no-blur * {
     font-size: 14px;
     font-weight: var(--text-semibold);
     cursor: pointer;
-
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
-    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
-
-    /* 2. Анимируем строго свойство transform */
-    transition: transform 0.175s ease-out;
-
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-.btn-primary:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
-}
-
-.btn-primary:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
 }
 
 .btn-secondary {
@@ -2335,28 +2174,8 @@ body.no-blur * {
     flex-shrink: 0;
     align-self: flex-start;
     transition: transform var(--transition);
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
-    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
-
-    /* 2. Анимируем строго свойство transform */
-    transition: transform 0.2s ease-out;
-
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
-.btn-secondary:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
-}
-
-.btn-secondary:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
-}
-
-/* Основной контейнер: меню слева, контент справа */
-
-/* Левая боковая панель (меню) */
 .profile-sidebar {
     width: 250px;
     display: flex;
@@ -2372,7 +2191,6 @@ body.no-blur * {
     border: 2px solid var(--border);
 }
 
-/* Ссылки-вкладки */
 .settings-nav-link {
     display: flex;
     align-items: center;
@@ -2430,7 +2248,6 @@ body.no-blur * {
     pointer-events: none;
 }
 
-/* Анимация появления границы при наведении */
 .nav-icon-wrapper:hover::after {
     border-color: var(--border);
 }
@@ -2447,13 +2264,11 @@ body.no-blur * {
     color: #ffffff;
 }
 
-/* Счетчик возле "Друзья" */
 .settings-nav-link span {
     font-size: 14px;
     opacity: 0.85;
 }
 
-/* Правая часть с профилем */
 .profile-content {
     flex: 1;
     min-width: 0;
@@ -2475,7 +2290,6 @@ body.no-blur * {
     pointer-events: none;
 }
 
-/* Поиск друзей */
 .friends-search { position: relative; }
 #friendSearchResults {
     position: absolute;
@@ -2487,7 +2301,7 @@ body.no-blur * {
 .search-result-link {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
     flex: 1;
     min-width: 0;
     color: inherit;
@@ -2502,11 +2316,380 @@ body.no-blur * {
     border-radius: 50%;
 }
 .search-sub, .search-badge-muted { font-size: 12px; color: var(--text-muted); }
-.friend-add-btn {
-    background: #6865f2;
+
+/* =========================
+   FRIEND SEARCH
+========================= */
+
+.friends-search {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    z-index: 20;
+}
+
+.friends-search input {
+    width: 100%;
+    min-width: 0;
+    height: 46px;
+    padding: 0 14px;
+    box-sizing: border-box;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+.friends-search input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-color, var(--accent));
+}
+
+#friendSearchResults {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 320px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+
+    display: none;
+    padding: 6px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .4);
+
+    z-index: 100;
+}
+
+#friendSearchResults[style*="display: block"] {
+    display: block;
+}
+
+#friendSearchResults .search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+    min-height: 64px;
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    transition: background .15s;
+}
+
+#friendSearchResults .search-result-item:hover {
+    background: var(--bg-secondary);
+}
+
+#friendSearchResults .search-result-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+}
+
+#friendSearchResults .search-avatar-ph,
+#friendSearchResults .search-result-item img {
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+#friendSearchResults .search-avatar-ph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    font-weight: 700;
+    font-size: 16px;
+}
+
+#friendSearchResults .search-result-info {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+#friendSearchResults .search-result-name {
+    display: block;
+    overflow: hidden;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#friendSearchResults .search-sub,
+#friendSearchResults .search-badge-muted {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+#friendSearchResults button {
+    flex: 0 0 auto;
+    max-width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+#friendSearchResults:empty {
+    display: none !important;
+}
+
+@media (max-width: 600px) {
+    #friendSearchResults .search-result-item {
+        gap: 8px;
+        padding: 8px;
+    }
+
+    #friendSearchResults .search-result-link {
+        gap: 8px;
+    }
+
+    #friendSearchResults button {
+        padding: 7px 9px;
+        font-size: 12px;
+    }
+}
+
+/* ===== FRIEND SEARCH: FIXED ===== */
+
+.friends-search {
+    position: relative;
+    z-index: 30;
+    width: 100%;
+    min-width: 0;
+}
+
+.friends-search input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    height: 46px;
+    padding: 0 14px;
+    box-sizing: border-box;
+
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    outline: none;
+
+    transition: border-color .2s, box-shadow .2s;
+}
+
+.friends-search input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, .15);
+}
+
+#friendSearchResults.search-results {
+    position: absolute !important;
+    top: calc(100% + 8px) !important;
+    right: 0 !important;
+    bottom: auto !important;
+    left: 0 !important;
+
+    width: 100% !important;
+    max-height: 340px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    box-sizing: border-box;
+
+    padding: 6px;
+    margin: 0;
+
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 14px 35px rgba(0, 0, 0, .4);
+
+    z-index: 1000;
+}
+
+#friendSearchResults[style*="display: none"] {
+    display: none !important;
+}
+
+#friendSearchResults .search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    width: 100%;
+    min-width: 0;
+    min-height: 64px;
+    padding: 9px 10px;
+    margin: 0;
+    box-sizing: border-box;
+
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+
+    transition: background .15s;
+}
+
+#friendSearchResults .search-result-item:hover {
+    background: var(--bg-secondary);
+}
+
+#friendSearchResults .search-result-link {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+
+    color: inherit;
+    text-decoration: none;
+}
+
+#friendSearchResults .search-avatar,
+#friendSearchResults .search-avatar-ph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+
+    box-sizing: border-box;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+#friendSearchResults .search-avatar-ph {
     color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+#friendSearchResults .search-result-info {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+}
+
+#friendSearchResults .search-title {
+    display: block;
+    margin: 0;
+
+    overflow: hidden;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#friendSearchResults .search-sub {
+    display: block;
+    margin-top: 3px;
+
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#friendSearchResults .search-result-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    flex: 0 0 auto;
+    max-width: 48%;
+}
+
+#friendSearchResults .friend-add-btn {
+    flex-shrink: 0;
+    padding: 8px 11px;
+
+    color: #fff;
+    background: var(--accent);
     border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
+    border-radius: 7px;
+
+    font-size: 12px;
+    font-weight: 600;
     cursor: pointer;
+    white-space: nowrap;
+    transition: filter .15s, opacity .15s;
+}
+
+#friendSearchResults .friend-add-btn:hover {
+    filter: brightness(1.12);
+}
+
+#friendSearchResults .friend-add-btn:disabled {
+    opacity: .55;
+    cursor: wait;
+}
+
+#friendSearchResults .search-badge-muted {
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.4;
+    text-align: right;
+}
+
+#friendSearchResults .search-empty {
+    justify-content: center;
+    min-height: 48px;
+    color: var(--text-muted);
+    font-size: 13px;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    #friendSearchResults .search-result-item {
+        gap: 7px;
+        padding: 8px 6px;
+    }
+
+    #friendSearchResults .search-result-link {
+        gap: 7px;
+    }
+
+    #friendSearchResults .search-avatar,
+    #friendSearchResults .search-avatar-ph {
+        flex-basis: 34px;
+        width: 34px;
+        height: 34px;
+        min-width: 34px;
+    }
+
+    #friendSearchResults .search-result-right {
+        max-width: 45%;
+    }
+
+    #friendSearchResults .friend-add-btn {
+        padding: 7px 8px;
+        font-size: 11px;
+    }
 }

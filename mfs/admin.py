@@ -22,7 +22,7 @@ class ScreenshotInline(admin.TabularInline):  # Табличный вид вме
     def image_preview(self, obj):
         if hasattr(obj, 'image') and obj.image:  # Проверка наличия файла
             return format_html(
-                '<img src="{}" style="max-height: 80px; max-width: 150px; border-radius: 6px; object-fit: cover;"/>', 
+                '<img src="{}" style="max-height: 80px; max-width: 150px; border-radius: 5px; object-fit: cover;"/>', 
                 obj.image.url
             )
         return "Нет изображения"
@@ -76,13 +76,13 @@ class GameAdmin(admin.ModelAdmin):
     # Методы превью картинок
     def icon_preview(self, obj):
         if obj.icon:
-            return format_html('<img src="{}" style="max-height: 50px; border-radius: 4px;"/>', obj.icon.url)
+            return format_html('<img src="{}" style="max-height: 50px; border-radius: 5px;"/>', obj.icon.url)
         return "—"
     icon_preview.short_description = "Превью иконки"
 
     def cover_preview(self, obj):
         if obj.cover:
-            return format_html('<img src="{}" style="max-height: 80px; border-radius: 4px;"/>', obj.cover.url)
+            return format_html('<img src="{}" style="max-height: 80px; border-radius: 15px;"/>', obj.cover.url)
         return "—"
     cover_preview.short_description = "Превью обложки"
 
