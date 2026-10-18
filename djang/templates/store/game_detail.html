@@ -4,9 +4,8 @@
 <html lang="ru">
 
 <head>
-    {% block title %} {{ game.title }} | GameStore{% endblock %}
+    {% block title %}GameStore | {{ game.title }}{% endblock %}
     <link rel="stylesheet" href="{% static 'style.css' %}?v=5">
-    <link rel="icon" type="image/png" href="{% static 'css/icons/gamestore.png' %}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -74,6 +73,16 @@
                     {{ game.description|truncatewords:40 }}
                 </p>
             {% endif %}
+
+            <div class="game-rating">
+                <div class="stars-static" style="--percent: {{ avg_percent|floatformat:0 }}%;" aria-hidden="true">★★★★★</div>
+                {% if reviews_count %}
+                    <strong>{{ avg_rating|floatformat:1 }}</strong>
+                    <span class="game-rating-count">· {{ reviews_count }} отзыв(ов)</span>
+                {% else %}
+                    <span class="game-rating-count">Пока нет оценок</span>
+                {% endif %}
+            </div>
 
             <div class="detail-row">
                 <span class="detail-label">Жанры:</span>
@@ -168,33 +177,65 @@
 </section>
 
     <!-- ОТЗЫВЫ -->
-    <section class="detail-section">
-        <div class="section-header">
-            <h2>Отзывы</h2>
-            <span>{{ game.reviews.count }} отзыв(ов)</span>
-        </div>
+<section class="detail-section" id="reviews">
+    <div class="section-header">
+        <h2>Отзывы</h2>
+        <span>{{ reviews_count }} отзыв(ов)</span>
+    </div>
 
-        <div class="reviews">
-            {% for review in game.reviews.all %}
-                <div class="review">
-                    <div class="review-header">
-                        <strong>{{ review.user }}</strong>
-                        <span class="review-rating">
-                            {% for i in "12345" %}
-                                {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
-                            {% endfor %}
-                        </span>
-                    </div>
-                    <p>{{ review.text }}</p>
-                    <span class="review-date">{{ review.created_at|date:"d b. Yг." }}</span>
-                </div>
-            {% empty %}
-                <div class="description-box">
-                    <p>Отзывов пока нет.</p>
-                </div>
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'mfs:review_submit' game.pk %}" class="review-form">
+        {% csrf_token %}
+        <span class="review-form-title">
+            {% if my_review %}Ваш отзыв{% else %}Оставить отзыв{% endif %}
+        </span>
+
+        <div class="star-input">
+            {% for i in "54321" %}
+                <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}"
+                       {% if my_review.rating|stringformat:"s" == i %}checked{% endif %} required>
+                <label for="star{{ i }}" title="{{ i }}">★</label>
             {% endfor %}
         </div>
-    </section>
+
+        <textarea name="text" rows="3" maxlength="150"
+                placeholder="Расскажите об игре (необязательно)">{{ my_review.text|default:'' }}</textarea>
+
+        <div class="review-form-actions">
+            <button type="submit" class="buy-button">
+                {% if my_review %}Сохранить{% else %}Отправить{% endif %}
+            </button>
+            {% if my_review %}
+            <button type="submit" class="buy-button" style="background: var(--bg-card-hover);"
+                    formaction="{% url 'mfs:review_delete' game.pk %}" formnovalidate>
+                Удалить
+            </button>
+            {% endif %}
+        </div>
+    </form>
+    {% else %}
+        <p class="empty-activity"><a href="{% url 'mfs:login' %}">Войдите</a>, чтобы оставить отзыв.</p>
+    {% endif %}
+
+    <div class="reviews">
+        {% for review in reviews %}
+            <div class="review">
+                <div class="review-header">
+                    <a href="{% url 'mfs:user_profile' review.user.username %}" class="review-author">
+                        {{ review.user.username }}
+                    </a>
+                    <span class="review-rating">
+                        {% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}
+                    </span>
+                </div>
+                {% if review.text %}<p class="profile-status">{{ review.text }}</p>{% endif %}
+                <span class="release-date">{{ review.created_at|date:"d b. Yг." }}</span>
+            </div>
+        {% empty %}
+            <div class="description-box"><p>Отзывов пока нет. Будьте первым!</p></div>
+        {% endfor %}
+    </div>
+</section>
 </main>
 
 {% endblock %}

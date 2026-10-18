@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Библиотека | GameStore{% endblock %}
+{% block title %}GameStore | Библиотека{% endblock %}
 
 {% block extra_head %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/library.css' %}?v=11">
     <link rel="stylesheet" href="{% static 'library.css' %}?v=12">
-    <link rel="icon" type="image/png" href="{% static 'css/icons/gamestore.png' %}">
+
 
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>
@@ -70,6 +70,9 @@
                     <div class="hero-overlay"></div>
                     <div class="hero-title-container">
                         <img id="detailIcon" src="" alt="" class="hero-icon">
+
+                        <div class="hero-divider"></div>
+
                         <div class="last-launch-wrapper">
                             <h1 id="detailTitle" class="hero-title"></h1>
                             <span class="last-launch-info">

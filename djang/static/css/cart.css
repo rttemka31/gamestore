@@ -31,9 +31,12 @@
 
     --shadow: rgba(0, 0, 0, 0.2);
     --shadow2: 0 15px 25px rgba(0, 0, 0, 0.5);
-    --radius-sm: 5px;
-    --radius-md: 10px;
-    --radius-big: 50px;
+    --font-scale: 1;
+    --radius-scale: 1;
+    --radius-verysm: calc(2.5px * var(--radius-scale));
+    --radius-sm: calc(5px * var(--radius-scale));
+    --radius-md: calc(10px * var(--radius-scale));
+    --radius-big: calc(50px * var(--radius-scale));
 
     --padding-sm: 7.5px;
     --padding-sm2: 15px;
@@ -45,6 +48,11 @@
     --text-bold: 700;
     --transition: 0.2s ease;
 }
+
+html[data-font="0"]   { --font-scale: 0.9; }
+html[data-font="2"]   { --font-scale: 1.15; }
+html[data-radius="0"] { --radius-scale: 0.5; }
+html[data-radius="2"] { --radius-scale: 1.75; }
 
 body {
     margin: 0;
@@ -95,7 +103,6 @@ html {
     z-index: 100;
 }
 
-
 .nav-left {
     display: flex;
     align-items: center;
@@ -103,16 +110,14 @@ html {
     gap: 25px;
 }
 
-
 .logo {
     font-family: var(--font-display);
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-bold);
     letter-spacing: 1px;
     color: var(--text-primary);
     margin-right: 25px;
 }
-
 
 .logo span {
     color:  var(--accent);
@@ -123,7 +128,7 @@ html {
     position: relative;
     color: var(--text-secondary);
     text-decoration: none;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     transition: 0.2s;
 }
@@ -144,7 +149,6 @@ html {
     border-radius: var(--radius-sm);
 }
 
-
 .nav-right {
     display: flex;
     align-items: center;
@@ -152,27 +156,18 @@ html {
     gap: 25px;
 }
 
-
-.profile {
-    color: var(--text-secondary);
-    font-size: 14px;
-}
-
-
 .cart-link {
     color: var(--text-secondary);
     text-decoration: none;
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     transition: 0.2s;
 }
-
 
 .cart-link:hover,
 .cart-link.active {
     color: var(--success);
 }
-
 
 /* =========================
    CONTAINER
@@ -184,35 +179,28 @@ html {
     padding: 20px 0px;
 }
 
-
 /* =========================
    TITLE
 ========================= */
 
 .cart-title {
     display: flex;
-
     align-items: baseline;
-
     gap: 10px;
-
     margin-bottom: 30px;
 }
-
 
 .cart-title h1 {
     margin: 0;
     color: var(--text-primary);
-    font-size: 32px;
+    font-size: calc(32px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
-
 .cart-count {
     color: var(--text-secondary);
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
 }
-
 
 /* =========================
    LAYOUT
@@ -220,15 +208,11 @@ html {
 
 .cart-layout {
     display: grid;
-
     grid-template-columns:
         minmax(0, 1fr) 330px;
-
-    gap: 25px;
-
+    gap: 30px;
     align-items: start;
 }
-
 
 /* =========================
    ITEMS
@@ -236,24 +220,21 @@ html {
 
 .cart-items {
     display: flex;
-
     flex-direction: column;
-
-    gap: 10px;
+    gap: 7.5px;
 }
 
 .cart-item {
-    position: relative; /* Обязательно: делает карточку точкой отсчета для ::after */
+    position: relative;
     display: flex;
     align-items: center;
     min-height: 130px;
     max-height: 130px;
-    padding: var(--padding-sm);
+    padding: var(--padding-sm2);
     background: var(--bg-card);
     
     border: none; 
     border-radius: var(--radius-md);
-    /* Объединили transition в одну строку */
     transition: transform 0.3s, box-shadow 0.3s, background 0.3s; 
 }
 
@@ -263,10 +244,10 @@ html {
 }
 
 .cart-item::after {
-    content: ''; /* Обязательно: генерирует псевдоэлемент в DOM */
-    position: absolute; /* Обязательно: привязывает inset: 0 к .cart-item */
+    content: '';
+    position: absolute;
     inset: 0;
-    border-radius: 10px; /* Чтобы рамка повторяла скругление карточки */
+    border-radius: var(--radius-md);
     border: 2px solid transparent;
     transition: border-color 0.3s, filter 0.3s;
     pointer-events: none;
@@ -274,9 +255,8 @@ html {
 }
 
 .cart-item:hover::after {
-    border-color: var(--border); /* Используем переменную для цвета рамки */
+    border-color: var(--border);
 }
-
 
 /* =========================
    COVER
@@ -291,30 +271,22 @@ html {
     border-radius: var(--radius-sm);
 }
 
-
 .cart-cover img {
     width: 100%;
     height: 100%;
     display: block;
-
     object-fit: cover;
 }
-
 
 .no-cover {
     width: 100%;
     height: 100%;
-
     display: flex;
-
     align-items: center;
     justify-content: center;
-
     color: var(--text-muted);
-
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
 }
-
 
 /* =========================
    GAME INFO
@@ -327,19 +299,17 @@ html {
         0 20px;
 }
 
-
 .cart-game-info h2 {
     margin:
         0 0 10px;
     color: var(--text-primary);
-    font-size: 18px;
+    font-size: calc(18px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
-
 .cart-genres {
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     margin-bottom: 5px;
 }
 
@@ -360,7 +330,7 @@ html {
     color: #e2e8f0;
     position: absolute;
     right: 100px;
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     text-transform: uppercase;
     letter-spacing: 0.3px;
     backdrop-filter: blur(5px); background: rgba(0, 0, 0, 0.6); color: #fff;
@@ -370,28 +340,26 @@ html {
 
 .title-row {
     display: flex;
-    align-items: center; /* Выравнивание по вертикальному центру */
-    gap: 10px;          /* Отступ между названием и тегом */
+    align-items: center;
+    gap: 10px;
 }
 
 .title-row h3 {
     margin: 0;
-    line-height: 1; /* Убирает лишний межстрочный отступ у заголовка */
+    line-height: 1;
 }
 
 .cart-actions {
     display: flex;
-    gap: 5px;
+    gap: 0px;
     margin-top: 10px;
 }
 
-
 .cart-actions a {
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     text-decoration: none;
 }
-
 
 .cart-actions a:hover {
     color: var(--text-primary);
@@ -403,21 +371,20 @@ html {
     text-decoration: underline;
 }
 
-/* Правильный селектор для тега <a> с классом remove-btn */
 .remove-btn:hover {
-    color: var(--danger);; /* Яркий читаемый красный вместо темного */
+    color: var(--danger);
     text-decoration: underline;
 }
 
 .cart-actions span {
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
 }
-
 
 /* =========================
    PRICE
 ========================= */
+
 .price-block {
     display: flex;
     flex-direction: column;
@@ -427,15 +394,10 @@ html {
 
 .cart-price {
     width: 120px;
-
     display: flex;
-
     flex-direction: column;
-
     align-items: flex-end;
-
     gap: 10px;
-
     padding-right: 10px;
 }
 
@@ -447,33 +409,29 @@ html {
     background: var(--success);
     color: var(--bg-primary);
     padding: 7px 6px;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     border-radius: var(--radius-sm);
     font-weight: var(--text-semibold);
     line-height: 1;
     letter-spacing: 0.3px;
 }
 
-
 .old-price {
     color: var(--text-muted);
-    font-size: 13px;
+    font-size: calc(13px * var(--font-scale, 1));
     line-height: 1;
     text-decoration: line-through;
 }
 
-
 .current-price {
     color: var(--text-primary);
-    font-size: 18px;
+    font-size: calc(18px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
-
 
 .discount-row {
     color: var(--success) ;
 }
-
 
 /* =========================
    SUMMARY
@@ -491,23 +449,21 @@ html {
     min-height: 300px;
 }
 
-
 .cart-summary h2 {
     margin:
         0 0 30px;
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     letter-spacing: 0.3px;
 }
-
 
 .summary-row {
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
 }
 
 .summary-row2 {
@@ -515,14 +471,12 @@ html {
     justify-content: space-between;
     margin-bottom: 30px;
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
 }
-
 
 .discount-row {
     color: var(--success) ;
 }
-
 
 .summary-line {
     height: 1px;
@@ -532,20 +486,20 @@ html {
         var(--border);
 }
 
-
 .total-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     color: var(--text-primary);
-    font-size: 18px;
+    font-size: calc(18px * var(--font-scale, 1));
+    margin-top: 7.5px;
+    
 }
-
 
 .total-row strong {
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
+    margin-top: 7.5px;
 }
-
 
 /* =========================
    CHECKOUT
@@ -560,14 +514,13 @@ html {
     border-radius: var(--radius-sm);
     background-color:  var(--accent);
     color: var(--text-primary);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     cursor: pointer;
     will-change: transform;
     transform: perspective(1px) translateZ(0) rotate(0.01deg);
-    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+    outline: 1px solid transparent;
 
-    /* 2. Анимируем строго свойство transform */
     transition: transform 0.175s ease-out;
 
     -webkit-font-smoothing: antialiased;
@@ -587,11 +540,10 @@ html {
         15px 0 0;
 
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     line-height: 1.5;
     text-align: center;
 }
-
 
 /* =========================
    EMPTY CART
@@ -611,35 +563,29 @@ html {
     border-radius: var(--radius-md);
 }
 
-
 .empty-icon {
     font-size: 48px;
     margin-bottom: 15px;
     opacity: 0.7;
 }
 
-
 .empty-cart h2 {
     margin: 0 0 10px;
 
     color: var(--text-primary);
 
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
 }
-
 
 .empty-cart p {
     margin: 0 0 30px;
-
     color: var(--text-muted);
-
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
 }
 
 .empty-cart a {
     text-decoration: none;
 }
-
 
 .buy-button {
     border: none;
@@ -647,15 +593,13 @@ html {
     color: var(--text-primary);
     padding: 11px 27px;
     border-radius: var(--radius-sm);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     cursor: pointer;
     will-change: transform;
     transform: perspective(1px) translateZ(0) rotate(0.01deg);
-    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+    outline: 1px solid transparent;
     
-
-    /* 2. Анимируем строго свойство transform */
     transition: transform 0.175s ease-out;
 
     -webkit-font-smoothing: antialiased;
@@ -671,7 +615,7 @@ html {
 }
 
 .buy-button.in-cart {
-    background: #10b981 !important; /* 'background' перекрывает и цвет, и градиенты */
+    background: #10b981 !important;
     color: #ffffff !important;
 }
 
@@ -701,22 +645,16 @@ html {
 
 
 @media (max-width: 650px) {
-
     .navbar {
         height: auto;
-
         padding: 20px 5%;
-
         flex-direction: column;
-
         gap: 20px;
     }
 
     .nav-left {
         flex-wrap: wrap;
-
         justify-content: center;
-
         gap: 15px;
     }
 
@@ -726,7 +664,6 @@ html {
 
     .cart-container {
         width: 92%;
-
         padding-top: 30px;
     }
 
@@ -736,7 +673,6 @@ html {
 
     .cart-item {
         align-items: flex-start;
-
         flex-wrap: wrap;
     }
 
@@ -747,24 +683,17 @@ html {
 
     .cart-game-info {
         width: calc(100% - 150px);
-
         padding: 0 0 0 12px;
     }
 
     .cart-price {
         width: 100%;
-
         margin-top: 15px;
-
         padding-right: 0;
-
         align-items: flex-start;
-
         flex-direction: row;
-
         justify-content: flex-end;
     }
-
 }
 
 .install-btn {
@@ -774,14 +703,13 @@ html {
     padding: 9px 14px;
     border-radius: var(--radius-sm);
     font-weight: var(--text-semibold);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     cursor: pointer;
     transition: transform var(--transition);
     will-change: transform;
     transform: perspective(1px) translateZ(0) rotate(0.01deg);
-    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+    outline: 1px solid transparent;
 
-    /* 2. Анимируем строго свойство transform */
     transition: transform 0.2s ease-out;
 
     -webkit-font-smoothing: antialiased;
@@ -799,7 +727,7 @@ html {
 .cart-badge {
     background:  var(--accent);
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     padding: 2px 10px;
     border-radius: var(--radius-big);
     margin-left: 5px;
@@ -829,7 +757,6 @@ html {
     text-align: center;
     white-space: nowrap;
 
-    /* Скрытое состояние по умолчанию */
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -837,7 +764,6 @@ html {
     transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
 }
 
-/* Показываем меню при наличии класса .show (от клика) */
 .user-dropdown-menu.show {
     opacity: 1;
     visibility: visible;
@@ -850,7 +776,7 @@ html {
     padding: 12px 16px;
     color: var(--text-secondary);
     text-decoration: none !important;
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-normal);
     border-radius: var(--radius-sm);
     transition: background 0.2s, color 0.2s;
@@ -867,7 +793,7 @@ html {
     color: var(--text-secondary);
     text-decoration: none !important;
     border-radius: var(--radius-sm);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-normal);
     transition: background 0.2s, color 0.2s, filter 0.2s;
 }
@@ -891,7 +817,7 @@ html {
 
 .logo {
     font-family: var(--font-display);
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-bold);
     letter-spacing: 1px;
     color: var(--text-primary);
@@ -905,7 +831,7 @@ html {
     position: relative;
     color: var(--text-secondary);
     text-decoration: none;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     transition: 0.2s;
 }
@@ -934,7 +860,7 @@ html {
 
 .profile {
     color: var(--text-secondary);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
 }
 
 .recommendations-section {
@@ -943,13 +869,12 @@ html {
 }
 
 .section-title {
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     color: var(--text-primary);
     margin-bottom: 25px;
 }
 
-/* Контейнер всей секции рекомендаций */
 .recommendations-section {
     margin-top: 30px;
     width: 100%;
@@ -957,23 +882,18 @@ html {
 }
 
 .recommendations-section .section-title {
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     color: var(--text-primary);
     margin-bottom: 20px;
 }
 
-/* Сетка: ровно 4 колонки одинаковой ширины */
 .recommendations-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* Задаёт ровно 3 колонки */
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
 }
 
-/* Карточка игры */
-
-
-/* Ограничиваем высоту изображения, чтобы картинки не растягивались */
 .rec-card-img {
     width: 100%;
     height: 150px;
@@ -982,7 +902,7 @@ html {
 }
 
 a.game-card {
-    position: relative; /* Обязательно для позиционирования ::after */
+    position: relative;
     min-width: 250px;
     min-height: 300px;
     overflow: hidden;
@@ -997,16 +917,15 @@ a.game-card {
     flex-direction: column;
 }
 
-/* Создаем наложение для рамки */
 a.game-card::after {
     content: '';
     position: absolute;
-    inset: 0; /* Растягивает на всю карточку */
+    inset: 0;
     border-radius: var(--radius-md);
-    border: 2px solid transparent; /* Рамка есть всегда, но прозрачная */
+    border: 2px solid transparent;
     transition: border-color 0.2s;
-    pointer-events: none; /* Клики проходят сквозь рамку на ссылку */
-    z-index: 2; /* Ставим СВЕРХУ картинки */
+    pointer-events: none;
+    z-index: 2;
 }
 
 a.game-card:hover {
@@ -1023,22 +942,20 @@ a.game-card:hover {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    position: relative; /* Обязательно для корректной работы inset у ::after */
+    position: relative;
     
-    /* 1. Добавили filter в transition и задали плавную функцию времени */
     transition: transform 0.3s, 
                 box-shadow 0.3s,
                 background 0.3s,
                 filter 0.3s;
     
-    /* 2. Подсказываем браузеру использовать видеокарту */
     will-change: transform;
 }
 
 .rec-card:hover {
     transform: translateY(-8px);
     background: var(--bg-card-hover);
-    filter: brightness(1.10); /* Теперь анимируется плавно вместе с transform */
+    filter: brightness(1.10);
     box-shadow: 0 15px 25px var(--shadow);
 }
 
@@ -1047,18 +964,17 @@ a.game-card:hover {
     position: absolute;
     inset: 0;
     border-radius: var(--radius-md);
-    border: 2px solid var(--border); /* Рамка сразу нужного цвета */
-    opacity: 0;                      /* Но полностью скрыта */
-    transition: opacity 0.3s ease;   /* Анимируем прозрачность (аппаратно ускорено) */
+    border: 2px solid var(--border);
+    opacity: 0;
+    transition: opacity 0.3s ease;
     pointer-events: none;
     z-index: 2;
 }
 
 .rec-card:hover::after {
-    opacity: 1; /* Рамка плавно проявляется */
+    opacity: 1;
 }
 
-/* Контент внутри карточки */
 .rec-card-content {
     padding: 8px 15px 15px;
     display: flex;
@@ -1069,7 +985,7 @@ a.game-card:hover {
 
 .rec-card-title {
     margin-top: 10px;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     color: var(--text-primary);
     margin-bottom: 10px;
@@ -1079,12 +995,11 @@ a.game-card:hover {
 }
 
 .rec-card-genre {
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     color: var(--text-secondary);
     margin-bottom: 30px;
 }
 
-/* Футер карточки с ценой и кнопкой */
 .rec-card-footer {
     display: flex;
     align-items: center;
@@ -1094,7 +1009,7 @@ a.game-card:hover {
 }
 
 .rec-price {
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     color: var(--text-primary);
 }
@@ -1110,15 +1025,14 @@ a.game-card:hover {
     color: var(--text-primary);
     padding: 9px 14px;
     border-radius: var(--radius-sm);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     cursor: pointer;
 
     will-change: transform;
     transform: perspective(1px) translateZ(0) rotate(0.01deg);
-    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
+    outline: 1px solid transparent;
 
-    /* 2. Анимируем строго свойство transform */
     transition: transform 0.175s ease-out;
 
     -webkit-font-smoothing: antialiased;
@@ -1133,7 +1047,6 @@ a.game-card:hover {
     transform: perspective(1px) scale(0.9) rotate(0.01deg);
 }
 
-/* Для Chromium / Safari */
 ::-webkit-scrollbar {
   width: 9px;
 }

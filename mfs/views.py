@@ -1,12 +1,10 @@
 import os
 import profile
 import random
-from datetime import timedelta
 
 from django.template import context
 from django.urls import reverse
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Prefetch, Sum
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib import messages
@@ -16,12 +14,20 @@ from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.conf import settings
 from django.db.models import Prefetch, Sum, Q
-from .models import Game, Genre, Collection, UserLibrary, Profile, Dlc, Screenshot, News, Friendship
+from .models import Game, Genre, Collection, UserLibrary, Profile, Dlc, Screenshot, News, Friendship, Review
 from django.utils import timezone
+from datetime import datetime, time, timedelta
+from django.db.models import Avg, Count
 
 def custom_page_not_found(request, exception):
     return render(request, '404.html', status=404)
 
+def _step(value, default=1):
+    try:
+        return min(2, max(0, int(value)))
+    except (TypeError, ValueError):
+        return default
+    
 @login_required
 def settings_view(request):
     user = request.user
@@ -45,11 +51,14 @@ def settings_view(request):
             profile.save()
             return JsonResponse({'status': 'success'})
 
+
         # 2. ОБРАБОТКА ВНЕШНЕГО ВИДА И УВЕДОМЛЕНИЙ
         elif form_type == 'appearance':
             profile.disable_blur = 'disable_blur' in request.POST
             profile.accent_color = request.POST.get('accent_color', '#6865f2')
             profile.hide_stats = 'hide_stats' in request.POST
+            profile.font_size = _step(request.POST.get('font_size'))
+            profile.radius_size = _step(request.POST.get('radius_size'))
             profile.save()
             return JsonResponse({'status': 'success'})
 
@@ -111,52 +120,51 @@ def index(request):
         rnd = random.Random(f"{year}-{week}")
         game_of_the_week = rnd.choice(games)
 
-        days_until_monday = 7 - now.weekday()
-        next_monday = (now + timedelta(days=days_until_monday)).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-        next_rotation_iso = next_monday.strftime("%Y-%m-%dT%H:%M:%S")
+        monday_date = now.date() + timedelta(days=7 - now.weekday())
+        next_monday = timezone.make_aware(datetime.combine(monday_date, time.min))
+        next_rotation_iso = next_monday.isoformat()
 
     return render(request, 'store/index.html', {
         'game_of_the_week': game_of_the_week,
         'next_rotation_iso': next_rotation_iso,
     })
 
-
 def home(request):
     genres = Genre.objects.all()
     selected_genre_slug = request.GET.get('genre')
     games_queryset = Game.objects.all()
- 
+
     if selected_genre_slug:
         games_queryset = games_queryset.filter(genres__slug=selected_genre_slug).distinct()
- 
+
     collections = Collection.objects.prefetch_related(
         Prefetch(
             'game_products',
             queryset=games_queryset.prefetch_related('genres')
         )
     ).distinct()
- 
-    # --- Игра недели: детерминированный выбор по номеру недели ---
-    # Все пользователи в рамках одной недели видят одну и ту же игру,
-    # а в понедельник (ISO-неделя меняется) выбор автоматически обновится.
+
     featured_game = None
+    next_rotation_iso = ""
     all_games = list(Game.objects.all())
- 
+
     if all_games:
         now = timezone.localtime(timezone.now())
         year, week, _ = now.isocalendar()
-        rnd = random.Random(f"{year}-{week}-featured")  # свой "сид", отдельный от index()
+        rnd = random.Random(f"{year}-{week}-featured")
         featured_game = rnd.choice(all_games)
- 
+
+        monday_date = now.date() + timedelta(days=7 - now.weekday())
+        next_monday = timezone.make_aware(datetime.combine(monday_date, time.min))
+        next_rotation_iso = next_monday.isoformat()
+
     return render(request, 'store/index.html', {
         'featured_game': featured_game,
+        'next_rotation_iso': next_rotation_iso,
         'genres': genres,
         'collections': collections,
         'selected_genre_slug': selected_genre_slug,
     })
-
 
 def game_detail(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
@@ -171,10 +179,28 @@ def game_detail(request, game_id):
 
     cart_ids = [int(k) for k in cart.keys() if str(k).isdigit()]
 
+    stats = game.reviews.aggregate(avg=Avg('rating'), count=Count('id'))
+    avg_rating = stats['avg'] or 0
+
+    my_review = None
+    if request.user.is_authenticated:
+        my_review = game.reviews.filter(user=request.user).first()
+
+    context = {
+        'game': game,
+        # ... остальное, что ты уже передаёшь ...
+        'reviews': game.reviews.select_related('user', 'user__profile'),
+        'avg_rating': avg_rating,
+        'avg_percent': avg_rating / 5 * 100,
+        'reviews_count': stats['count'],
+        'my_review': my_review,
+    }
+
     return render(request, 'store/game_detail.html', {
         'game': game,
         'owned_game_ids': owned_game_ids,
         'cart_ids': cart_ids,
+        **context
     })
 
 
@@ -644,13 +670,108 @@ def friend_remove(request, pk):
     f.delete()
     return JsonResponse({'status': 'success'})
 
+
 @login_required
 def user_profile(request, username):
-    profile = get_object_or_404(
+    target = get_object_or_404(
         Profile.objects.select_related('user'),
         user__username=username
     )
 
-    return render(request, 'users/user_profile.html', {
-        'profile': profile,
-    })
+    me = _my_profile(request)
+
+    # Определяем состояние дружбы
+    if me.pk == target.pk:
+        state = 'self'
+    else:
+        relation = _get_relation(me, target)
+
+        if relation is None or relation.status == Friendship.Status.REJECTED:
+            state = 'none'
+        elif relation.status == Friendship.Status.ACCEPTED:
+            state = 'friends'
+        elif relation.sender_id == me.pk:
+            state = 'sent'
+        else:
+            state = 'received'
+
+    # Недавняя активность пользователя
+    recent_games = UserLibrary.objects.filter(
+        user=target.user,
+        last_played__isnull=False
+    ).select_related('game').order_by('-last_played')[:3]
+
+    # Статистика игр
+    library = UserLibrary.objects.filter(user=target.user)
+    games_count = library.count()
+
+    # Общее количество часов
+    from django.db.models import Sum
+
+    total_hours = (
+        library.aggregate(total=Sum('playtime_hours'))['total'] or 0
+    )
+
+    # Список друзей пользователя
+    friendships = Friendship.objects.filter(
+        Q(sender=target) | Q(receiver=target),
+        status=Friendship.Status.ACCEPTED
+    ).select_related('sender__user', 'receiver__user')
+
+    friends = []
+
+    for friendship in friendships:
+        other = (
+            friendship.receiver
+            if friendship.sender_id == target.pk
+            else friendship.sender
+        )
+
+        friends.append({
+            'id': friendship.pk,
+            'profile': other,
+        })
+
+    context = {
+        'target': target,
+        'state': state,
+        'recent_games': recent_games,
+        'games_count': games_count,
+        'total_hours': total_hours,
+        'friends': friends,
+    }
+
+    return render(
+        request,
+        'users/user_profile.html',
+        context
+    )
+
+@login_required
+@require_POST
+def review_submit(request, game_id):
+    game = get_object_or_404(Game, pk=game_id)
+
+    try:
+        rating = int(request.POST.get('rating', ''))
+    except ValueError:
+        rating = 0
+
+    if not 1 <= rating <= 5:
+        messages.error(request, 'Выберите оценку от 1 до 5.')
+        return redirect(f"{reverse('mfs:game_detail', args=[game.pk])}#reviews")
+
+    text = request.POST.get('text', '').strip()[:150]
+
+    Review.objects.update_or_create(
+        user=request.user, game=game,
+        defaults={'rating': rating, 'text': text},
+    )
+    return redirect(f"{reverse('mfs:game_detail', args=[game.pk])}#reviews")
+
+
+@login_required
+@require_POST
+def review_delete(request, game_id):
+    Review.objects.filter(user=request.user, game_id=game_id).delete()
+    return redirect(f"{reverse('mfs:game_detail', args=[game_id])}#reviews")

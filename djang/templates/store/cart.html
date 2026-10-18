@@ -1,14 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Корзина | GameStore{% endblock %}
+{% block title %}GameStore | Корзина{% endblock %}
 
 {% block extra_head %}
 
 <head>
     {{ block.super }}
     <link rel="stylesheet" href="{% static '/css/cart.css' %}?v=10">
-    <link rel="icon" type="image/png" href="{% static 'css/icons/gamestore.png' %}">
 
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>
@@ -41,51 +40,51 @@
     <div class="cart-layout">
         <section class="cart-items">
             {% for game in cart_items %}
-            <div class="cart-item">
-                <!-- Обложка -->
-                <div class="cart-cover">
-                    {% if game.cover %}
-                        <img src="{{ game.cover.url }}" alt="{{ game.title }}">
-                    {% else %}
-                        <div class="no-cover">Нет обложки</div>
-                    {% endif %}
-                </div>
-
-                <!-- Информация -->
-                <div class="cart-game-info">
-                    <div class="title-row">
-                        <h2>{{ game.title }}</h2>
-                        {% if game.is_not_on_steam %}
-                            <span class="exclusive">Эксклюзив</span>
+            <a href="{% url 'mfs:game_detail' game.id %}" class="activity-item-link" style="text-decoration: none;">
+                <div class="cart-item">
+                    <!-- Обложка -->
+                    <div class="cart-cover">
+                        {% if game.cover %}
+                            <img src="{{ game.cover.url }}" alt="{{ game.title }}">
+                        {% else %}
+                            <div class="no-cover">Нет обложки</div>
                         {% endif %}
                     </div>
-                    <div class="cart-genres">
-                        {% for genre in game.genres.all %}
-                            {{ genre.name }}{% if not forloop.last %}, {% endif %}
-                        {% empty %}
-                            Без жанра
-                        {% endfor %}
+
+                    <!-- Информация -->
+                    <div class="cart-game-info">
+                        <div class="title-row">
+                            <h2>{{ game.title }}</h2>
+                            {% if game.is_not_on_steam %}
+                                <span class="exclusive">Эксклюзив</span>
+                            {% endif %}
+                        </div>
+                        <div class="cart-genres">
+                            {% for genre in game.genres.all %}
+                                {{ genre.name }}{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                Без жанра
+                            {% endfor %}
+                        </div>
+
+                        <div class="cart-actions">
+                            <a href="{% url 'mfs:remove_from_cart' game.id %}" class="remove-btn">Удалить</a>
+                        </div>
+
                     </div>
 
-                    <div class="cart-actions">
-                        <a href="{% url 'mfs:game_detail' game.id %}">Подробнее</a>
-                        <span>|</span>
-                        <a href="{% url 'mfs:remove_from_cart' game.id %}" class="remove-btn">Удалить</a>
+                    <!-- Цена -->
+                    <div class="cart-price">
+                        {% if game.discount > 0 %}
+                            <span class="discount">-{{ game.discount }}%</span>
+                            <span class="old-price">{{ game.price|floatformat:0 }}₴</span>
+                            <span class="current-price">{{ game.discounted_price|floatformat:0 }}₴</span>
+                        {% else %}
+                            <span class="current-price">{{ game.price|floatformat:0 }}₴</span>
+                        {% endif %}
                     </div>
-
                 </div>
-
-                <!-- Цена -->
-                <div class="cart-price">
-                    {% if game.discount > 0 %}
-                        <span class="discount">-{{ game.discount }}%</span>
-                        <span class="old-price">{{ game.price|floatformat:0 }}₴</span>
-                        <span class="current-price">{{ game.discounted_price|floatformat:0 }}₴</span>
-                    {% else %}
-                        <span class="current-price">{{ game.price|floatformat:0 }}₴</span>
-                    {% endif %}
-                </div>
-            </div>
+            </a>
             {% endfor %}
         </section>
 

@@ -2,11 +2,10 @@
 {% load static %}
 {% load l10n %}
 
-{% block title %}Настройки | GameStore{% endblock %}
+{% block title %}GameStore | Настройки{% endblock %}
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static '/css/settings.css' %}?v=10">
-    <link rel="icon" type="image/png" href="{% static 'css/icons/gamestore.png' %}">
 
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>
@@ -247,6 +246,22 @@
                             </div>
                             <input type="checkbox" name="disable_blur" id="disableBlurToggle" class="settings-toggle" {% if user.profile.disable_blur %}checked{% endif %}>
                         </label>
+
+                        <div class="settings-field" style="margin-top: 16px;">
+                            <span class="settings-toggle-title">Размер шрифта</span>
+                            <input type="range" class="settings-slider" name="font_size"
+                                   id="fontSizeSlider" min="0" max="2" step="1"
+                                   value="{{ user.profile.font_size }}">
+                            <div class="slider-labels"><span>Мелкий</span><span>Средний</span><span>Крупный</span></div>
+                        </div>
+
+                        <div class="settings-field" style="margin-top: 16px;">
+                            <span class="settings-toggle-title">Скругление элементов</span>
+                            <input type="range" class="settings-slider" name="radius_size"
+                                   id="radiusSizeSlider" min="0" max="2" step="1"
+                                   value="{{ user.profile.radius_size }}">
+                            <div class="slider-labels"><span>Острые</span><span>Средние</span><span>Круглые</span></div>
+                        </div>
 
                         <div class="settings-field" style="margin-top: 16px;">
                             <label class="settings-toggle-row">
@@ -761,5 +776,35 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('appearanceForm');
+    const sliders = [
+        ['fontSizeSlider',   'font'],
+        ['radiusSizeSlider', 'radius'],
+    ];
+
+    function fill(el) {
+        const pct = (el.value - el.min) / (el.max - el.min) * 100;
+        el.style.background =
+            `linear-gradient(to right, var(--accent) ${pct}%, rgba(255,255,255,.15) ${pct}%)`;
+    }
+
+    sliders.forEach(([id, key]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        fill(el);
+
+        el.addEventListener('input', () => {
+            document.documentElement.dataset[key] = el.value; // мгновенный предпросмотр
+            fill(el);
+        });
+
+        el.addEventListener('change', () => {
+            fetch(form.action, { method: 'POST', body: new FormData(form) });
+        });
+    });
+});
 </script>
 {% endblock %}

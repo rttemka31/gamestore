@@ -30,9 +30,12 @@
     --border-subtle: rgba(255, 255, 255, 0.1);
 
     --shadow: rgba(0, 0, 0, 0.2);
-    --radius-sm: 5px;
-    --radius-md: 10px;
-    --radius-big: 50px;
+    --font-scale: 1;
+    --radius-scale: 1;
+    --radius-verysm: calc(2.5px * var(--radius-scale));
+    --radius-sm: calc(5px * var(--radius-scale));
+    --radius-md: calc(10px * var(--radius-scale));
+    --radius-big: calc(50px * var(--radius-scale));
 
     --padding-sm: 7.5px;
     --padding-sm2: 15px;
@@ -43,6 +46,16 @@
     --text-semibold: 600;
     --text-bold: 700;
     --transition: 0.2s ease;
+}
+
+html[data-font="0"]   { --font-scale: 0.9; }
+html[data-font="2"]   { --font-scale: 1.1; }
+html[data-radius="0"] { --radius-scale: 0.5; }
+html[data-radius="2"] { --radius-scale: 1.5; }
+
+& ::selection {
+    background: var(--accent);
+    color: var(--text-primary);
 }
 
 * {
@@ -94,7 +107,7 @@ body {
 
 .logo {
     font-family: var(--font-display);
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-bold);
     letter-spacing: 1px;
     color: white;
@@ -110,7 +123,7 @@ body {
     position: relative;
     color: var(--text-secondary);
     text-decoration: none;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     transition: 0.2s;
 }
@@ -200,7 +213,7 @@ body {
 .featured-label {
     font-family: var(--font-display);
     color: var(--accent);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-bold);
     letter-spacing: 1px;
     margin-bottom: 0;
@@ -210,7 +223,7 @@ body {
 .featured-info h2 {
     margin: 0 0 15px;
     color: white;
-    font-size: 32px;
+    font-size: calc(32px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
@@ -218,7 +231,7 @@ body {
     margin: 0;
     color: var(--text-secondary);
     line-height: 1.75;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     max-width: 390px;
 }
 
@@ -240,14 +253,14 @@ body {
 }
 
 .featured-price {
-    font-size: 22px;
+    font-size: calc(22px * var(--font-scale, 1));
     color: white;
     font-weight: var(--text-semibold);
 }
 
 .old-featured-price {
     color: var(--text-muted);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     line-height: 1;
     text-decoration: line-through;
 }
@@ -266,12 +279,13 @@ body {
     justify-content: space-between;
     margin-bottom: 15px;
     font-weight: var(--text-semibold);
+    color: var(--text-muted);
 }
 
 .section-header h2 {
     margin-bottom: var(--padding-sm);
-    color: white;
-    font-size: 24px;
+    color: var(--text-primary);
+    font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
@@ -279,7 +293,7 @@ body {
     color: var(--accent);
     text-decoration: none;
     font-weight: var(--text-semibold);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     transition: 0.2s;
 }
 
@@ -295,7 +309,7 @@ body {
 .section-header-2 a {
     color: var(--accent);
     text-decoration: none;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     transition: 0.2s;
     font-weight: var(--text-semibold);
     padding: var(--padding-sm);
@@ -382,7 +396,7 @@ a.game-card:hover::after {
     align-items: center;
     justify-content: center;
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
 }
 
 .game-card:hover .game-image img {
@@ -399,14 +413,14 @@ a.game-card:hover::after {
 .game-info h3 {
     margin: 0 0 8px;
     color: white;
-    font-size: 18px;
+    font-size: calc(18px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
 .game-info p {
     margin: 0;
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     line-height: 1.5;
     min-height: 20px;
 }
@@ -416,7 +430,7 @@ a.game-card:hover::after {
     margin-bottom: 25px;
     color: var(--text-muted);
     font-weight: var(--text-normal);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     line-height: 1.75;
 }
 
@@ -437,14 +451,14 @@ a.game-card:hover::after {
 
 .old-price {
     color: var(--text-muted);
-    font-size: 13px;
+    font-size: calc(13px * var(--font-scale, 1));
     line-height: 1;
     text-decoration: line-through;
 }
 
 .price {
     color: var(--text-primary);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     line-height: 1;
 }
@@ -453,7 +467,7 @@ a.game-card:hover::after {
     margin-top: 0px;
     margin-bottom: 0px;
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     line-height: 1.75;
 }
 
@@ -465,7 +479,7 @@ a.game-card:hover::after {
     background: var(--success);
     color: var(--bg-primary);
     padding: 7px 6px;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     border-radius: var(--radius-sm);
     font-weight: var(--text-semibold);
     line-height: 1;
@@ -480,7 +494,7 @@ a.game-card:hover::after {
     border: 2px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 7px 6px;
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -502,7 +516,7 @@ a.game-card:hover::after {
 .game-detail-title h1 {
     margin: 0;
     color: white;
-    font-size: 32px;
+    font-size: calc(32px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
@@ -539,7 +553,7 @@ a.game-card:hover::after {
 .game-detail-info h2 {
     margin-top: 0;
     color: white;
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
@@ -547,7 +561,7 @@ a.game-card:hover::after {
     color: var(--text-secondary);
     line-height: 1.75;
     margin-bottom: 30px;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
 }
 
 .detail-row {
@@ -585,7 +599,7 @@ a.game-card:hover::after {
 
 .detail-section h2 {
     color: white;
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
     margin-bottom: var(--padding-md);
     font-weight: var(--text-semibold);
 }
@@ -614,10 +628,11 @@ a.game-card:hover::after {
 
     .logo {
         margin-right: 5px;
+        font-size: 16px;
     }
 
-    .profile {
-        display: none;
+    .nav-link {
+        font-size: 15px;
     }
 
     .featured {
@@ -719,7 +734,7 @@ a.game-card:hover::after {
     border: 2px solid var(--danger);
     padding: 11px 27px;
     border-radius: var(--radius-md);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     box-shadow: 0 15px 25px var(--shadow);
     transition: top 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s;
     opacity: 0;
@@ -785,7 +800,7 @@ a.game-card:hover::after {
     margin-bottom: 30px;
     color: white;
     text-align: center;
-    font-size: 32px;
+    font-size: calc(32px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
@@ -798,7 +813,7 @@ a.game-card:hover::after {
 
 .form-group label {
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
 }
 
 .form-group input {
@@ -807,7 +822,7 @@ a.game-card:hover::after {
     border-radius: var(--radius-sm);
     padding: 9px 14px;
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     outline: none;
     transition: 0.2s;
 }
@@ -828,7 +843,7 @@ a.game-card:hover::after {
     color: var(--danger);
     padding: var(--padding-sm);
     border-radius: var(--radius-sm);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     margin-bottom: 25px;
     text-align: center;
 }
@@ -836,7 +851,7 @@ a.game-card:hover::after {
 .logout-btn {
     color: var(--text-secondary);
     text-decoration: none;
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     padding: 9px 14px;
     border: 2px solid var(--border-subtle);
@@ -955,7 +970,7 @@ a.game-card:hover::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     padding-left: 2px;
     pointer-events: none;  /* Пропускает клик на родительский div */
 }
@@ -1004,7 +1019,7 @@ a.game-card:hover::after {
     color: var(--text-secondary);
     text-decoration: none !important;
     border-radius: var(--radius-sm);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-normal);
     transition: background 0.2s, color 0.2s;
 }
@@ -1020,7 +1035,7 @@ a.game-card:hover::after {
     color: var(--text-secondary);
     text-decoration: none !important;
     border-radius: var(--radius-sm);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-normal);
     transition: background 0.2s, color 0.2s, filter 0.2s;
 }
@@ -1097,18 +1112,18 @@ a.game-card:hover::after {
 
     margin:
         0 0 8px;
-    font-size: 18px;
+    font-size: calc(18px * var(--font-scale, 1));
 }
 
 .search-result-info .search-price {
     color: white;
-    font-size: 18px;
+    font-size: calc(18px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
 .search-price-block .search-price {
     color: white;
-    font-size: 18px;
+    font-size: calc(18px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
@@ -1126,7 +1141,7 @@ a.game-card:hover::after {
 .clear-search-btn {
     position: absolute;
     right: 55px; /* Размещаем перед кнопкой лупы */
-    font-size: 28px;
+    font-size: calc(28px * var(--font-scale, 1));
     color: var(--text-secondary);
     cursor: pointer;
     user-select: none;
@@ -1149,7 +1164,7 @@ a.game-card:hover::after {
 }
 
 .search-price-block .old-price {
-    font-size: 13px;
+    font-size: calc(13px * var(--font-scale, 1));
     color: var(--text-muted);
     text-decoration: line-through;
     line-height: 1;
@@ -1175,7 +1190,7 @@ a.game-card:hover::after {
     margin:
         0 0 10px;
     color: white;
-    font-size: 18px;
+    font-size: calc(18px * var(--font-scale, 1));
 }
 
 /* Правая часть (Бейджи и Цена) */
@@ -1199,7 +1214,7 @@ a.game-card:hover::after {
 .search-area h1 {
     margin: 0;
     color: white;
-    font-size: 32px;
+    font-size: calc(32px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
@@ -1228,7 +1243,7 @@ a.game-card:hover::after {
     padding: var(--padding-sm);
     color: white;
     background: transparent;
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
 }
 
 .search-box input::placeholder {
@@ -1245,7 +1260,7 @@ a.game-card:hover::after {
     border: 2px solid var(--border);
     padding: 4px 8px;
     border-radius: var(--radius-sm);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     letter-spacing: 0.3px;
     text-transform: uppercase;
@@ -1254,14 +1269,14 @@ a.game-card:hover::after {
 .cart-badge {
     background: var(--accent);
     color: white;
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     padding: 2px 10px;
     border-radius: var(--radius-big);
     margin-left: 5px;
 }
 
 .news-badge {
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     font-family: var(--font-display);
     font-weight: var(--text-semibold);
     padding: 7px 6px;
@@ -1321,7 +1336,7 @@ a.game-card:hover::after {
     background: var(--accent);
     color: white;
     cursor: pointer;
-    font-size: 22px;
+    font-size: calc(22px * var(--font-scale, 1));
     transition: 0.2s;
 }
 
@@ -1345,20 +1360,12 @@ a.game-card:hover::after {
     color: white;
     padding: 11px 27px;
     border-radius: var(--radius-sm);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     cursor: pointer;
     transition: transform var(--transition);
     text-decoration: none;
-}
-
-.friend-add-btn {
-    background: #6865f2;
-    color: #fff;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 5px;
-    cursor: pointer;
+    margin: 5px;
 }
 
 .nav-left.button,
@@ -1366,6 +1373,18 @@ a.game-card:hover::after {
 .install-btn,
 .btn-primary,
 .btn-secondary {
+    border: none;
+    background: var(--accent);
+    color: white;
+    padding: 11px 27px;
+    border-radius: var(--radius-sm);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    cursor: pointer;
+    transition: transform var(--transition);
+    text-decoration: none;
+    margin: 5px;
+    
     will-change: transform;
     transform: perspective(1px) translateZ(0) rotate(0.01deg);
     outline: 1px solid transparent;
@@ -1381,7 +1400,7 @@ a.game-card:hover::after {
     padding: 9px 14px;
     border-radius: var(--radius-sm);
     font-weight: var(--text-semibold);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     cursor: pointer;
     transition: transform var(--transition);
 }
@@ -1394,7 +1413,7 @@ a.game-card:hover::after {
     border: 1px solid var(--card-border, rgba(255, 255, 255, .12));
     background: rgba(255, 255, 255, .06);
     color: #fff;
-    font-size: 18px;
+    font-size: calc(18px * var(--font-scale, 1));
     line-height: 1;
     cursor: pointer;
     display: flex;
@@ -1436,7 +1455,7 @@ a.game-card:hover::after {
 .news-title {
     margin-bottom: var(--padding-big);
     color: white;
-    font-size: 32px;
+    font-size: calc(32px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
@@ -1492,7 +1511,7 @@ a.game-card:hover::after {
 }
 
 .news-card h2 {
-    font-size: 22px;
+    font-size: calc(22px * var(--font-scale, 1));
     line-height: 1.25;
     font-family: var(--font-display);
     margin-bottom: var(--padding-sm);
@@ -1502,13 +1521,13 @@ a.game-card:hover::after {
 
 .news-description {
     color: var(--text-secondary);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     line-height: 1.5;
 }
 
 .news-date {
     color: var(--text-primary);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     margin-top: 0px;
     line-height: 1;
 }
@@ -1537,7 +1556,7 @@ a.game-card:hover::after {
     display: inline-block;
     margin-top: 10px;
     margin-bottom: 5px;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
 }
 
 .empty-news {
@@ -1572,7 +1591,7 @@ a.game-card:hover::after {
     color: var(--accent);
     text-decoration: none;
     font-weight: var(--text-semibold);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     transition: 0.2s;
 }
 
@@ -1590,7 +1609,7 @@ a.game-card:hover::after {
     border-radius: var(--radius-sm);
     padding: 9px 14px;
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     outline: none;
     transition: 0.2s;
     margin: 0;
@@ -1610,14 +1629,14 @@ a.game-card:hover::after {
 }
 
 .timer-label {
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     color: #8f98a0;
     text-transform: uppercase;
     white-space: nowrap;
 }
 
 .timer-box {
-    font-size: 18px;
+    font-size: calc(18px * var(--font-scale, 1));
     font-weight: var(--text-normal);
     color: var(--accent);
     font-family: var(--font-display);
@@ -1630,7 +1649,7 @@ a.game-card:hover::after {
     border: 2px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 7px 6px;
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     text-transform: uppercase;
     letter-spacing: 0.3px;
     backdrop-filter: blur(5px);
@@ -1663,7 +1682,7 @@ a.game-card:hover::after {
 
 .news-date {
     color: var(--text-muted);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     line-height: 1;
     height: fit-content;
     white-space: nowrap; /* Не даёт дате разрываться */
@@ -1726,7 +1745,7 @@ a.game-card:hover::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
     cursor: pointer;
     z-index: 999;
     
@@ -1794,7 +1813,7 @@ a.game-card:hover::after {
     display: flex; /* больше не display:none по умолчанию — видимость решает opacity */
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
     cursor: pointer;
  
     opacity: 0;
@@ -1825,14 +1844,14 @@ a.game-card:hover::after {
 }
 .profile-info h1 {
     margin: 0 0 7.5px;
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
     font-family: var(--font-display);
     font-weight: var(--text-semibold);
 }
 .profile-status {
     margin: 0 0 7.5px;
     color: var(--text-secondary);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     white-space: normal;
     word-break: break-word; /* Чтобы длинные слова без пробелов тоже перенослись */
 
@@ -1863,12 +1882,12 @@ a.game-card:hover::after {
     margin-right: -5px;  /* Отступ от линии до следующего элемента */
 }
 .profile-stat strong {
-    font-size: 22px;
+    font-size: calc(22px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 .profile-stat span {
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
 }
 
 .profile-section {
@@ -1878,19 +1897,24 @@ a.game-card:hover::after {
 .activity-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 15px;
 }
 .activity-item {
     position: relative; /* Обязательно: делает карточку точкой отсчета для ::after */
     display: flex;
     align-items: center;
-    padding: var(--padding-sm);
+    padding: var(--padding-sm2);
     border-radius: var(--radius-md);
     background: var(--bg-surface);
     transition: 0.2s;
     min-height: 130px;
     max-height: 130px;
-    transition: transform 0.3s, box-shadow 0.3s, background 0.3s; 
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+}
+
+.activity-item-link {
+    color: inherit;
+    text-decoration: none;
 }
 
 .activity-item:hover {
@@ -1898,8 +1922,8 @@ a.game-card:hover::after {
 }
 
 .activity-item::after {
-    content: ''; /* Обязательно: генерирует псевдоэлемент в DOM */
-    position: absolute; /* Обязательно: привязывает inset: 0 к .cart-item */
+    content: '';
+    position: absolute;
     inset: 0;
     border-radius: var(--radius-md);
     border: 2px solid transparent;
@@ -1909,51 +1933,82 @@ a.game-card:hover::after {
 }
 
 .activity-item:hover::after {
-    border-color: var(--border); /* Используем переменную для цвета рамки */
+    border-color: var(--border);
 }
 
 .activity-cover {
-    height: 100px;          /* Жестко задаем высоту под пропорцию обложки */
-    width: 200px;            /* Жестко задаем ширину */
-    flex-shrink: 0;         /* ЗАПРЕЩАЕМ Flexbox сжимать блок обложки */
-    border-radius: var(--radius-sm);     /* Скругление углов */
-    overflow: hidden;       /* Обрезаем картинку по границам скругления */
-    background-color: #0f1622; /* Цвет фона, если картинка долго грузится */
+    height: 100px;
+    width: 200px;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background-color: #0f1622;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Сама картинка внутри обложки */
 .activity-cover img {
     width: 100%;
     height: 100%;
-    object-fit: cover;      /* Заполняет весь блок без искажения пропорций */
+    object-fit: cover;
     display: block;
 }
-.activity-info {
+
+.activity-cover-2 {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    overflow: hidden;
+    background-color: #0f1622;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activity-cover-2 img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.activity-info,
+.activity-info-game {
     margin-left: var(--padding-sm2);
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Центрирует всё содержимое по вертикали */
+    align-items: flex-start; /* Выравнивает тексты и иконку по левому краю аккуратной колонкой */
+    position: relative;
 }
 .activity-info-t {
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     color: var(--text-muted);
     font-weight: var(--text-normal);
 }
+.activity-info-game h3 {
+    margin: 0 0 7.5px;
+    font-size: calc(18px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
 .activity-info h3 {
-    margin: 0 0 5px;
-    font-size: 18px;
+    font-family: var(--font-display);
+    margin: 0 0 7.5px;
+    font-size: calc(18px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 .empty-activity {
     margin: 0;
 
     color: var(--text-muted);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
 }
 .activity-time {
     margin-left: auto;
     color: var(--text-muted);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
 }
 
 .profile-empty {
@@ -1964,8 +2019,9 @@ a.game-card:hover::after {
     border: 2px solid var(--border);
 }
 .profile-empty-icon {
-    font-size: 32px;
+    font-size: calc(32px * var(--font-scale, 1));
     margin-bottom: 10px;
+    color: #f5b301;
 }
 .profile-empty h3 {
     margin: 0 0 15px;
@@ -1977,7 +2033,7 @@ a.game-card:hover::after {
 }
 .profile-placeholder {
     color: var(--text-muted);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
 }
 
 .achievements {
@@ -1994,7 +2050,7 @@ a.game-card:hover::after {
     background: var(--bg-surface);
     border: 2px solid var(--border);
     border-radius: var(--radius-sm);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-normal);
 }
 .achievement.locked {
@@ -2059,7 +2115,7 @@ body.no-blur * {
  
 .banner-crop-box h3 {
     margin: 0 0 15px;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
@@ -2119,8 +2175,8 @@ body.no-blur * {
  
 #bannerZoom::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 22px;
-    height: 22px;
+    width: 22.5px;
+    height: 22.5px;
     border-radius: 50%;
     background: #fff;
     border: 3px solid var(--accent);
@@ -2128,8 +2184,8 @@ body.no-blur * {
 }
  
 #bannerZoom::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
+    width: 22.5px;
+    height: 22.5px;
     border-radius: 50%;
     background: #fff;
     border: 3px solid var(--accent);
@@ -2157,7 +2213,7 @@ body.no-blur * {
     border-radius: var(--radius-sm);
     align-self: flex-start;
     flex-shrink: 0;
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     cursor: pointer;
 }
@@ -2169,7 +2225,7 @@ body.no-blur * {
     padding: 9px 14px;
     border-radius: var(--radius-sm);
     font-weight: var(--text-semibold);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     cursor: pointer;
     flex-shrink: 0;
     align-self: flex-start;
@@ -2198,8 +2254,8 @@ body.no-blur * {
     padding: 10px 10px;
     cursor: pointer;
     color: var(--text-muted);
-    border-radius: 2.5px;
-    font-size: 14px;
+    border-radius: var(--radius-verysm);
+    font-size: calc(14px * var(--font-scale, 1));
     border-left: 3px solid transparent;
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     text-decoration: none;
@@ -2210,8 +2266,8 @@ body.no-blur * {
 }
 
 .settings-nav-link .nav-icon {
-    width: 22px;
-    height: 22px;
+    width: 22.5px;
+    height: 22.5px;
     flex-shrink: 0; /* Не дает иконке сжиматься */
     transition: transform 0.2s ease;
 }
@@ -2265,7 +2321,7 @@ body.no-blur * {
 }
 
 .settings-nav-link span {
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     opacity: 0.85;
 }
 
@@ -2276,18 +2332,6 @@ body.no-blur * {
 
 .profile-tab[hidden] {
     display: none;
-}
-
-.profile-content {
-    flex: 1;
-    min-width: 0;
-    display: grid;
-}
-.profile-tab { grid-area: 1 / 1; }          /* все вкладки в одной ячейке */
-.profile-tab[hidden] {
-    display: block;                          /* оставляем в раскладке, чтобы считалась высота */
-    visibility: hidden;
-    pointer-events: none;
 }
 
 .friends-search { position: relative; }
@@ -2315,7 +2359,7 @@ body.no-blur * {
     color: #fff;
     border-radius: 50%;
 }
-.search-sub, .search-badge-muted { font-size: 12px; color: var(--text-muted); }
+.search-sub, .search-badge-muted { font-size: calc(14px * var(--font-scale, 1)); color: var(--text-muted); }
 
 /* =========================
    FRIEND SEARCH
@@ -2331,13 +2375,13 @@ body.no-blur * {
 .friends-search input {
     width: 100%;
     min-width: 0;
-    height: 46px;
+    height: 42px;
     padding: 0 14px;
     box-sizing: border-box;
     color: var(--text-primary);
     background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
     outline: none;
     transition: border-color .2s, box-shadow .2s;
 }
@@ -2353,16 +2397,16 @@ body.no-blur * {
     left: 0;
     right: 0;
     width: 100%;
-    max-height: 320px;
+    max-height: 340px;
     overflow-y: auto;
     overflow-x: hidden;
     box-sizing: border-box;
 
     display: none;
-    padding: 6px;
+    padding: 7.5px;
     background: var(--bg-primary);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
     box-shadow: 0 12px 32px rgba(0, 0, 0, .4);
 
     z-index: 100;
@@ -2375,13 +2419,11 @@ body.no-blur * {
 #friendSearchResults .search-result-item {
     display: flex;
     align-items: center;
-    gap: 12px;
     width: 100%;
     min-width: 0;
-    min-height: 64px;
-    padding: 10px;
+    min-height: 130px;
     box-sizing: border-box;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     transition: background .15s;
 }
 
@@ -2392,7 +2434,7 @@ body.no-blur * {
 #friendSearchResults .search-result-link {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 5px;
     flex: 1;
     min-width: 0;
     color: inherit;
@@ -2401,9 +2443,9 @@ body.no-blur * {
 
 #friendSearchResults .search-avatar-ph,
 #friendSearchResults .search-result-item img {
-    flex: 0 0 42px;
-    width: 42px;
-    height: 42px;
+    flex: 0 0 75px;
+    width: 75px;
+    height: 75px;
     border-radius: 50%;
     object-fit: cover;
 }
@@ -2414,7 +2456,7 @@ body.no-blur * {
     justify-content: center;
     background: var(--bg-secondary);
     font-weight: 700;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
 }
 
 #friendSearchResults .search-result-info {
@@ -2427,7 +2469,7 @@ body.no-blur * {
     display: block;
     overflow: hidden;
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2436,16 +2478,16 @@ body.no-blur * {
 #friendSearchResults .search-sub,
 #friendSearchResults .search-badge-muted {
     display: block;
-    margin-top: 4px;
+    margin-top: 0px;
     color: var(--text-muted);
-    font-size: 12px;
+    font-size: calc(14px * var(--font-scale, 1));
 }
 
 #friendSearchResults button {
     flex: 0 0 auto;
     max-width: 100%;
-    padding: 8px 12px;
-    border-radius: 8px;
+    padding: 9px 14px;
+    border-radius: var(--radius-sm);
     white-space: nowrap;
 }
 
@@ -2471,79 +2513,68 @@ body.no-blur * {
 
 /* ===== FRIEND SEARCH: FIXED ===== */
 
-.friends-search {
-    position: relative;
-    z-index: 30;
+.search-box.friends-search {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     width: 100%;
     min-width: 0;
+    height: auto;
+    overflow: visible;
+
+    /* убираем рамку и подсветку от общего .search-box */
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
 }
 
 .friends-search input {
+    flex: 0 0 auto;
     display: block;
     width: 100%;
-    min-width: 0;
-    height: 46px;
-    padding: 0 14px;
-    box-sizing: border-box;
-
+    height: 42px;
+    padding: 9px 14px;
     color: var(--text-primary);
     background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
     outline: none;
-
     transition: border-color .2s, box-shadow .2s;
 }
 
 .friends-search input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, .15);
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.1);
 }
 
+/* Результаты: обычный блок под полем */
 #friendSearchResults.search-results {
-    position: absolute !important;
-    top: calc(100% + 8px) !important;
-    right: 0 !important;
-    bottom: auto !important;
-    left: 0 !important;
-
-    width: 100% !important;
-    max-height: 340px;
+    position: absolute;
+    width: 100%;
+    max-height: 260px;
+    margin: 0;
     overflow-x: hidden;
     overflow-y: auto;
-    box-sizing: border-box;
-
-    padding: 6px;
-    margin: 0;
-
     background: var(--bg-primary);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: 0 14px 35px rgba(0, 0, 0, .4);
-
-    z-index: 1000;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: none;
 }
 
 #friendSearchResults[style*="display: none"] {
     display: none !important;
 }
 
-#friendSearchResults .search-result-item {
+.search-result-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-
+    gap: 15px;
     width: 100%;
     min-width: 0;
-    min-height: 64px;
-    padding: 9px 10px;
-    margin: 0;
-    box-sizing: border-box;
-
-    border: 0;
-    border-radius: 8px;
-    background: transparent;
-
+    min-height: 60px;
+    padding: 9px 14px;
+    border-radius: var(--radius-md);
     transition: background .15s;
 }
 
@@ -2551,145 +2582,574 @@ body.no-blur * {
     background: var(--bg-secondary);
 }
 
-#friendSearchResults .search-result-link {
+.search-result-link {
     display: flex;
     align-items: center;
-    gap: 11px;
-
+    gap: 5px;
     flex: 1 1 auto;
     min-width: 0;
-    overflow: hidden;
-
     color: inherit;
     text-decoration: none;
 }
 
-#friendSearchResults .search-avatar,
-#friendSearchResults .search-avatar-ph {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    flex: 0 0 42px;
-    width: 42px;
-    height: 42px;
-    min-width: 42px;
-
-    box-sizing: border-box;
+.search-avatar,
+.search-avatar-ph {
+    flex: 0 0 50px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     object-fit: cover;
 }
 
-#friendSearchResults .search-avatar-ph {
+.search-avatar-ph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: #fff;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: 700;
 }
 
-#friendSearchResults .search-result-info {
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-}
-
-#friendSearchResults .search-title {
-    display: block;
-    margin: 0;
-
-    overflow: hidden;
-    color: var(--text-primary);
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.4;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-#friendSearchResults .search-sub {
-    display: block;
-    margin-top: 3px;
-
-    overflow: hidden;
-    color: var(--text-muted);
-    font-size: 12px;
-    line-height: 1.4;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-#friendSearchResults .search-result-right {
+.search-result-info {
     display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    min-width: 0;
+}
+
+.search-title,
+.search-sub {
+    display: block;
+    overflow: hidden;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.search-title {
+    color: var(--text-primary);
+    font-size: calc(18px * var(--font-scale, 1));
+    font-weight: 600;
+}
+
+.search-sub {
+    color: var(--text-muted);
+    font-size: calc(16px * var(--font-scale, 1));
+}
+
+.search-result-right {
+    display: flex;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: flex-end;
-
-    flex: 0 0 auto;
-    max-width: 48%;
 }
 
-#friendSearchResults .friend-add-btn {
+.friend-add-btn {
     flex-shrink: 0;
-    padding: 8px 11px;
-
+    padding: 9px 14px;
     color: #fff;
     background: var(--accent);
     border: none;
-    border-radius: 7px;
-
-    font-size: 12px;
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: 600;
-    cursor: pointer;
     white-space: nowrap;
+    cursor: pointer;
     transition: filter .15s, opacity .15s;
 }
 
-#friendSearchResults .friend-add-btn:hover {
-    filter: brightness(1.12);
-}
+.friend-add-btn:hover { filter: brightness(1.1); }
+.friend-add-btn:disabled { opacity: .55; cursor: wait; }
 
-#friendSearchResults .friend-add-btn:disabled {
-    opacity: .55;
-    cursor: wait;
-}
-
-#friendSearchResults .search-badge-muted {
+.search-badge-muted {
     color: var(--text-muted);
-    font-size: 11px;
-    line-height: 1.4;
-    text-align: right;
+    font-size: calc(14px * var(--font-scale, 1));
+    white-space: nowrap;
 }
 
-#friendSearchResults .search-empty {
+.search-empty {
     justify-content: center;
     min-height: 48px;
     color: var(--text-muted);
-    font-size: 13px;
+    font-size: calc(14px * var(--font-scale, 1));
     text-align: center;
 }
 
 @media (max-width: 480px) {
-    #friendSearchResults .search-result-item {
-        gap: 7px;
-        padding: 8px 6px;
+    .search-result-item,
+    .search-result-link { gap: 8px; }
+
+    .search-avatar,
+    .search-avatar-ph {
+        flex-basis: 50px;
+        width: 50px;
+        height: 50px;
     }
 
-    #friendSearchResults .search-result-link {
-        gap: 7px;
-    }
+    .friend-add-btn { padding: 7px 10px; font-size: 14px; }
+}
 
-    #friendSearchResults .search-avatar,
-    #friendSearchResults .search-avatar-ph {
-        flex-basis: 34px;
-        width: 34px;
-        height: 34px;
-        min-width: 34px;
-    }
 
-    #friendSearchResults .search-result-right {
-        max-width: 45%;
-    }
 
+#friendSearchResults button,
+#friendSearchResults .friend-add-btn {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    height: auto;
+    min-height: 0;
+
+    padding: 9px 14px;
+    font-family: inherit;
+    font-size: calc(14px * var(--font-scale, 1));
+    line-height: 1.4;
+    font-weight: 600;
+    white-space: nowrap;
+
+    box-sizing: border-box;
+    transform: none;
+}
+
+@media (max-width: 600px) {
+    #friendSearchResults button,
     #friendSearchResults .friend-add-btn {
-        padding: 7px 8px;
+        padding: 7px 9px;
+        font-size: 12px;
+    }
+}
+
+/* =========================================================
+   МОБИЛЬНАЯ ВЕРСИЯ (только классы из index.html)
+   Вставьте В САМЫЙ КОНЕЦ style.css, чтобы правила
+   перебивали старые @media (max-width: 900px / 600px)
+========================================================= */
+
+/* ---------- Планшеты / большие телефоны ---------- */
+@media (max-width: 768px) {
+
+    .container {
+        width: 94%;
+        padding: 20px 0 60px;
+    }
+
+    /* Поиск */
+    .search-area {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-bottom: 40px;
+    }
+
+    .search-area h1 {
+        font-size: calc(26px * var(--font-scale, 1));
+    }
+
+    .search-box-container {
+        max-width: 100%;
+        margin-bottom: 0;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+
+    /* Игра недели */
+    .featured {
+        grid-template-columns: 1fr;
+        min-height: 0;
+        max-height: none;
+        margin-bottom: 35px;
+    }
+
+    .featured > img {
+        min-height: 0;
+        height: 220px;
+    }
+
+    .featured-info {
+        padding: var(--padding-md);
+    }
+
+    .featured-info h2 {
+        font-size: calc(26px * var(--font-scale, 1));
+    }
+
+    .featured-info p {
+        max-width: 100%;
+    }
+
+    .timer-box {
+        margin-left: 0;
+    }
+
+    /* Карточки */
+    .games-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    a.game-card {
+        min-width: 0;
+        max-width: none;
+    }
+
+    /* Отключаем "прыжок" карточки при наведении на тач-экранах */
+    a.game-card:hover {
+        transform: none;
+    }
+}
+
+/* ---------- Телефоны ---------- */
+@media (max-width: 600px) {
+
+    .container {
+        width: 92%;
+        padding-top: 15px;
+    }
+
+    /* ----- Поиск ----- */
+    .search-area h1 {
+        font-size: 22px;
+    }
+
+    .search-box {
+        height: 40px;
+    }
+
+    .search-box button {
+        width: 40px;
+        height: 40px;
+    }
+
+    .search-box input {
+        font-size: 16px; /* 16px — чтобы iOS не зумил страницу при фокусе */
+    }
+
+    /* Выпадающие результаты поиска */
+    .search-result-item {
+        height: auto;
+        min-height: 50px;
+        padding: var(--padding-sm);
+        gap: 8px;
+    }
+
+    .search-cover {
+        width: 70px;
+        height: 30px;
+        margin-right: 5px;
+    }
+
+    .search-title {
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .search-result-right {
+        padding-left: 6px;
+        gap: 6px;
+    }
+
+    .search-badges {
+        gap: 5px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .search-price-block {
+        gap: 5px;
+    }
+
+    .search-price-block .search-price {
+        font-size: 14px;
+    }
+
+    /* ----- Игра недели ----- */
+    .featured > img {
+        height: 180px;
+    }
+
+    .featured-info {
+        padding: var(--padding-sm2);
+    }
+
+    .gotw-header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .featured-label {
+        font-size: 14px;
+    }
+
+    .timer-container {
+        justify-self: auto;
+    }
+
+    .timer-box {
+        font-size: 12px;
+        padding: 6px 5px;
+        margin-left: 0;
+    }
+
+    .featured-info h2 {
+        font-size: 22px;
+        margin-bottom: 10px;
+    }
+
+    .featured-info p {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .featured-release-date {
+        font-size: 14px;
+        margin-top: 5px;
+    }
+
+    .featured-bottom {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-top: var(--padding-md);
+    }
+
+    .price-group {
+        justify-content: space-between;
+    }
+
+    .featured-price {
+        font-size: 20px;
+    }
+
+    .old-featured-price {
+        font-size: 14px;
+    }
+
+    .featured .buy-button,
+    .js-add-to-cart {
+        width: 100%;
+        margin: 0;
+        padding: 12px 20px;
+    }
+
+    /* ----- Секции ----- */
+    .games-section {
+        margin-bottom: 35px !important;
+    }
+
+    .section-header {
+        margin-bottom: 10px;
+    }
+
+    .section-header h2 {
+        font-size: 22px;
+    }
+
+    .section-header a {
+        font-size: 13px;
+    }
+
+    /* ----- Сетка карточек: 1 колонка ----- */
+    .games-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .game-image {
+        height: 170px;
+    }
+
+    .game-info {
+        padding: 12px;
+    }
+
+    .game-info h3 {
+        font-size: 17px;
+    }
+
+    .game-genres {
+        font-size: 13px;
+    }
+
+    .release-date {
+        font-size: 13px;
+        margin-bottom: 15px;
+    }
+
+    .game-bottom {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .price {
+        font-size: 16px;
+    }
+
+    .discount,
+    .not-on-steam-badge2 {
+        font-size: 12px;
+        padding: 6px 5px;
+    }
+}
+
+/* ---------- Очень маленькие экраны ---------- */
+@media (max-width: 380px) {
+
+    .search-area h1 {
+        font-size: 21px;
+    }
+
+    .featured > img {
+        height: 150px;
+    }
+
+    .featured-info h2 {
+        font-size: 20px;
+    }
+
+    .game-image {
+        height: 140px;
+    }
+
+    .search-cover {
+        display: none; /* на очень узких экранах прячем обложку в поиске */
+    }
+
+    .timer-box {
         font-size: 11px;
     }
 }
+
+/* Средняя оценка */
+.game-rating {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+.stars-static {
+    --percent: 0%;
+    position: relative;
+    font-size: calc(32px * var(--font-scale, 1));
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, #f5b301 var(--percent), rgba(255,255,255,.2) var(--percent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.game-rating-count { color: var(--text-muted); }
+
+/* Форма отзыва */
+.review-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    background: var(--bg-surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+}
+.review-form-title { font-weight: var(--text-semibold); }
+.review-form textarea {
+    width: 100%;
+    resize: vertical;
+    padding: 9px 14px;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    outline: none;
+}
+.review-form textarea:focus { border-color: var(--accent); }
+.review-form-actions { display: flex; gap: 10px; }
+
+/* Выбор звёзд */
+.star-input {
+    display: inline-flex;
+    flex-direction: row-reverse;   /* 5 слева в DOM, но визуально 1..5 */
+    justify-content: flex-end;
+    align-self: flex-start;
+}
+.star-input input { position: absolute; opacity: 0; pointer-events: none; }
+.star-input label {
+    padding: 0 2px;
+    font-size: calc(32px * var(--font-scale, 1));
+    line-height: 1;
+    color: rgba(255,255,255,.2);
+    cursor: pointer;
+    transition: color .2s, transform .2s;
+}
+.star-input label:hover,
+.star-input label:hover ~ label,
+.star-input input:checked ~ label { color: #f5b301; }
+.star-input label:hover { transform: scale(1.25); }
+.star-input input:focus-visible + label { outline: 2px solid var(--accent); border-radius: var(--radius-sm); }
+
+/* Список отзывов */
+.reviews { display: flex; flex-direction: column; gap: 15px; }
+.review {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    
+    padding: var(--padding-sm2);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    min-height: 130px;
+    max-height: none;
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s; 
+}
+
+.review > * {
+    flex-shrink: 0;
+}
+
+.review .profile-status {
+    margin: 0 0 var(--padding-sm);
+    -webkit-line-clamp: 3;     /* максимум 3 строки текста */
+}
+
+.review .release-date {
+    margin: 0;                 /* убираем отступ 25px от карточек игр */
+    line-height: 1.5;
+}
+
+.review:hover {
+    filter: brightness(1.10);
+}
+
+.review::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-md);
+    border: 2px solid transparent;
+    transition: border-color 0.3s, filter 0.3s;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.review:hover::after {
+    border-color: var(--border); /* Используем переменную для цвета рамки */
+}
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--padding-sm);
+}
+.review-author { color: inherit; font-weight: var(--text-semibold); text-decoration: none; font-size: calc(18px * var(--font-scale, 1));}
+.review-rating { color: #f5b301; letter-spacing: 3px; font-size: calc(22px * var(--font-scale, 1));}
+.review-date { color: var(--text-muted); font-size: calc(14px * var(--font-scale, 1)); }

@@ -29,6 +29,8 @@ urlpatterns = [
     path('friends/request/', views.friend_request, name='friend_request'),
     path('friends/respond/<int:pk>/', views.friend_respond, name='friend_respond'),
     path('friends/remove/<int:pk>/', views.friend_remove, name='friend_remove'),
+    path('game/<int:game_id>/review/', views.review_submit, name='review_submit'),
+    path('game/<int:game_id>/review/delete/', views.review_delete, name='review_delete'),
     path(
         'profile/<str:username>/',
         views.user_profile,

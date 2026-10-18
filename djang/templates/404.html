@@ -6,7 +6,6 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static '/css/404.css' %}?v=4">
-    <link rel="icon" type="image/png" href="{% static '/css/icons/gamestore.png' %}">
 
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>

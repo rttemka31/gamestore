@@ -23,8 +23,9 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+DEBUG = True
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '*', '.trycloudflare.com']
+CSRF_TRUSTED_ORIGINS = ['https://*.trycloudflare.com']
 
 # Application definition
 INSTALLED_APPS = [

@@ -1,3 +1,16 @@
+:root {
+    --font-scale: 1;
+    --radius-scale: 1;
+    --radius-verysm: calc(2.5px * var(--radius-scale));
+    --radius-sm: calc(5px * var(--radius-scale));
+    --radius-md: calc(10px * var(--radius-scale));
+    --radius-big: calc(50px * var(--radius-scale));
+}
+html[data-font="0"]   { --font-scale: 0.9; }
+html[data-font="2"]   { --font-scale: 1.1; }
+html[data-radius="0"] { --radius-scale: 0.5; }
+html[data-radius="2"] { --radius-scale: 1.5; }
+
 .settings-page {
     max-width: 1350px;
 }
@@ -41,8 +54,8 @@ h1 {
     padding: 10px 10px;
     cursor: pointer;
     color: var(--text-muted);
-    border-radius: 2.5px;
-    font-size: 14px;
+    border-radius: var(--radius-verysm);
+    font-size: calc(14px * var(--font-scale, 1));
     border-left: 3px solid transparent;
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     text-decoration: none;
@@ -53,8 +66,8 @@ h1 {
 }
 
 .settings-nav-link .nav-icon {
-    width: 22px;
-    height: 22px;
+    width: 22.5px;
+    height: 22.5px;
     flex-shrink: 0; /* Не дает иконке сжиматься */
     transition: transform 0.2s ease;
 }
@@ -89,7 +102,7 @@ h1 {
 .settings-card {
     background: var(--bg-secondary);
     border: 2px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     padding: 25px;
     margin-bottom: 25px;
     scroll-margin-top: 100px;
@@ -98,7 +111,7 @@ h1 {
 .settings-card h2 {
     margin-top: var(--padding-sm);
     color: var(--text-primary);
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
@@ -131,7 +144,7 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
     cursor: pointer;
     
     z-index: 3; /* Чтобы overlay был поверх аватара, но под другими элементами */
@@ -156,7 +169,7 @@ h1 {
     background: var(--accent);
     color: #fff;
     font-weight: var(--text-semibold);
-    font-size: 22px;
+    font-size: calc(24px * var(--font-scale, 1));
 }
 
 .settings-form {
@@ -172,7 +185,7 @@ h1 {
 }
 
 .settings-field label {
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     color: var(--text-muted);
 }
 
@@ -188,7 +201,7 @@ h1 {
     border-radius: var(--radius-sm);
     padding: 9px 14px;
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     outline: none;
     transition: 0.2s;
     margin: 0;
@@ -205,7 +218,7 @@ h1 {
 
 .settings-hint {
     margin: 5px 0 5px;
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     color: var(--text-muted);
 }
 
@@ -225,7 +238,7 @@ h1 {
 
 .settings-toggle-title {
     display: block;
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     color: #fff;
 }
 
@@ -273,7 +286,7 @@ h1 {
     border-radius: var(--radius-sm);
     margin-top: 15px;
     padding: 9px 14px;
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     cursor: pointer;
     transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
@@ -315,7 +328,7 @@ h1 {
     position: relative;
     width: 100%;
     height: 200px;
-    border-radius: 5px;
+    border-radius: var(--radius-sm);
     box-sizing: border-box;
     border: 2px dashed rgba(255, 255, 255, 0.2);
     overflow: hidden; /* обрезка по скруглённым углам — только здесь */
@@ -341,7 +354,7 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
     cursor: pointer;
     z-index: 3;
     
@@ -382,7 +395,7 @@ h1 {
     justify-content: center;
     box-sizing: border-box;
     background: #2a2a2a;
-    font-size: 64px;
+    font-size: calc(64px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     color: var(--text-primary);
     margin-bottom: 15px;
@@ -440,7 +453,7 @@ h1 {
  
 .banner-crop-box h3 {
     margin: 0 0 15px;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
@@ -497,7 +510,7 @@ h1 {
     border: 1px solid var(--card-border, rgba(255, 255, 255, .12));
     background: rgba(255, 255, 255, .06);
     color: #fff;
-    font-size: 22px;
+    font-size: calc(24px * var(--font-scale, 1));
     line-height: 1;
     cursor: pointer;
     display: flex;
@@ -522,8 +535,8 @@ h1 {
  
 #bannerZoom::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 22px;
-    height: 22px;
+    width: 22.5px;
+    height: 22.5px;
     border-radius: 50%;
     background: #fff;
     border: 3px solid var(--accent);
@@ -531,8 +544,8 @@ h1 {
 }
  
 #bannerZoom::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
+    width: 22.5px;
+    height: 22.5px;
     border-radius: 50%;
     background: #fff;
     border: 3px solid var(--accent);
@@ -550,4 +563,37 @@ h1 {
     justify-content: flex-end;
     gap: 10px;
     margin-top: 20px;
+}
+
+.settings-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    margin-top: 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .15);
+    outline: none;
+}
+.settings-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22.5px; height: 22.5px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--accent);
+    cursor: pointer;
+}
+.settings-slider::-moz-range-thumb {
+    width: 22.5px; height: 22.5px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--accent);
+    cursor: pointer;
+}
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
 }

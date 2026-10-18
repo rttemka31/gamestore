@@ -1,13 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Новости | GameStore{% endblock %}
+{% block title %}GameStore | Новости{% endblock %}
 
 {% block extra_head %}
 <head>
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'style.css' %}?v=10">
-    <link rel="icon" type="image/png" href="{% static 'css/icons/gamestore.png' %}">
 
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>

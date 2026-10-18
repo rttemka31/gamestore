@@ -117,6 +117,9 @@ class Profile(models.Model):
     disable_blur = models.BooleanField(default=False)
     hide_stats = models.BooleanField(default=False)
 
+    font_size = models.PositiveSmallIntegerField(default=1)    # 0 мелкий, 1 средний, 2 крупный
+    radius_size = models.PositiveSmallIntegerField(default=1)  # 0 острые, 1 средние, 2 круглые
+
     def __str__(self):
         return f'Профиль {self.user.username}'
 
@@ -166,9 +169,21 @@ class Friendship(models.Model):
 class Review(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='reviews')
-    text = models.TextField(max_length=150)
-    rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    text = models.TextField(max_length=150, blank=True)
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'game'], name='one_review_per_user_game'),
+        ]
+
+    def __str__(self):
+        return f'{self.user} → {self.game} ({self.rating}★)'
 
 
 class Wishlist(models.Model):

@@ -1,12 +1,11 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Профиль | GameStore{% endblock %}
+{% block title %}GameStore | Профиль{% endblock %}
 
 {% block extra_head %}
 <head>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=18">
-    <link rel="icon" type="image/png" href="{% static 'css/icons/gamestore.png' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=19">
 
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>
@@ -166,24 +165,27 @@
  
                     <div class="activity-list">
                         {% for item in recent_games %}
-                            <div class="activity-item">
-                                <div class="activity-cover">
-                                    {% if item.game.cover %}
-                                        <img src="{{ item.game.cover.url }}" alt="{{ item.game.title }}">
-                                    {% else %}
-                                        <span>🎮</span>
-                                    {% endif %}
-                                </div>
-                                <div class="activity-info">
-                                    <h3>{{ item.game.title }}</h3>
-                                    <div class="activity-info-t">
-                                        {{ item.hours_played|default:"0" }} ч. в игре
+                            <a href="{% url 'mfs:game_detail' item.game.id %}" class="activity-item-link" style="text-decoration: none;">
+                                <div class="activity-item">
+                                    <div class="activity-cover">
+                                        {% if item.game.cover %}
+                                            <img src="{{ item.game.cover.url }}" alt="{{ item.game.title }}">
+                                        {% else %}
+                                            <span>🎮</span>
+                                        {% endif %}
+                                    </div>
+                                
+                                    <div class="activity-info-game">
+                                        <h3>{{ item.game.title }}</h3>
+                                        <div class="activity-info-t">
+                                            {{ item.hours_played|default:"0" }} ч. в игре
+                                        </div>
+                                    </div>
+                                    <div class="activity-time">
+                                        {{ item.last_played|timesince }} назад
                                     </div>
                                 </div>
-                                <div class="activity-time">
-                                    {{ item.last_played|timesince }} назад
-                                </div>
-                            </div>
+                            </a>
                         {% empty %}
                             <p class="empty-activity">Вы еще не запускали ни одной игры</p>
                         {% endfor %}
@@ -197,7 +199,7 @@
                         <span class="profile-placeholder">Пока пусто</span>
                     </div>
                     <div class="profile-empty">
-                        <div class="profile-empty-icon">★</div>
+                        <div class="profile-empty-icon">❤</div>
                         <h3>Здесь появятся любимые игры</h3>
                         <p>Добавляй игры в избранное, чтобы быстро находить их.</p>
                     </div>
@@ -222,21 +224,32 @@
                     <div class="section-header"><h2>Заявки в друзья</h2></div>
                     <div class="activity-list">
                         {% for f in incoming_requests %}
-                        <div class="activity-item">
-                            <div class="activity-cover">
-                                {% if f.sender.avatar %}<img src="{{ f.sender.avatar.url }}" alt="">
-                                {% else %}<span>{{ f.sender.user.username|first|upper }}</span>{% endif %}
+                        <a href="{% url 'mfs:user_profile' f.receiver.user.username %}" class="activity-item-link">
+                            <div class="activity-item">
+                                <div class="activity-cover-2">
+                                    {% if f.sender.avatar %}<img src="{{ f.sender.avatar.url }}" alt="">
+                                    {% else %}<span>{{ f.sender.user.username|first|upper }}</span>{% endif %}
+                                </div>
+                                <div class="activity-info">
+                                    <h3><a href="{% url 'mfs:user_profile' f.sender.user.username %}" style="color:inherit;text-decoration:none;">{{ f.sender.user.username }}</a></h3>
+                                    <p class="profile-status">
+                                        {% if target.user.is_superuser %}
+                                            👑 Создатель
+                                        {% elif target.user.is_staff %}
+                                            🛡️ Админ
+                                        {% else %}
+                                            🎮 Пользователь
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="activity-time">
+                                    <button type="button" class="buy-button" style="background:#28a745;color:#fff;"
+                                            data-friend-action="respond" data-id="{{ f.pk }}" data-value="accept">Принять</button>
+                                    <button type="button" class="buy-button" style="background:#e74c3c;color:#fff;"
+                                            data-friend-action="respond" data-id="{{ f.pk }}" data-value="reject">Отклонить</button>
+                                </div>
                             </div>
-                            <div class="activity-info">
-                                <h3><a href="{% url 'mfs:user_profile' f.sender.user.username %}" style="color:inherit;text-decoration:none;">{{ f.sender.user.username }}</a></h3>
-                            </div>
-                            <div class="activity-time">
-                                <button type="button" class="buy-button" style="background:#28a745;color:#fff;"
-                                        data-friend-action="respond" data-id="{{ f.pk }}" data-value="accept">Принять</button>
-                                <button type="button" class="buy-button" style="background:#e74c3c;color:#fff;"
-                                        data-friend-action="respond" data-id="{{ f.pk }}" data-value="reject">Отклонить</button>
-                            </div>
-                        </div>
+                        </a>
                         {% endfor %}
                     </div>
                 </section>
@@ -246,19 +259,30 @@
                     <div class="section-header"><h2>Мои друзья ({{ friends|length }})</h2></div>
                     <div class="activity-list">
                         {% for item in friends %}
-                        <div class="activity-item">
-                            <div class="activity-cover">
-                                {% if item.profile.avatar %}<img src="{{ item.profile.avatar.url }}" alt="">
-                                {% else %}<span>{{ item.profile.user.username|first|upper }}</span>{% endif %}
+                        <a href="{% url 'mfs:user_profile' item.profile.user.username %}" class="activity-item-link">
+                            <div class="activity-item">
+                                <div class="activity-cover-2">
+                                    {% if item.profile.avatar %}<img src="{{ item.profile.avatar.url }}" alt="">
+                                    {% else %}<span>{{ item.profile.user.username|first|upper }}</span>{% endif %}
+                                </div>
+                                <div class="activity-info">
+                                    <h3><a href="{% url 'mfs:user_profile' item.profile.user.username %}" style="color:inherit;text-decoration:none;">{{ item.profile.user.username }}</a></h3>
+                                    <p class="profile-status">
+                                        {% if target.user.is_superuser %}
+                                            👑 Создатель
+                                        {% elif target.user.is_staff %}
+                                            🛡️ Админ
+                                        {% else %}
+                                            🎮 Пользователь
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="activity-time">
+                                    <button type="button" class="buy-button" style="background: var(--bg-card-hover);"
+                                            data-friend-action="remove" data-id="{{ item.id }}">Удалить</button>
+                                </div>
                             </div>
-                            <div class="activity-info">
-                                <h3><a href="{% url 'mfs:user_profile' item.profile.user.username %}" style="color:inherit;text-decoration:none;">{{ item.profile.user.username }}</a></h3>
-                            </div>
-                            <div class="activity-time">
-                                <button type="button" class="buy-button" style="background: var(--bg-card-hover);"
-                                        data-friend-action="remove" data-id="{{ item.id }}">Удалить</button>
-                            </div>
-                        </div>
+                        </a>
                         {% empty %}
                         <p class="empty-activity">Пока нет друзей. Найдите кого-нибудь через поиск выше.</p>
                         {% endfor %}
@@ -270,19 +294,32 @@
                     <div class="section-header"><h2>Отправленные заявки</h2></div>
                     <div class="activity-list">
                         {% for f in outgoing_requests %}
-                        <div class="activity-item">
-                            <div class="activity-cover">
-                                {% if f.receiver.avatar %}<img src="{{ f.receiver.avatar.url }}" alt="">
-                                {% else %}<span>{{ f.receiver.user.username|first|upper }}</span>{% endif %}
+                        <a href="{% url 'mfs:user_profile' f.receiver.user.username %}" class="activity-item-link">
+                            <div class="activity-item" href="{% url 'mfs:user_profile' f.receiver.user.username %}">
+                                <div class="activity-cover-2">
+                                    {% if f.receiver.banner %}<img src="{{ f.receiver.banner.url }}" alt="">
+                                    {% else %}
+                                        <span>{{ f.receiver.user.username|first|upper }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="activity-info">
+                                    <h3><a style="color:inherit;text-decoration:none;">{{ f.receiver.user.username }}</a></h3>
+                                    <p class="profile-status">
+                                        {% if target.user.is_superuser %}
+                                            👑 Создатель
+                                        {% elif target.user.is_staff %}
+                                            🛡️ Админ
+                                        {% else %}
+                                            🎮 Пользователь
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="activity-time">
+                                    <button type="button" class="buy-button" style="background: var(--bg-card-hover);"
+                                            data-friend-action="remove" data-id="{{ f.pk }}">Отменить</button>
+                                </div>
                             </div>
-                            <div class="activity-info">
-                                <h3><a href="{% url 'mfs:user_profile' f.receiver.user.username %}" style="color:inherit;text-decoration:none;">{{ f.receiver.user.username }}</a></h3>
-                            </div>
-                            <div class="activity-time">
-                                <button type="button" class="buy-button" style="background: var(--bg-card-hover);"
-                                        data-friend-action="remove" data-id="{{ f.pk }}">Отменить</button>
-                            </div>
-                        </div>
+                        </a>
                         {% endfor %}
                     </div>
                 </section>
@@ -680,7 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---------- Поиск ----------
     const ACTIONS = {
-        none:     '<button type="button" class="friend-add-btn" data-act="add">Добавить</button>',
+        none:     '<button type="button" class="friend-add-btn" data-act="add">Добавить в друзья</button>',
         sent:     '<span class="search-badge-muted">Заявка отправлена</span>',
         received: '<span class="search-badge-muted">Хочет дружить</span>',
         friends:  '<span class="search-badge-muted">Уже друзья</span>',

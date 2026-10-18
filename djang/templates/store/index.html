@@ -6,10 +6,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% block title %}Магазин | GameStore{% endblock %}
+    {% block title %}GameStore | Магазин{% endblock %}
 
     <link rel="stylesheet" href="{% static 'css/style.css' %}?v=18">
-    <link rel="icon" type="image/png" href="{% static 'css/icons/gamestore.png' %}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 
@@ -106,7 +105,6 @@
                         </span>
                     {% endif %}
                     
-
                     <div class="featured-bottom">
                         <div class="price-group">
                             {% if featured_game.discount > 0 %}
@@ -348,65 +346,33 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 <script>
-    function getNextMonday() {
-        const now = new Date();
+    const target = new Date("{{ next_rotation_iso }}").getTime();
 
-        // День недели:
-        // 0 = воскресенье
-        // 1 = понедельник
-        // ...
-        // 6 = суббота
-        const day = now.getDay();
-
-        let daysUntilMonday;
-
-        if (day === 1) {
-            // Сегодня понедельник.
-            // Следующий понедельник через 7 дней.
-            daysUntilMonday = 7;
-        } else {
-            daysUntilMonday = (8 - day) % 7;
-        }
-
-        const nextMonday = new Date(now);
-
-        nextMonday.setDate(now.getDate() + daysUntilMonday);
-        nextMonday.setHours(0, 0, 0, 0);
-
-        return nextMonday;
+    function pad(n) {
+        return String(n).padStart(2, '0');
     }
 
     function updateTimer() {
-        const now = new Date();
-        const target = getNextMonday();
-        let diff = target - now;
-        // Если каким-то образом дошли до момента смены
-        if (diff <= 0) {
-            diff = 0;
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+
+        if (!daysEl || !hoursEl || !minutesEl || isNaN(target)) {
+            return;
         }
-        const days = Math.floor(
-            diff / (1000 * 60 * 60 * 24)
-        );
-        const hours = Math.floor(
-            (diff % (1000 * 60 * 60 * 24)) /
-            (1000 * 60 * 60)
-        );
-        const minutes = Math.floor(
-            (diff % (1000 * 60 * 60)) /
-            (1000 * 60)
-        );
-        const seconds = Math.floor(
-            (diff % (1000 * 60)) /
-            1000
-        );
-        document.getElementById('days').innerText = days;
-        document.getElementById('hours').innerText =
-            String(hours).padStart(2, '0');
-        document.getElementById('minutes').innerText =
-            String(minutes).padStart(2, '0');
-        document.getElementById('seconds').innerText =
-            String(seconds).padStart(2, '0');
+
+        const diff = target - Date.now();
+
+        if (diff <= 0) {
+            location.reload();
+            return;
+        }
+
+        daysEl.innerText = Math.floor(diff / 86400000);
+        hoursEl.innerText = pad(Math.floor((diff % 86400000) / 3600000));
+        minutesEl.innerText = pad(Math.floor((diff % 3600000) / 60000));
     }
+
     updateTimer();
     setInterval(updateTimer, 1000);
 </script>
