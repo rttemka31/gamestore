@@ -1,12 +1,8 @@
-import os
 from decimal import Decimal
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
-from django.db.models.signals import pre_save, post_delete
-from django.dispatch import receiver
-from django.contrib.auth.models import AbstractUser
 
 # 1. ЖАНРЫ И ПОДБОРКИ
 class Genre(models.Model):
@@ -120,29 +116,16 @@ class Profile(models.Model):
     font_size = models.PositiveSmallIntegerField(default=1)    # 0 мелкий, 1 средний, 2 крупный
     radius_size = models.PositiveSmallIntegerField(default=1)  # 0 острые, 1 средние, 2 круглые
 
+    class Visibility(models.TextChoices):
+        EVERYONE = 'everyone', 'Все'
+        FRIENDS = 'friends', 'Только друзья'
+        PRIVATE = 'private', 'Только я'
+
+    profile_visibility = models.CharField(max_length=10, choices=Visibility.choices, default=Visibility.EVERYONE)
+    show_library = models.BooleanField(default=True)
+
     def __str__(self):
         return f'Профиль {self.user.username}'
-
-
-@receiver(pre_save, sender=Profile)
-def delete_old_avatar_on_change(sender, instance, **kwargs):
-    if not instance.pk:
-        return
-
-    try:
-        old_profile = Profile.objects.get(pk=instance.pk)
-    except Profile.DoesNotExist:
-        return
-
-    if old_profile.avatar and old_profile.avatar != instance.avatar:
-        if os.path.isfile(old_profile.avatar.path):
-            os.remove(old_profile.avatar.path)
-
-
-@receiver(post_delete, sender=Profile)
-def delete_avatar_on_profile_delete(sender, instance, **kwargs):
-    if instance.avatar and os.path.isfile(instance.avatar.path):
-        os.remove(instance.avatar.path)
 
 
 # 4. ВЗАИМОДЕЙСТВИЯ ПОЛЬЗОВАТЕЛЕЙ
@@ -248,6 +231,9 @@ class UserLibrary(models.Model):
     class Meta:
         verbose_name = 'Игра пользователя'
         verbose_name_plural = 'Библиотека пользователей'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'game'], name='unique_library_entry'),
+        ]
 
     def __str__(self):
         return f"{self.user.username} — {self.game.title}"

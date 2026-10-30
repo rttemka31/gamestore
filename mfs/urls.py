@@ -1,7 +1,5 @@
 from django.urls import path
 from . import views
-from django.conf import settings
-from django.conf.urls.static import static
 from django.views.defaults import page_not_found
 
 # Задаём пространство имён приложения (рекомендуется):
@@ -9,6 +7,7 @@ app_name = 'mfs'
 
 urlpatterns = [
     path('', views.home, name='index'),
+    path('catalog/', views.catalog, name='catalog'),
     path('game/<int:game_id>/', views.game_detail, name='game_detail'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
@@ -37,6 +36,3 @@ urlpatterns = [
         name='user_profile'
     )
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

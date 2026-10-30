@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="ru"{% if user.is_authenticated %} data-font="{{ user.profile.font_size }}" data-radius="{{ user.profile.radius_size }}"{% endif %}>
+<html lang="ru"{% if user.is_authenticated %} data-font="{{ user.profile.font_size }}" data-radius="{{ user.profile.radius_size }}"{% if user.profile.accent_color %} data-accent="custom"{% endif %}{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GameStore{% endblock %}</title>
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=19">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=23">
     <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=1">
     <script src="{% static 'js/event/halloween.js' %}"></script>
     <link id="siteIcon" rel="icon"
@@ -54,7 +54,10 @@
                             <a href="{% url 'admin:index' %}" class="admin-item" target="_blank">Админ-панель</a>
                         {% endif %}
                         <a href="{% url 'mfs:settings' %}" class="admin-item">Настройки</a>
-                        <a href="{% url 'mfs:logout' %}" class="logout-item">Выйти</a>
+                        <form method="post" action="{% url 'mfs:logout' %}" class="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-item">Выйти</button>
+                        </form>
                     </div>
                 </div>
             {% else %}

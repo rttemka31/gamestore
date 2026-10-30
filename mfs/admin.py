@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import Genre, Collection, Game, Dlc
-from .models import Game, Screenshot
-from .models import News
+from django.utils.html import format_html
+
+from .models import Collection, Dlc, Game, Genre, News, Review, Screenshot
 
 @admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
@@ -28,10 +28,6 @@ class ScreenshotInline(admin.TabularInline):  # Табличный вид вме
         return "Нет изображения"
     image_preview.short_description = "Превью"
 
-from django.contrib import admin
-from django.utils.html import format_html
-from .models import Game
-
 
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):
@@ -48,16 +44,17 @@ class GameAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Основная информация', {
             'fields': (
-                'title', 
-                'description', 
-                # Если второго описания нет — просто удалите эту строку или укажите правильное имя из models.py
+                'title',
+                'author',
+                'description',
+                'long_description',
             )
         }),
         ('Медиафайлы', {
             'fields': (
                 ('icon', 'icon_preview'),
                 ('cover', 'cover_preview'),
-                # Укажите тут реальное поле для HD обложки, если оно есть (например: 'banner', 'hd_cover_image')
+                'cover_hd',
                 'trailer_file',
             ),
         }),
@@ -72,6 +69,10 @@ class GameAdmin(admin.ModelAdmin):
             'fields': ('genres', 'collections'),
         }),
     )
+
+    def get_changeform_initial_data(self, request):
+        # Автор новой игры по умолчанию — тот, кто её добавляет
+        return {'author': request.user.pk, **super().get_changeform_initial_data(request)}
 
     # Методы превью картинок
     def icon_preview(self, obj):
@@ -94,9 +95,19 @@ class DlcAdmin(admin.ModelAdmin):
 class NewsAdmin(admin.ModelAdmin):
     list_display = (
         "title",
+        "category",
         "created_at",
     )
+    list_filter = ("category",)
 
     search_fields = (
         "title",
     )
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('game', 'user', 'rating', 'created_at')
+    list_filter = ('rating',)
+    search_fields = ('game__title', 'user__username', 'text')
+    list_select_related = ('game', 'user')

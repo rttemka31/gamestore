@@ -147,15 +147,15 @@ h1 {
     font-size: calc(24px * var(--font-scale, 1));
     cursor: pointer;
     
-    z-index: 3; /* Чтобы overlay был поверх аватара, но под другими элементами */
+    z-index: 3;
     opacity: 0;
-    pointer-events: none; /* пока невидим — не перехватывает клики */
+    pointer-events: none;
     transition: opacity 0.2s ease, background 0.2s ease;
 }
 
 .settings-avatar:hover .avatar-overlay {
     opacity: 1;
-    pointer-events: auto; /* теперь можно кликнуть и открыть file input */
+    pointer-events: auto;
 }
  
 .avatar-overlay:hover {
@@ -217,9 +217,10 @@ h1 {
 }
 
 .settings-hint {
-    margin: 5px 0 5px;
+    margin: 15px 0px 15px;
     font-size: calc(14px * var(--font-scale, 1));
     color: var(--text-muted);
+    line-height: 2;
 }
 
 .settings-toggle-row {
@@ -247,7 +248,7 @@ h1 {
     -webkit-appearance: none;
     width: 50px;
     height: 25px;
-    border-radius: 50px; /* Делаем идеальную овальную форму (pill) */
+    border-radius: 50px;
     background: rgba(255, 255, 255, .12);
     position: relative;
     flex-shrink: 0;
@@ -256,7 +257,6 @@ h1 {
     outline: none;
 }
 
-/* Ползуночек */
 .settings-toggle::after {
     content: "";
     position: absolute;
@@ -264,8 +264,8 @@ h1 {
     left: 3.5px;
     width: 18px;
     height: 18px;
-    border-radius: 50%; /* Идеально круглый ползунок */
-    background: #fff;
+    border-radius: 50%;
+    background: var(--text-primary);
     transition: transform .2s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
@@ -331,7 +331,7 @@ h1 {
     border-radius: var(--radius-sm);
     box-sizing: border-box;
     border: 2px dashed rgba(255, 255, 255, 0.2);
-    overflow: hidden; /* обрезка по скруглённым углам — только здесь */
+    overflow: hidden;
 }
 
 .settings-banner {
@@ -579,21 +579,21 @@ h1 {
     -webkit-appearance: none;
     width: 22.5px; height: 22.5px;
     border-radius: 50%;
-    background: #fff;
+    background: var(--text-primary);
     border: 3px solid var(--accent);
     cursor: pointer;
 }
 .settings-slider::-moz-range-thumb {
     width: 22.5px; height: 22.5px;
     border-radius: 50%;
-    background: #fff;
+    background: var(--text-primary);
     border: 3px solid var(--accent);
     cursor: pointer;
 }
 .slider-labels {
     display: flex;
     justify-content: space-between;
-    margin-top: 8px;
+    margin-top: 7.5px;
     color: var(--text-muted);
     font-size: calc(14px * var(--font-scale, 1));
 }

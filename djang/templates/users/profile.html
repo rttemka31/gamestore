@@ -3,27 +3,6 @@
 
 {% block title %}GameStore | Профиль{% endblock %}
 
-{% block extra_head %}
-<head>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=19">
-
-    {% if user.is_authenticated and user.profile.accent_color %}
-    <style>
-        :root {
-            --accent: {{ user.profile.accent_color }};
-            --accent-color: {{ user.profile.accent_color }};
-            --accent-hover: {{ user.profile.accent_color }}cc;
-        }
-        body.no-blur, body.no-blur * {
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-        }
-    </style>
-    {% endif %}
-</head>
-{% endblock %}
-
-<body>
 {% block content %}
 
 <main class="container profile-container">
@@ -51,7 +30,7 @@
                     {% csrf_token %}
  
                     <section class="profile-card" id="profileCard">
-                        <div class="profile-banner" id="bannerPreview" style="background-image: url('{% if user.profile.banner %}{{ user.profile.banner.url }}{% else %}/static/images/default-banner.jpg{% endif %}');">
+                        <div class="profile-banner" id="bannerPreview"{% if user.profile.banner %} style="background-image: url('{{ user.profile.banner.url }}');"{% endif %}>
                             <label for="bannerInput" class="banner-overlay" id="bannerOverlay" style="display: none;">📷</label>
                         </div>
                         <input type="file" name="banner" id="bannerInput" accept="image/*" style="display: none;">
