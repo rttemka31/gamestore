@@ -33,6 +33,15 @@ ALLOWED_HOSTS = [
 ]
 CSRF_TRUSTED_ORIGINS = ['https://*.trycloudflare.com']
 
+# Для сайта за HTTPS-прокси (например, Cloudflare Tunnel). При обычном http://localhost оставляйте выключенным
+if os.environ.get('DJANGO_HTTPS') == '1':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # HSTS включайте только на постоянном домене: браузеры запоминают его надолго
+    SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_HSTS_SECONDS', '0'))
+
 # Application definition
 INSTALLED_APPS = [
     'mfs',
