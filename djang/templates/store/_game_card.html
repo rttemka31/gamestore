@@ -9,6 +9,14 @@
         {% if game.discount > 0 %}
             <span class="discount">-{{ game.discount }}%</span>
         {% endif %}
+
+        {% if show_wishlist %}
+        <button type="button" class="wishlist-btn js-wishlist-toggle {% if game.id in wishlist_ids %}active{% endif %}"
+                data-url="{% url 'mfs:wishlist_toggle' game.id %}" data-on="♥" data-off="♡"
+                {% if reload_on_wishlist_remove %}data-reload-on-remove{% endif %}
+                aria-label="Список желаемого" title="Список желаемого"
+                aria-pressed="{% if game.id in wishlist_ids %}true{% else %}false{% endif %}">{% if game.id in wishlist_ids %}♥{% else %}♡{% endif %}</button>
+        {% endif %}
     </div>
 
     <div class="game-info">

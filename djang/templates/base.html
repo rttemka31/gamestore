@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}GameStore{% endblock %}</title>
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=23">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=29">
     <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=1">
     <script src="{% static 'js/event/halloween.js' %}"></script>
     <link id="siteIcon" rel="icon"
@@ -67,6 +67,7 @@
                     </a>
                     <div class="user-dropdown-menu" id="userDropdownMenu">
                         <a href="{% url 'mfs:profile' %}" class="admin-item">Профиль</a>
+                        <a href="{% url 'mfs:profile' %}#wishlist" class="admin-item">Желаемое</a>
                         {% if request.user.is_staff %}
                             <a href="{% url 'admin:index' %}" class="admin-item" target="_blank">Админ-панель</a>
                         {% endif %}

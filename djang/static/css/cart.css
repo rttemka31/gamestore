@@ -125,7 +125,7 @@ html {
 }
 
 .cart-count {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: calc(24px * var(--font-scale, 1));
 }
 
@@ -255,14 +255,10 @@ html {
     display: inline-flex;
     align-items: center;
     color: #e2e8f0;
-    position: absolute;
-    right: 100px;
     font-size: calc(14px * var(--font-scale, 1));
     text-transform: uppercase;
     letter-spacing: 0.3px;
     backdrop-filter: blur(5px); background: rgba(0, 0, 0, 0.6); color: #fff;
-    margin:
-        0 0 12px;
 }
 
 .title-row {
@@ -320,12 +316,32 @@ html {
 }
 
 .cart-price {
-    width: 120px;
+    flex-shrink: 0;
+    min-width: 120px;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    align-self: stretch;
+    justify-content: flex-end;
     gap: 10px;
     padding-right: 10px;
+}
+
+/* Эксклюзив и скидка стоят в одном ряду в углу карточки и не перекрывают друг друга */
+.cart-badges {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--padding-sm);
+    margin-bottom: auto;
+}
+
+/* Одинаковая высота: с рамкой и без неё значки не отличаются */
+.cart-badges .exclusive,
+.cart-badges .discount {
+    height: calc(30px * var(--font-scale, 1));
+    padding: 7px 6px;
+    line-height: 1;
 }
 
 .discount {
@@ -585,10 +601,6 @@ html {
         gap: 15px;
     }
 
-    .nav-right {
-        display: none;
-    }
-
     .cart-container {
         width: 92%;
         padding-top: 30px;
@@ -599,6 +611,7 @@ html {
     }
 
     .cart-item {
+        max-height: none;
         align-items: flex-start;
         flex-wrap: wrap;
     }
@@ -617,9 +630,14 @@ html {
         width: 100%;
         margin-top: 15px;
         padding-right: 0;
-        align-items: flex-start;
+        align-items: center;
         flex-direction: row;
+        flex-wrap: wrap;
         justify-content: flex-end;
+    }
+
+    .cart-badges {
+        margin-bottom: 0;
     }
 }
 

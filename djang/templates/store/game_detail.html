@@ -134,7 +134,14 @@
                     {% endif %}
                 </div>
 
-                {% include 'store/_buy_button.html' %}
+                <div class="purchase-actions">
+                    {% if game.id not in owned_game_ids %}
+                        <button type="button" class="buy-button btn-muted wishlist-wide js-wishlist-toggle {% if game.id in wishlist_ids %}active{% endif %}"
+                                data-url="{% url 'mfs:wishlist_toggle' game.id %}" data-on="♥ В желаемом" data-off="♡ В желаемое"
+                                aria-pressed="{% if game.id in wishlist_ids %}true{% else %}false{% endif %}">{% if game.id in wishlist_ids %}♥ В желаемом{% else %}♡ В желаемое{% endif %}</button>
+                    {% endif %}
+                    {% include 'store/_buy_button.html' %}
+                </div>
             </div>
         </div>
     </section>

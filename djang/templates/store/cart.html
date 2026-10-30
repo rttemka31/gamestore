@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load store_extras %}
 
 {% block title %}GameStore | Корзина{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static '/css/cart.css' %}?v=11">
+    <link rel="stylesheet" href="{% static '/css/cart.css' %}?v=16">
 {% endblock %}
 
 {% block content %}
@@ -13,7 +14,7 @@
     <div class="cart-title">
         <h1>Ваша корзина</h1>
         <span class="cart-count">
-            | товаров: {{ cart_items|length }}
+            {{ cart_items|length }} {{ cart_items|length|ru_plural:"товар,товара,товаров" }}
         </span>
     </div>
 
@@ -36,9 +37,6 @@
                     <div class="cart-game-info">
                         <div class="title-row">
                             <h2>{{ game.title }}</h2>
-                            {% if game.is_not_on_steam %}
-                                <span class="exclusive">Эксклюзив</span>
-                            {% endif %}
                         </div>
                         <div class="cart-genres">
                             {% for genre in game.genres.all %}
@@ -59,8 +57,13 @@
 
                     <!-- Цена -->
                     <div class="cart-price">
+                        {% if game.is_not_on_steam or game.discount > 0 %}
+                            <div class="cart-badges">
+                                {% if game.is_not_on_steam %}<span class="exclusive">Эксклюзив</span>{% endif %}
+                                {% if game.discount > 0 %}<span class="discount">-{{ game.discount }}%</span>{% endif %}
+                            </div>
+                        {% endif %}
                         {% if game.discount > 0 %}
-                            <span class="discount">-{{ game.discount }}%</span>
                             <span class="old-price">{{ game.price|floatformat:0 }}₴</span>
                             <span class="current-price">{{ game.discounted_price|floatformat:0 }}₴</span>
                         {% else %}

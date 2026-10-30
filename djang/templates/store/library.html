@@ -4,7 +4,7 @@
 {% block title %}GameStore | Библиотека{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/library.css' %}?v=12">
+    <link rel="stylesheet" href="{% static 'css/library.css' %}?v=14">
 {% endblock %}
 
 {% block content %}
@@ -12,10 +12,16 @@
 
     <!-- Левая панель -->
     <aside class="steam-sidebar">
+        <div class="sidebar-title">ИЗБРАННОЕ (<span data-fav-count>{{ favorites|length }}</span>/{{ max_favorites }})</div>
+        <ul class="sidebar-list favorites-list" data-favorites data-layout="library" data-url="{% url 'mfs:favorites_update' %}">
+            {% include 'store/_library_favorites.html' %}
+        </ul>
+
         <div class="sidebar-title">ВСЕ ({{ games|length }})</div>
         <ul class="sidebar-list">
             {% for game in games %}
                 <li class="sidebar-item {% if active_id %}{% if game.id == active_id %}active{% endif %}{% else %}{% if forloop.first %}active{% endif %}{% endif %}"
+                    draggable="true" data-fav-source="{{ game.id }}"
                     data-game-id="{{ game.id }}"
                     data-title="{{ game.title }}"
                     data-cover="{% if game.cover_hd %}{{ game.cover_hd.url }}{% elif game.cover %}{{ game.cover.url }}{% endif %}"
@@ -75,6 +81,9 @@
                         <a id="playBtn" href="#" class="play-button">▶ ИГРАТЬ</a>
                     {% endif %}
 
+                    <button type="button" class="settings-btn fav-toggle" id="favToggleBtn" data-fav-toggle=""
+                            data-on="★" data-off="☆" title="Избранное" aria-label="Избранное">☆</button>
+
                     <!-- Меню настроек -->
                     <div class="settings-dropdown">
                         <button type="button" class="settings-btn" id="settingsBtn" title="Настройки">⚙️</button>
@@ -110,6 +119,7 @@
 </div>
 {% endblock %}
 {% block extra_js %}
+<script src="{% static 'js/favorites.js' %}?v=1"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const sidebarItems = document.querySelectorAll('.sidebar-item');
@@ -171,6 +181,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (deleteGameForm && removeUrl) {
             deleteGameForm.action = removeUrl;
+        }
+
+        const favToggleBtn = document.getElementById('favToggleBtn');
+        if (favToggleBtn) {
+            favToggleBtn.dataset.favToggle = gameId;
+            window.gsSyncFavorites();
         }
 
         const lastPlayed = item.getAttribute('data-last-played');
@@ -255,6 +271,14 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             loadGameData(item);
         });
+    });
+
+    // Клик по игре в избранном открывает её так же, как в общем списке
+    document.addEventListener('click', (e) => {
+        const row = e.target.closest('.fav-row');
+        if (!row || e.target.closest('[data-fav-toggle]')) return;
+        const item = document.querySelector(`.sidebar-item[data-game-id="${row.dataset.favId}"]`);
+        if (item) loadGameData(item);
     });
 
     if (settingsBtn && dropdownMenu) {

@@ -1,0 +1,18 @@
+{% load store_extras %}
+<article class="news-card {% if item.is_pinned %}news-card-pinned{% endif %}">
+    {% if item.image %}
+        <img src="{{ item.image.url }}" alt="" class="news-card-image" loading="lazy">
+    {% endif %}
+    <div class="news-card-body">
+        <div class="news-card-meta">
+            <span class="news-badge news-badge-{{ item.category }}">{{ item.get_category_display }}</span>
+            {% if item.is_pinned %}<span class="news-pin">Закреплено</span>{% endif %}
+            <span class="news-date">{{ item.created_at|date:"d E Y" }}</span>
+        </div>
+        <h3 class="news-card-title">
+            <a href="{{ item.get_absolute_url }}" class="news-card-link">{{ item.title }}</a>
+        </h3>
+        <p class="news-excerpt">{{ item.description|news_plain|truncatechars:220 }}</p>
+        <span class="news-more">Читать полностью ▾</span>
+    </div>
+</article>

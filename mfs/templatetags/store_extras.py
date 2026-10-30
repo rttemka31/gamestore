@@ -1,6 +1,54 @@
+import re
+
 from django import template
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
 
 register = template.Library()
+
+BOLD_RE = re.compile(r'\*\*(.+?)\*\*')
+URL_RE = re.compile(r'https?://[^\s<]+')
+
+
+def _format_inline(text):
+    html = BOLD_RE.sub(r'<strong>\1</strong>', escape(text))
+    return URL_RE.sub(lambda m: f'<a href="{m.group(0)}" target="_blank" rel="noopener noreferrer">{m.group(0)}</a>', html)
+
+
+@register.filter
+def news_format(text):
+    """Текст новости в HTML: абзацы, **жирный**, списки «- пункт» и ссылки. Всё остальное экранируется."""
+    blocks, paragraph, items = [], [], []
+
+    def flush():
+        if paragraph:
+            blocks.append(f'<p>{"<br>".join(paragraph)}</p>')
+            paragraph.clear()
+        if items:
+            blocks.append(f'<ul>{"".join(f"<li>{item}</li>" for item in items)}</ul>')
+            items.clear()
+
+    for line in str(text).splitlines():
+        line = line.strip()
+        if line.startswith(('- ', '* ', '• ')):
+            if paragraph:
+                flush()
+            items.append(_format_inline(line[2:]))
+        elif line:
+            if items:
+                flush()
+            paragraph.append(_format_inline(line))
+        else:
+            flush()
+    flush()
+
+    return mark_safe(''.join(blocks))
+
+
+@register.filter
+def news_plain(text):
+    """Текст новости без разметки — для короткого анонса в списке."""
+    return ' '.join(re.sub(r'\*\*|^\s*[-*] ', '', str(text), flags=re.M).split())
 
 
 @register.filter

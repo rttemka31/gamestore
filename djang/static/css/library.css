@@ -352,10 +352,6 @@ body {
         justify-content: center;
     }
 
-    .nav-right {
-        display: none;
-    }
-
     .container {
         width: 92%;
         padding-top: 30px;
@@ -981,4 +977,117 @@ body {
     filter: brightness(1.10);
     background-color: var(--bg-card-hover);
     color: var(--text-primary) ;
+}
+
+/* --- ИЗБРАННОЕ В БИБЛИОТЕКЕ --- */
+.favorites-list {
+    flex-shrink: 0;
+    margin: 0 var(--padding-sm) var(--padding-sm);
+    padding: 3px;
+    border: 2px dashed var(--border-subtle);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.fav-dragging .favorites-list {
+    border-color: var(--border);
+}
+
+.favorites-list.is-drag-over {
+    border-color: var(--accent);
+    background-color: var(--bg-card);
+}
+
+.fav-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    color: var(--text-muted);
+    border-radius: var(--radius-verysm);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.fav-row:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-card);
+}
+
+.fav-row .game-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fav-row .fav-remove {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    opacity: 0;
+    transition: opacity 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.fav-row:hover .fav-remove,
+.fav-row .fav-remove:focus-visible {
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .fav-row .fav-remove {
+        opacity: 1;
+    }
+}
+
+.fav-empty {
+    padding: 10px;
+    color: var(--text-muted);
+    font-size: calc(13px * var(--font-scale, 1));
+    text-align: center;
+}
+
+.fav-row.drop-before {
+    box-shadow: 0 -3px 0 var(--accent);
+}
+
+.sidebar-item[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+.fav-toggle {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+}
+
+/* На телефонах и планшетах список игр над страницей игры, а не отдельной колонкой */
+@media (max-width: 768px) {
+    .steam-container {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+    }
+
+    .steam-sidebar {
+        width: 100%;
+        min-width: 0;
+        border-right: none;
+        border-bottom: 2px solid var(--border-subtle);
+    }
+
+    .steam-main {
+        overflow: visible;
+    }
+
+    .sidebar-list:not(.favorites-list) {
+        max-height: 240px;
+    }
+
+    .action-bar {
+        padding: var(--padding-md) var(--padding-sm2);
+    }
 }

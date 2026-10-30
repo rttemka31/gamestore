@@ -306,10 +306,10 @@
                             </select>
                         </div>
 
-                        <label class="settings-toggle-row">
+                        <label class="settings-toggle-row" id="showLibraryRow" {% if user.profile.profile_visibility == 'private' %}inert{% endif %}>
                             <div>
                                 <span class="settings-toggle-title">Показывать библиотеку игр</span>
-                                <span class="settings-hint">Другие пользователи увидят список ваших игр</span>
+                                <span class="settings-hint" id="showLibraryHint">{% if user.profile.profile_visibility == 'private' %}Профиль виден только вам, поэтому библиотека тоже скрыта{% else %}Другие пользователи увидят список ваших игр, избранное и желаемое{% endif %}</span>
                             </div>
                             <input type="checkbox" name="show_library" class="settings-toggle" {% if user.profile.show_library %}checked{% endif %}>
                         </label>
@@ -334,6 +334,22 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // В режиме «Только я» настройка библиотеки не действует, поэтому переключатель заблокирован
+    const visibility = document.getElementById('profile_visibility');
+    const row = document.getElementById('showLibraryRow');
+    const hint = document.getElementById('showLibraryHint');
+
+    visibility.addEventListener('change', () => {
+        const isPrivate = visibility.value === 'private';
+        row.inert = isPrivate;
+        hint.textContent = isPrivate
+            ? 'Профиль виден только вам, поэтому библиотека тоже скрыта'
+            : 'Другие пользователи увидят список ваших игр, избранное и желаемое';
+    });
+});
+</script>
 <!-- Индикатор автосохранения -->
 <div id="saveStatus" class="save-status"></div>
 <script>

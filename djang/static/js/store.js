@@ -1,7 +1,47 @@
-// Общие скрипты магазина: корзина и живой поиск.
+// Общие скрипты магазина: уведомления, корзина, желаемое и живой поиск.
+
+// POST-запрос с CSRF. Анонимного пользователя отправляет на вход и возвращает обратно.
+window.gsPost = async function (url, body) {
+    const response = await fetch(url, {
+        method: 'POST',
+        body,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content,
+        },
+    });
+
+    if (response.status === 401) {
+        const next = window.location.pathname + window.location.search;
+        window.location.href = `${document.body.dataset.loginUrl}?next=${encodeURIComponent(next)}`;
+        return {status: 'login_required'};
+    }
+
+    try {
+        return await response.json();
+    } catch (error) {
+        return {status: 'error'};
+    }
+};
+
+// То же уведомление, что и у сообщений Django в base.html
+window.gsToast = function (text, tag = 'error') {
+    let stack = document.querySelector('.messages-stack');
+    if (!stack) {
+        stack = document.createElement('div');
+        stack.className = 'messages-stack';
+        stack.setAttribute('role', 'status');
+        document.body.appendChild(stack);
+    }
+    const toast = document.createElement('div');
+    toast.className = `message-toast ${tag}`;
+    toast.textContent = text;
+    stack.appendChild(toast);
+    setTimeout(() => toast.remove(), 5000);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
-    const { cartUrl, libraryUrl, loginUrl } = document.body.dataset;
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    const { cartUrl, libraryUrl } = document.body.dataset;
 
     const esc = s => String(s).replace(/[&<>"']/g, c =>
         ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
@@ -26,35 +66,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
         btn.disabled = true;
         try {
-            const response = await fetch(btn.dataset.url, {
-                method: 'POST',
-                headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken},
-            });
-
-            if (response.status === 401) {
-                const next = window.location.pathname + window.location.search;
-                window.location.href = `${loginUrl}?next=${encodeURIComponent(next)}`;
-                return;
-            }
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-            const data = await response.json();
+            const data = await window.gsPost(btn.dataset.url);
             if (data.status === 'owned') {
                 btn.classList.add('owned');
                 makeRedirect(btn, 'В библиотеке ➜', libraryUrl);
-                return;
-            }
+            } else if (data.status === 'ok') {
+                btn.classList.add('in-cart');
+                makeRedirect(btn, '✓ Добавлено', cartUrl);
 
-            btn.classList.add('in-cart');
-            makeRedirect(btn, '✓ Добавлено', cartUrl);
-
-            const badge = document.querySelector('.cart-badge');
-            if (badge) {
-                badge.textContent = data.cart_count;
-                badge.style.display = 'inline-block';
+                const badge = document.querySelector('.cart-badge');
+                if (badge) {
+                    badge.textContent = data.cart_count;
+                    badge.style.display = 'inline-block';
+                }
+            } else if (data.status !== 'login_required') {
+                window.gsToast(data.message || 'Не удалось добавить игру в корзину');
             }
         } catch (error) {
             console.error('Ошибка добавления в корзину:', error);
+            window.gsToast('Не удалось добавить игру в корзину');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    // ---------- Желаемое ----------
+    document.addEventListener('click', async e => {
+        const btn = e.target.closest('.js-wishlist-toggle');
+        if (!btn) return;
+        e.preventDefault();  // кнопка может лежать внутри карточки-ссылки
+
+        btn.disabled = true;
+        try {
+            const data = await window.gsPost(btn.dataset.url);
+            if (data.status === 'success') {
+                if (!data.in_wishlist && btn.hasAttribute('data-reload-on-remove')) {
+                    window.location.reload();
+                    return;
+                }
+                btn.classList.toggle('active', data.in_wishlist);
+                btn.setAttribute('aria-pressed', data.in_wishlist);
+                btn.textContent = data.in_wishlist ? btn.dataset.on : btn.dataset.off;
+            } else if (data.status !== 'login_required') {
+                window.gsToast(data.message || 'Не удалось обновить список желаемого');
+            }
+        } catch (error) {
+            console.error('Ошибка списка желаемого:', error);
+            window.gsToast('Не удалось обновить список желаемого');
         } finally {
             btn.disabled = false;
         }

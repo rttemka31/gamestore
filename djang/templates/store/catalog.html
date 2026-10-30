@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load store_extras %}
 
 {% block title %}GameStore | {{ title }}{% endblock %}
@@ -42,7 +43,12 @@
 
         <div class="catalog-main">
             <div class="catalog-toolbar">
-                <input type="search" name="q" value="{{ query }}" class="catalog-search" placeholder="Название игры..." aria-label="Название игры">
+                <div class="search-box catalog-search">
+                    <input type="search" name="q" value="{{ query }}" placeholder="Название игры..." aria-label="Название игры">
+                    <button type="submit" aria-label="Найти">
+                        <img src="{% static '/css/icons/search.png' %}" width="22" height="22" alt="">
+                    </button>
+                </div>
 
                 <select name="sort" class="filter-select" aria-label="Сортировка">
                     {% for key, label in sort_options %}
@@ -54,23 +60,23 @@
             {% if page.object_list %}
                 <div class="games-grid">
                     {% for game in page %}
-                        {% include 'store/_game_card.html' %}
+                        {% include 'store/_game_card.html' with show_wishlist=True %}
                     {% endfor %}
                 </div>
 
                 {% if page.paginator.num_pages > 1 %}
                 <nav class="pagination" aria-label="Страницы каталога">
                     {% if page.has_previous %}
-                        <a href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page.previous_page_number }}" class="chip">← Назад</a>
+                        <a href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page.previous_page_number }}" class="chip"><span class="arrow-left" aria-hidden="true">➜</span> Назад</a>
                     {% endif %}
                     <span class="pagination-current">{{ page.number }} / {{ page.paginator.num_pages }}</span>
                     {% if page.has_next %}
-                        <a href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page.next_page_number }}" class="chip">Вперёд →</a>
+                        <a href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page.next_page_number }}" class="chip">Вперёд ➜</a>
                     {% endif %}
                 </nav>
                 {% endif %}
             {% else %}
-                <div class="catalog-empty">
+                <div class="empty-news">
                     По этим фильтрам ничего не нашлось.
                     <a href="{% url 'mfs:catalog' %}">Сбросить фильтры</a>
                 </div>

@@ -127,6 +127,7 @@
 
                     {% if not target.hide_stats and not restricted %}
                         <div class="profile-stats">
+                            {% if show_library %}
                             <div class="profile-stat">
                                 <strong>{{ games_count }}</strong>
                                 <span>Игр</span>
@@ -136,6 +137,7 @@
                                 <strong>{{ total_hours|floatformat:0 }}</strong>
                                 <span>Часов</span>
                             </div>
+                            {% endif %}
 
                             <div class="profile-stat">
                                 <strong>{{ target.user.date_joined|date:"b. Yг." }}</strong>
@@ -202,19 +204,37 @@
                         {% endif %}
                     </section>
 
+                    {% if show_library %}
                     <!-- Избранное -->
                     <section class="profile-section" id="favorites">
                         <div class="section-header">
                             <h2>Избранное</h2>
-                            <span class="profile-placeholder">Пока пусто</span>
                         </div>
+                        {% if favorites %}
+                            {% include 'users/_favorites.html' %}
+                        {% else %}
+                            <div class="profile-empty">
+                                <div class="profile-empty-icon">★</div>
+                                <h3>Здесь появятся любимые игры</h3>
+                                <p>Пользователь пока не добавил игры в избранное.</p>
+                            </div>
+                        {% endif %}
+                    </section>
 
-                        <div class="profile-empty">
-                            <div class="profile-empty-icon">❤</div>
-                            <h3>Здесь появятся любимые игры</h3>
-                            <p>Пользователь пока не добавил игры в избранное.</p>
+                    <!-- Желаемое -->
+                    {% if wishlist_games %}
+                    <section class="profile-section" id="wishlist">
+                        <div class="section-header">
+                            <h2>Желаемое</h2>
+                        </div>
+                        <div class="games-grid profile-games-grid">
+                            {% for game in wishlist_games %}
+                                {% include 'store/_game_card.html' %}
+                            {% endfor %}
                         </div>
                     </section>
+                    {% endif %}
+                    {% endif %}
                 {% endif %}
             </div>
 

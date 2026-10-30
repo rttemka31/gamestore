@@ -93,16 +93,24 @@ class DlcAdmin(admin.ModelAdmin):
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
-    list_display = (
-        "title",
-        "category",
-        "created_at",
+    list_display = ("title", "category", "is_published", "is_pinned", "created_at")
+    list_editable = ("is_published", "is_pinned")
+    list_filter = ("is_published", "is_pinned", "category")
+    search_fields = ("title", "description")
+    date_hierarchy = "created_at"
+    actions = ("publish", "unpublish")
+    fieldsets = (
+        (None, {"fields": ("title", "category", "description", "image")}),
+        ("Публикация", {"fields": ("is_published", "is_pinned")}),
     )
-    list_filter = ("category",)
 
-    search_fields = (
-        "title",
-    )
+    @admin.action(description="Опубликовать выбранные новости")
+    def publish(self, request, queryset):
+        queryset.update(is_published=True)
+
+    @admin.action(description="Снять с публикации (в черновики)")
+    def unpublish(self, request, queryset):
+        queryset.update(is_published=False)
 
 
 @admin.register(Review)

@@ -7,9 +7,11 @@ from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 from PIL import Image
 
-from .models import Collection, Friendship, Game, Genre, News, Profile, Review, UserLibrary
+from .models import Collection, FavoriteGame, Friendship, Game, Genre, News, Profile, Review, UserLibrary, Wishlist
+from .templatetags.store_extras import news_format, news_plain
 
 MEDIA_ROOT = tempfile.mkdtemp()
 
@@ -292,7 +294,226 @@ class ProfileAndSettingsTests(StoreTestCase):
         self.assertEqual((response.context['games_count'], response.context['total_hours']), (1, 7))
 
 
+class PrivacyTests(StoreTestCase):
+    def setUp(self):
+        super().setUp()
+        self.game.owners.add(self.other)
+        UserLibrary.objects.create(user=self.other, game=self.game, last_played=timezone.now())
+        FavoriteGame.objects.create(user=self.other, game=self.game)
+        self.url = reverse('mfs:user_profile', args=['bob'])
+        Profile.objects.filter(user=self.other).update(profile_visibility='private', show_library=True)
+
+    def assert_library_hidden(self):
+        response = self.client.get(self.url)
+        self.assertTrue(response.context['restricted'])
+        self.assertNotContains(response, 'Alpha')
+        self.assertNotContains(response, 'Недавняя активность')
+
+    def test_private_profile_hides_library_even_if_it_is_allowed(self):
+        self.client.force_login(self.user)
+        self.assert_library_hidden()
+
+    def test_private_profile_hides_library_from_friends_and_staff(self):
+        Friendship.objects.create(
+            sender=self.user.profile, receiver=self.other.profile, status=Friendship.Status.ACCEPTED
+        )
+        self.client.force_login(self.user)
+        self.assert_library_hidden()
+
+        self.client.force_login(User.objects.create_superuser('root', password='Str0ng-pass-123'))
+        self.assert_library_hidden()
+
+    def test_owner_still_sees_own_private_profile(self):
+        self.client.force_login(self.other)
+        self.assertContains(self.client.get(self.url), 'Alpha')
+
+    def test_hidden_library_also_hides_favorites_wishlist_and_counters(self):
+        Profile.objects.filter(user=self.other).update(profile_visibility='everyone', show_library=False)
+        wishlist = Wishlist.objects.create(user=self.other)
+        wishlist.games.add(self.game2)
+
+        self.client.force_login(self.user)
+        response = self.client.get(self.url)
+        self.assertNotContains(response, 'Alpha')
+        self.assertNotContains(response, 'Beta')
+        self.assertNotContains(response, 'Часов')
+
+    def test_private_mode_keeps_library_choice_for_later(self):
+        self.client.force_login(self.other)
+        self.client.post(reverse('mfs:settings'), {'form': 'privacy', 'profile_visibility': 'private'})
+        self.assertTrue(Profile.objects.get(user=self.other).show_library)
+
+
+class WishlistTests(StoreTestCase):
+    def toggle(self, game):
+        return self.client.post(reverse('mfs:wishlist_toggle', args=[game.pk]))
+
+    def test_toggle_adds_and_removes(self):
+        self.client.force_login(self.user)
+        self.assertTrue(self.toggle(self.game).json()['in_wishlist'])
+        self.assertContains(self.client.get(reverse('mfs:profile')), 'Alpha')
+        self.assertFalse(self.toggle(self.game).json()['in_wishlist'])
+        self.assertFalse(Wishlist.objects.get(user=self.user).games.exists())
+
+    def test_requires_login_and_post(self):
+        self.assertEqual(self.toggle(self.game).status_code, 401)
+
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.get(reverse('mfs:wishlist_toggle', args=[self.game.pk])).status_code, 405)
+        self.assertEqual(self.client.post(reverse('mfs:wishlist_toggle', args=[9999])).status_code, 404)
+
+    def test_heart_is_on_every_cover_and_works_for_owned_games(self):
+        self.client.force_login(self.user)
+        self.game.owners.add(self.user)
+
+        response = self.client.get(reverse('mfs:catalog'))
+        self.assertContains(response, 'wishlist-btn', count=2)
+        self.assertTrue(self.toggle(self.game).json()['in_wishlist'])
+
+    def test_no_heart_outside_catalog_game_page_and_own_wishlist(self):
+        self.client.force_login(self.user)
+        self.assertNotContains(self.client.get(reverse('mfs:index')), 'js-wishlist-toggle')
+        self.assertContains(self.client.get(reverse('mfs:game_detail', args=[self.game.pk])), 'js-wishlist-toggle')
+
+        self.toggle(self.game)
+        self.assertContains(self.client.get(reverse('mfs:profile')), 'js-wishlist-toggle')
+
+        self.client.force_login(self.other)
+        response = self.client.get(reverse('mfs:user_profile', args=[self.user.username]))
+        self.assertContains(response, 'Alpha')
+        self.assertNotContains(response, 'js-wishlist-toggle')
+
+    def test_purchase_removes_game_from_wishlist(self):
+        self.client.force_login(self.user)
+        self.toggle(self.game)
+        self.toggle(self.game2)
+        self.ajax_add(self.game)
+        self.client.post(reverse('mfs:checkout'))
+        self.assertEqual(list(Wishlist.objects.get(user=self.user).games.all()), [self.game2])
+
+
+class FavoritesTests(StoreTestCase):
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.user)
+        self.game.owners.add(self.user)
+        self.game2.owners.add(self.user)
+
+    def save(self, *games, layout='profile'):
+        return self.client.post(reverse('mfs:favorites_update'), {'ids': [g.pk for g in games], 'layout': layout})
+
+    def stored(self):
+        return [f.game for f in FavoriteGame.objects.filter(user=self.user)]
+
+    def test_add_reorder_and_remove(self):
+        self.assertEqual(self.save(self.game, self.game2).status_code, 200)
+        self.assertEqual(self.stored(), [self.game, self.game2])
+
+        response = self.save(self.game2, self.game)
+        self.assertEqual(self.stored(), [self.game2, self.game])
+        self.assertIn('Beta', response.json()['html'])
+
+        self.save(self.game)
+        self.assertEqual(self.stored(), [self.game])
+
+    def test_library_layout_uses_library_markup(self):
+        self.assertIn('fav-row', self.save(self.game, layout='library').json()['html'])
+
+    def test_only_owned_games(self):
+        foreign = Game.objects.create(author=self.other, title='Foreign', price=1)
+        self.assertEqual(self.save(foreign).status_code, 400)
+        self.assertEqual(self.stored(), [])
+
+    def test_limit_and_bad_input(self):
+        games = [Game.objects.create(author=self.other, title=f'G{i}', price=1) for i in range(7)]
+        self.user.purchased_games.add(*games)
+        self.assertEqual(self.save(*games).status_code, 400)
+        self.assertEqual(self.client.post(reverse('mfs:favorites_update'), {'ids': ['abc']}).status_code, 400)
+        self.assertEqual(self.client.get(reverse('mfs:favorites_update')).status_code, 405)
+
+    def test_anonymous_gets_login_response(self):
+        self.client.logout()
+        self.assertEqual(self.save(self.game).status_code, 401)
+
+    def test_removed_from_library_leaves_favorites(self):
+        self.save(self.game)
+        self.client.post(reverse('mfs:remove_from_library', args=[self.game.pk]))
+        self.assertEqual(self.stored(), [])
+
+    def test_shown_on_public_profile_without_edit_controls(self):
+        self.save(self.game)
+        self.client.force_login(self.other)
+        response = self.client.get(reverse('mfs:user_profile', args=['alice']))
+        self.assertContains(response, 'fav-card')
+        self.assertNotContains(response, 'data-fav-toggle')
+
+
+class NewsTests(StoreTestCase):
+    def test_drafts_are_visible_only_to_staff(self):
+        draft = News.objects.create(title='Draft', description='x', is_published=False)
+        self.assertNotContains(self.client.get(reverse('mfs:news')), 'Draft')
+        self.assertEqual(self.client.get(draft.get_absolute_url()).status_code, 404)
+
+        self.client.force_login(User.objects.create_superuser('root', password='Str0ng-pass-123'))
+        self.assertContains(self.client.get(draft.get_absolute_url()), 'Черновик')
+
+    def test_pinned_news_go_first(self):
+        News.objects.create(title='Old pinned', description='x', is_pinned=True)
+        News.objects.create(title='New regular', description='x')
+        response = self.client.get(reverse('mfs:news'))
+        self.assertEqual([n.title for n in response.context['page']], ['Old pinned', 'New regular'])
+
+    def test_filters_search_and_pagination(self):
+        News.objects.create(title='Большое Обновление', description='x', category='tech')
+        for i in range(9):
+            News.objects.create(title=f'N{i}', description='x')
+
+        def titles(query):
+            return [n.title for n in self.client.get(reverse('mfs:news') + query).context['page']]
+
+        self.assertEqual(titles('?category=tech'), ['Большое Обновление'])
+        # Регистр кириллицы не важен
+        self.assertEqual(titles('?q=обновление'), ['Большое Обновление'])
+        self.assertEqual(len(titles('')), 8)
+        self.assertEqual(len(titles('?page=2')), 2)
+        self.assertEqual(len(titles('?category=unknown')), 8)
+
+    def test_format_escapes_html_and_keeps_markup(self):
+        html = news_format('**Важно** <script>alert(1)</script>\n\n- пункт\n\nhttps://example.com/a')
+        self.assertIn('<strong>Важно</strong>', html)
+        self.assertNotIn('<script>', html)
+        self.assertIn('<li>пункт</li>', html)
+        self.assertIn('href="https://example.com/a"', html)
+        self.assertIn('<li>старый маркер</li>', news_format('• старый маркер'))
+        self.assertEqual(news_plain('**Важно**\n- пункт'), 'Важно пункт')
+
+    def test_detail_links_to_neighbours(self):
+        first = News.objects.create(title='First', description='x')
+        second = News.objects.create(title='Second', description='x')
+        response = self.client.get(first.get_absolute_url())
+        self.assertEqual(response.context['newer'], second)
+        self.assertIsNone(response.context['older'])
+
+
 class PagesTests(StoreTestCase):
+    def test_cart_shows_exclusive_and_discount_badges_together(self):
+        Game.objects.filter(pk=self.game.pk).update(is_not_on_steam=True)
+        self.client.force_login(self.user)
+        self.ajax_add(self.game)
+
+        response = self.client.get(reverse('mfs:cart_detail'))
+        self.assertContains(response, 'cart-badges')
+        self.assertContains(response, '<span class="exclusive">Эксклюзив</span>')
+        self.assertContains(response, '-50%')
+
+    def test_cart_count_agrees_with_number(self):
+        self.client.force_login(self.user)
+        self.assertContains(self.client.get(reverse('mfs:cart_detail')), '0 товаров')
+        self.ajax_add(self.game)
+        self.assertContains(self.client.get(reverse('mfs:cart_detail')), '1 товар\n')
+        self.ajax_add(self.game2)
+        self.assertContains(self.client.get(reverse('mfs:cart_detail')), '2 товара')
+
     def test_public_pages_render(self):
         News.objects.create(title='N', description='D')
         for name, args in (('index', []), ('catalog', []), ('news', []), ('cart_detail', []), ('login', []),
@@ -304,7 +525,7 @@ class PagesTests(StoreTestCase):
         for month in ('99999-1', '0001-01', 'abc', '2026'):
             response = self.client.get(reverse('mfs:news') + f'?month={month}')
             self.assertEqual(response.status_code, 200, month)
-            self.assertEqual(len(response.context['news_list']), 1, month)
+            self.assertEqual(len(response.context['page']), 1, month)
 
     def test_review_shows_author_status(self):
         admin = User.objects.create_superuser('root', password='Str0ng-pass-123')

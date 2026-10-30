@@ -18,17 +18,20 @@ from django.db import transaction
 from django.db.models import Avg, Count, DecimalField, ExpressionWrapper, F, Prefetch, Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .models import Collection, Friendship, Game, Genre, News, Profile, Review, UserLibrary
+from .models import Collection, FavoriteGame, Friendship, Game, Genre, News, Profile, Review, UserLibrary, Wishlist
 
 MAX_USERNAME_LENGTH = 24
 MAX_IMAGE_SIZE = 5 * 1024 * 1024
 ACCENT_COLOR_RE = re.compile(r'^#[0-9a-fA-F]{6}$')
 CATALOG_PAGE_SIZE = 12
+NEWS_PAGE_SIZE = 8
+MAX_FAVORITES = 6
 
 
 def custom_page_not_found(request, exception):
@@ -162,7 +165,9 @@ def settings_view(request):
         elif form_type == 'privacy':
             value = request.POST.get('profile_visibility', 'everyone')
             profile.profile_visibility = value if value in Profile.Visibility.values else Profile.Visibility.EVERYONE
-            profile.show_library = 'show_library' in request.POST
+            # В режиме «Только я» библиотека закрыта в любом случае, а выбор сохраняем на будущее
+            if profile.profile_visibility != Profile.Visibility.PRIVATE:
+                profile.show_library = 'show_library' in request.POST
             profile.save()
             return JsonResponse({'status': 'success'})
 
@@ -177,11 +182,20 @@ def settings_view(request):
     return render(request, 'users/settings.html', {'profile': profile})
 
 def _user_game_state(request):
-    """Какие игры пользователь уже купил и какие лежат у него в корзине."""
-    owned = []
+    """Какие игры пользователь уже купил, какие лежат в корзине и в списке желаемого."""
+    owned, wishlist = [], []
     if request.user.is_authenticated:
         owned = list(request.user.purchased_games.values_list('id', flat=True))
-    return {'owned_game_ids': owned, 'cart_ids': _cart_ids(request)}
+        wishlist = list(_wishlist_games(request.user).values_list('id', flat=True))
+    return {'owned_game_ids': owned, 'cart_ids': _cart_ids(request), 'wishlist_ids': wishlist}
+
+
+def _wishlist_games(user):
+    return Game.objects.filter(wishlist__user=user).prefetch_related('genres').order_by('title')
+
+
+def _favorites(user):
+    return list(FavoriteGame.objects.filter(user=user).select_related('game'))
 
 
 def _pick_featured_game():
@@ -366,31 +380,68 @@ def logout_view(request):
 def news(request):
     selected_category = request.GET.get('category', '').strip()
     selected_month = request.GET.get('month', '').strip()  # Ожидаем формат 'YYYY-MM'
+    query = request.GET.get('q', '').strip()
 
-    news_qs = News.objects.all()
+    published = News.objects.filter(is_published=True)
+    news_qs = published.order_by('-is_pinned', '-created_at', '-pk')
 
     # Фильтрация по категории
-    if selected_category:
+    if selected_category in dict(News.CATEGORY_CHOICES):
         news_qs = news_qs.filter(category=selected_category)
+    else:
+        selected_category = ''
 
     # Уникальные сочетания Месяц + Год, в которых есть новости
-    archive_months = list(News.objects.dates('created_at', 'month', order='DESC'))
+    archive_months = list(published.dates('created_at', 'month', order='DESC'))
 
     # Фильтрация по году и месяцу: принимаем только месяцы из архива
     selected_date = next((d for d in archive_months if d.strftime('%Y-%m') == selected_month), None)
     if selected_date:
         news_qs = news_qs.filter(created_at__year=selected_date.year, created_at__month=selected_date.month)
+    else:
+        selected_month = ''
 
-    categories = News.CATEGORY_CHOICES
+    # Ищем в Python: LIKE в SQLite не умеет игнорировать регистр кириллицы, а новостей немного
+    if query:
+        needle = query.casefold()
+        news_qs = [n for n in news_qs if needle in n.title.casefold() or needle in n.description.casefold()]
 
-    context = {
-        'news_list': news_qs,
+    page = Paginator(news_qs, NEWS_PAGE_SIZE).get_page(request.GET.get('page'))
+
+    counts = dict(published.order_by().values_list('category').annotate(Count('id')))
+    categories = [(code, label, counts.get(code, 0)) for code, label in News.CATEGORY_CHOICES]
+
+    return render(request, 'store/news.html', {
+        'page': page,
+        'pinned_news': [n for n in page if n.is_pinned],
+        'regular_news': [n for n in page if not n.is_pinned],
         'categories': categories,
+        'total_count': sum(counts.values()),
         'archive_months': archive_months,
         'selected_category': selected_category,
         'selected_month': selected_month,
-    }
-    return render(request, 'store/news.html', context)
+        'query': query,
+        'has_filters': bool(selected_category or selected_month or query),
+    })
+
+
+def news_detail(request, pk):
+    # Черновик видят только администраторы: так его можно проверить перед публикацией
+    queryset = News.objects.all() if request.user.is_staff else News.objects.filter(is_published=True)
+    item = get_object_or_404(queryset, pk=pk)
+    published = News.objects.filter(is_published=True)
+    # pk различает новости, созданные в один и тот же момент
+    same_moment = Q(created_at=item.created_at)
+
+    return render(request, 'store/news_detail.html', {
+        'item': item,
+        'newer': published.filter(
+            Q(created_at__gt=item.created_at) | (same_moment & Q(pk__gt=item.pk))
+        ).order_by('created_at', 'pk').first(),
+        'older': published.filter(
+            Q(created_at__lt=item.created_at) | (same_moment & Q(pk__lt=item.pk))
+        ).order_by('-created_at', '-pk').first(),
+    })
 
 
 def _get_cart(request):
@@ -498,6 +549,7 @@ def checkout(request):
             [UserLibrary(user=request.user, game=game) for game in games],
             ignore_conflicts=True,
         )
+        Wishlist.games.through.objects.filter(wishlist__user=request.user, game__in=games).delete()
 
     request.session['cart'] = {}
 
@@ -523,6 +575,8 @@ def library(request):
 
     context = {
         'games': user_games,
+        'favorites': _favorites(request.user),
+        'max_favorites': MAX_FAVORITES,
         'active_id': int(active_id) if active_id and active_id.isdigit() else None,
         'is_launched': is_launched,
     }
@@ -536,7 +590,59 @@ def remove_from_library(request, game_id):
     with transaction.atomic():
         request.user.purchased_games.remove(game)
         UserLibrary.objects.filter(user=request.user, game=game).delete()
+        FavoriteGame.objects.filter(user=request.user, game=game).delete()
     return redirect('mfs:library')
+
+
+@require_POST
+def wishlist_toggle(request, game_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'login_required'}, status=401)
+
+    game = get_object_or_404(Game, pk=game_id)
+    wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
+    in_wishlist = not wishlist.games.filter(pk=game.pk).exists()
+    if in_wishlist:
+        wishlist.games.add(game)
+    else:
+        wishlist.games.remove(game)
+
+    return JsonResponse({'status': 'success', 'in_wishlist': in_wishlist})
+
+
+@require_POST
+def favorites_update(request):
+    """Сохраняет избранное целиком: перетаскивание и кнопки присылают новый порядок игр."""
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'login_required'}, status=401)
+
+    try:
+        game_ids = list(dict.fromkeys(int(value) for value in request.POST.getlist('ids')))
+    except ValueError:
+        return JsonResponse({'status': 'error', 'message': 'Неверный список игр.'}, status=400)
+
+    if len(game_ids) > MAX_FAVORITES:
+        return JsonResponse({'status': 'error', 'message': f'В избранное можно добавить до {MAX_FAVORITES} игр.'}, status=400)
+
+    owned = set(request.user.purchased_games.filter(pk__in=game_ids).values_list('pk', flat=True))
+    if owned != set(game_ids):
+        return JsonResponse({'status': 'error', 'message': 'В избранное можно добавить только купленные игры.'}, status=400)
+
+    with transaction.atomic():
+        FavoriteGame.objects.filter(user=request.user).exclude(game_id__in=game_ids).delete()
+        for position, game_id in enumerate(game_ids):
+            FavoriteGame.objects.update_or_create(
+                user=request.user, game_id=game_id, defaults={'position': position}
+            )
+
+    template = 'store/_library_favorites.html' if request.POST.get('layout') == 'library' else 'users/_favorites.html'
+    html = render_to_string(template, {
+        'favorites': _favorites(request.user),
+        'max_favorites': MAX_FAVORITES,
+        'can_edit': True,
+    }, request=request)
+
+    return JsonResponse({'status': 'success', 'html': html, 'ids': game_ids})
 
 
 def register_view(request):
@@ -610,6 +716,12 @@ def profile(request):
         'games_count': stats['games_count'],
         'total_hours': stats['total_hours'],
         'achievements_count': 0,
+        'owned_games': user.purchased_games.order_by('title'),
+        'favorites': _favorites(user),
+        'max_favorites': MAX_FAVORITES,
+        'can_edit': True,
+        'wishlist_games': _wishlist_games(user),
+        **_user_game_state(request),
         'friends': friends,
         'incoming_requests': incoming,
         'outgoing_requests': outgoing,
@@ -793,9 +905,10 @@ def user_profile(request, username):
     is_self = (state == 'self')
     visibility = target.profile_visibility
 
+    # «Только я» значит только сам пользователь: администратор этот режим не обходит
     can_view = (
         is_self
-        or request.user.is_staff                      # админы видят всё; убери, если не нужно
+        or (request.user.is_staff and visibility != Profile.Visibility.PRIVATE)
         or visibility == 'everyone'
         or (visibility == 'friends' and state == 'friends')
     )
@@ -843,6 +956,8 @@ def user_profile(request, username):
         'state': state,
         'recent_games': recent_games,
         'show_library': show_library,
+        'favorites': _favorites(target.user) if show_library else [],
+        'wishlist_games': _wishlist_games(target.user) if show_library else [],
         'games_count': stats['games_count'],
         'total_hours': stats['total_hours'],
         'friends': friends,

@@ -19,6 +19,11 @@
                 Друзья
                 {% if incoming_requests %}<span>({{ incoming_requests|length }})</span>{% endif %}
             </a>
+            <a href="#wishlist" class="settings-nav-link" data-tab="wishlist">
+                <img src="{% static 'css/icons/wishlist.png' %}" alt="" class="nav-icon">
+                Желаемое
+                {% if wishlist_games %}<span>({{ wishlist_games|length }})</span>{% endif %}
+            </a>
         </aside>
  
         <div class="profile-content">
@@ -175,18 +180,63 @@
                 <section class="profile-section">
                     <div class="section-header">
                         <h2>Избранное</h2>
-                        <span class="profile-placeholder">Пока пусто</span>
+                        <span class="profile-placeholder"><span data-fav-count>{{ favorites|length }}</span> из {{ max_favorites }}</span>
                     </div>
-                    <div class="profile-empty">
-                        <div class="profile-empty-icon">❤</div>
-                        <h3>Здесь появятся любимые игры</h3>
-                        <p>Добавляй игры в избранное, чтобы быстро находить их.</p>
+                    <div class="favorites-zone" data-favorites data-layout="profile" data-url="{% url 'mfs:favorites_update' %}">
+                        {% include 'users/_favorites.html' %}
                     </div>
+                </section>
+
+                <!-- Мои игры: источник для перетаскивания -->
+                <section class="profile-section">
+                    <div class="section-header">
+                        <h2>Мои игры</h2>
+                        <a href="{% url 'mfs:library' %}">Библиотека ➜</a>
+                    </div>
+                    {% if owned_games %}
+                        <p class="profile-hint">Перетащите игру в «Избранное» или нажмите на звёздочку.</p>
+                        <div class="owned-games">
+                            {% for game in owned_games %}
+                                <a href="{% url 'mfs:game_detail' game.id %}" class="owned-game" draggable="true" data-fav-source="{{ game.id }}">
+                                    <img src="{{ game.get_icon_url }}" alt="" draggable="false" loading="lazy">
+                                    <span class="game-name">{{ game.title }}</span>
+                                    <button type="button" class="fav-star" data-fav-toggle="{{ game.id }}" data-on="★" data-off="☆" aria-label="Избранное" title="Избранное">☆</button>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="empty-activity">В вашей библиотеке пока нет игр.</p>
+                    {% endif %}
                 </section>
             </div>
             <!-- ================= /ПРОФИЛЬ ================= -->
  
  
+            <!-- ===================== ЖЕЛАЕМОЕ ===================== -->
+            <div class="profile-tab" id="tab-wishlist" hidden>
+                <section class="profile-section">
+                    <div class="section-header">
+                        <h2>Желаемое</h2>
+                        <a href="{% url 'mfs:catalog' %}">В каталог ➜</a>
+                    </div>
+                    {% if wishlist_games %}
+                        <div class="games-grid profile-games-grid">
+                            {% for game in wishlist_games %}
+                                {% include 'store/_game_card.html' with show_wishlist=True reload_on_wishlist_remove=True %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="profile-empty">
+                            <div class="profile-empty-icon">♥</div>
+                            <h3>Список желаемого пуст</h3>
+                            <p>Нажмите на сердечко на карточке игры, чтобы сохранить её здесь.</p>
+                        </div>
+                    {% endif %}
+                </section>
+            </div>
+            <!-- ================= /ЖЕЛАЕМОЕ ================= -->
+
+
             <!-- ===================== ДРУЗЬЯ ===================== -->
             <div class="profile-tab" id="tab-friends" hidden>
  
@@ -312,6 +362,7 @@
 </main>
 {% endblock %}
 {% block extra_js %}
+<script src="{% static 'js/favorites.js' %}?v=1"></script>
 <script>
 (function () {
     const EXPORT_WIDTH = 1200; // ширина готовой обложки в пикселях
@@ -661,6 +712,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Обработка прямого перехода по URL с хэшем
     const initialHash = window.location.hash || '#profile';
     switchTab(initialHash);
+
+    // Переход из меню пользователя, когда профиль уже открыт
+    window.addEventListener('hashchange', () => switchTab(window.location.hash || '#profile'));
 });
 </script>
 

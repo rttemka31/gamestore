@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.urls import reverse
 from django.utils import timezone
 
 # 1. ЖАНРЫ И ПОДБОРКИ
@@ -174,6 +175,23 @@ class Wishlist(models.Model):
     games = models.ManyToManyField(Game, blank=True)
 
 
+class FavoriteGame(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='favorite_games')
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+    position = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Избранная игра'
+        verbose_name_plural = 'Избранные игры'
+        ordering = ['position', 'pk']
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'game'], name='unique_favorite_game'),
+        ]
+
+    def __str__(self):
+        return f'{self.user} ★ {self.game}'
+
+
 class Cart(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     games = models.ManyToManyField(Game, blank=True)
@@ -202,13 +220,27 @@ class News(models.Model):
     ]
 
     title = models.CharField(max_length=200, verbose_name="Заголовок")
-    description = models.TextField(verbose_name="Описание")
+    description = models.TextField(
+        verbose_name="Текст",
+        help_text="Пустая строка начинает новый абзац. **текст** — жирный, строка с «- » — пункт списка, ссылки становятся кликабельными.",
+    )
+    image = models.ImageField(upload_to='news/', blank=True, null=True, verbose_name="Обложка")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата публикации")
     category = models.CharField(
         max_length=50,
         choices=CATEGORY_CHOICES,
         default='update',
         verbose_name="Тип публикации"
+    )
+    is_published = models.BooleanField(
+        default=True,
+        verbose_name="Опубликовано",
+        help_text="Без галочки новость остаётся черновиком: её видят только администраторы.",
+    )
+    is_pinned = models.BooleanField(
+        default=False,
+        verbose_name="Закреплено",
+        help_text="Закреплённые новости показываются первыми.",
     )
 
     class Meta:
@@ -218,6 +250,9 @@ class News(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse('mfs:news_detail', args=[self.pk])
 
 
 class UserLibrary(models.Model):
