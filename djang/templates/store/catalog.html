@@ -9,6 +9,9 @@
     <div class="catalog-header">
         <h1>{{ title }}</h1>
         <span class="catalog-count">{{ page.paginator.count }} {{ page.paginator.count|ru_plural:"игра,игры,игр" }}</span>
+        {% if owned_hidden %}
+            <a href="{% url 'mfs:settings' %}#catalog" class="catalog-hidden-note">Купленные игры скрыты</a>
+        {% endif %}
         {% if has_filters %}
             <a href="{% url 'mfs:catalog' %}" class="catalog-reset">Сбросить фильтры</a>
         {% endif %}

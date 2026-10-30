@@ -116,6 +116,10 @@ class Profile(models.Model):
 
     font_size = models.PositiveSmallIntegerField(default=1)    # 0 мелкий, 1 средний, 2 крупный
     radius_size = models.PositiveSmallIntegerField(default=1)  # 0 острые, 1 средние, 2 круглые
+    reduce_motion = models.BooleanField(default=False)
+
+    hide_owned_in_catalog = models.BooleanField(default=False)
+    default_catalog_sort = models.CharField(max_length=20, default='new')
 
     class Visibility(models.TextChoices):
         EVERYONE = 'everyone', 'Все'
@@ -124,6 +128,8 @@ class Profile(models.Model):
 
     profile_visibility = models.CharField(max_length=10, choices=Visibility.choices, default=Visibility.EVERYONE)
     show_library = models.BooleanField(default=True)
+    show_wishlist = models.BooleanField(default=True)
+    allow_friend_requests = models.BooleanField(default=True)
 
     def __str__(self):
         return f'Профиль {self.user.username}'

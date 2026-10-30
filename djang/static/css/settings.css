@@ -299,6 +299,27 @@ h1 {
     color: #ffffff;
 }
 
+/* Отдельное действие под основной формой раздела */
+.settings-extra-action {
+    margin-top: var(--padding-md);
+    padding-top: var(--padding-md);
+    border-top: 1px solid var(--border-subtle);
+}
+
+.settings-extra-action .settings-hint {
+    margin: 0 0 10px;
+    line-height: 1.5;
+}
+
+.settings-extra-action .btn-secondary {
+    margin: 0;
+}
+
+.settings-link-button {
+    display: inline-block;
+    text-decoration: none;
+}
+
 @media (max-width: 720px) {
     .settings-layout {
         grid-template-columns: 1fr;

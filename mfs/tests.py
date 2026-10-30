@@ -5,7 +5,7 @@ from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
@@ -287,6 +287,102 @@ class ProfileAndSettingsTests(StoreTestCase):
         self.assertEqual(self.client.get(search).json()['users'], [])
         response = self.client.post(reverse('mfs:friend_request'), {'username': 'bob'})
         self.assertEqual(response.status_code, 400)
+
+    def test_reduce_motion_is_saved_and_applied_to_pages(self):
+        self.assertNotContains(self.client.get(reverse('mfs:index')), 'data-motion')
+        self.post_settings(form='appearance', reduce_motion='on')
+        self.assertContains(self.client.get(reverse('mfs:index')), 'data-motion="reduced"')
+
+    def test_catalog_uses_saved_sort_unless_url_overrides_it(self):
+        self.post_settings(form='catalog', default_catalog_sort='title')
+        url = reverse('mfs:catalog')
+        self.assertEqual(self.client.get(url).context['sort'], 'title')
+        self.assertEqual(self.client.get(url, {'sort': 'discount'}).context['sort'], 'discount')
+
+        self.post_settings(form='catalog', default_catalog_sort='<script>')
+        self.assertEqual(Profile.objects.get(user=self.user).default_catalog_sort, 'title')
+
+    def test_catalog_can_hide_owned_games_and_counts_follow(self):
+        genre = Genre.objects.create(name='Экшен', slug='action')
+        self.game.genres.add(genre)
+        self.game2.genres.add(genre)
+        self.game.owners.add(self.user)
+        url = reverse('mfs:catalog')
+
+        self.assertEqual(self.client.get(url).context['page'].paginator.count, 2)
+
+        self.post_settings(form='catalog', default_catalog_sort='new', hide_owned_in_catalog='on')
+        response = self.client.get(url)
+        self.assertEqual([g.title for g in response.context['page']], ['Beta'])
+        self.assertEqual(response.context['category_options'][0]['count'], 1)
+        self.assertEqual(response.context['genres'].get().games_count, 1)
+        self.assertContains(response, 'Купленные игры скрыты')
+
+    def test_wishlist_can_be_hidden_separately_from_library(self):
+        Wishlist.objects.create(user=self.other).games.add(self.game)
+        url = reverse('mfs:user_profile', args=['bob'])
+        self.assertEqual(len(self.client.get(url).context['wishlist_games']), 1)
+
+        Profile.objects.filter(user=self.other).update(show_wishlist=False)
+        response = self.client.get(url)
+        self.assertEqual(len(response.context['wishlist_games']), 0)
+        self.assertIs(response.context['show_library'], True)
+
+    def test_closed_friend_requests_still_allow_answering_theirs(self):
+        Profile.objects.filter(user=self.other).update(allow_friend_requests=False)
+        request_url = reverse('mfs:friend_request')
+
+        self.assertEqual(self.client.post(request_url, {'username': 'bob'}).status_code, 400)
+        self.assertFalse(Friendship.objects.exists())
+        search = self.client.get(reverse('mfs:friends_search') + '?q=bo').json()
+        self.assertEqual(search['users'][0]['state'], 'closed')
+        self.assertContains(self.client.get(reverse('mfs:user_profile', args=['bob'])), 'Не принимает заявки')
+
+        Friendship.objects.create(sender=self.other.profile, receiver=self.user.profile)
+        self.assertEqual(self.client.post(request_url, {'username': 'bob'}).status_code, 200)
+        self.assertEqual(Friendship.objects.get().status, Friendship.Status.ACCEPTED)
+
+    def test_private_mode_keeps_new_privacy_choices(self):
+        self.post_settings(form='privacy', profile_visibility='private')
+        profile = Profile.objects.get(user=self.user)
+        self.assertTrue(profile.show_wishlist)
+        self.assertTrue(profile.allow_friend_requests)
+
+    def test_logout_others_ends_only_my_other_sessions(self):
+        mine = Client()
+        mine.force_login(self.user)
+        theirs = Client()
+        theirs.force_login(self.other)
+
+        response = self.post_settings(form='logout_others')
+        self.assertIn('1', response.json()['message'])
+
+        self.assertEqual(mine.get(reverse('mfs:profile')).status_code, 302)
+        self.assertEqual(self.client.get(reverse('mfs:profile')).status_code, 200)
+        self.assertEqual(theirs.get(reverse('mfs:profile')).status_code, 200)
+
+    def test_export_contains_my_data_and_downloads_as_file(self):
+        Profile.objects.filter(user=self.user).update(bio='hi')
+        self.game.owners.add(self.user)
+        UserLibrary.objects.create(user=self.user, game=self.game, playtime_hours=3)
+        Wishlist.objects.create(user=self.user).games.add(self.game2)
+        Review.objects.create(user=self.user, game=self.game, rating=5, text='Отлично')
+        Friendship.objects.create(sender=self.user.profile, receiver=self.other.profile, status=Friendship.Status.ACCEPTED)
+
+        response = self.client.get(reverse('mfs:export_data'))
+        data = response.json()
+
+        self.assertIn('attachment', response['Content-Disposition'])
+        self.assertEqual(data['account']['bio'], 'hi')
+        self.assertEqual(data['library'][0]['playtime_hours'], 3)
+        self.assertEqual(data['wishlist'], ['Beta'])
+        self.assertEqual(data['reviews'][0]['text'], 'Отлично')
+        self.assertEqual(data['friends'], ['bob'])
+        self.assertNotIn('password', response.content.decode())
+
+    def test_export_requires_login(self):
+        self.client.logout()
+        self.assertEqual(self.client.get(reverse('mfs:export_data')).status_code, 302)
 
     def test_own_profile_shows_real_stats(self):
         UserLibrary.objects.create(user=self.user, game=self.game, playtime_hours=7)

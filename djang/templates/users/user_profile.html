@@ -98,6 +98,11 @@
                                        class="buy-button">
                                         Мой профиль
                                     </a>
+                                {% elif state == 'none' and not target.allow_friend_requests %}
+                                    <button type="button"
+                                            class="buy-button" style="background: var(--bg-card-hover);" disabled>
+                                        Не принимает заявки
+                                    </button>
                                 {% elif state == 'none' %}
                                     <button type="button"
                                             id="addFriendBtn"

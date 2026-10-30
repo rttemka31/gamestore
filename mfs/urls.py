@@ -24,6 +24,7 @@ urlpatterns = [
     path('favorites/update/', views.favorites_update, name='favorites_update'),
     path('register/', views.register_view, name='register'),
     path('test-404/', lambda request: page_not_found(request, Exception())),
+    path("settings/export/", views.export_data, name="export_data"),
     path("profile/", views.profile, name="profile"),
     path('settings/', views.settings_view, name='settings'),
     path('library/launch/<int:game_id>/', views.launch_game, name='launch_game'),

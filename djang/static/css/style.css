@@ -1754,8 +1754,8 @@ a.game-card:hover::after {
     justify-content: center;
     font-size: calc(24px * var(--font-scale, 1));
     cursor: pointer;
-    z-index: 999;
-    
+    z-index: 3; /* Только над баннером: шапка сайта (z-index: 100) должна оставаться выше */
+
     /* Делаем плавание/появление при ховере: */
     opacity: 0;
     transition: opacity 0.2s ease, background 0.2s ease;
@@ -2277,6 +2277,7 @@ body.no-blur * {
     width: 22.5px;
     height: 22.5px;
     flex-shrink: 0; /* Не дает иконке сжиматься */
+    border-radius: 0; /* Круглая маска от .nav-icon обрезает значки без полей, например лупу */
     transition: transform 0.2s ease;
 }
 
@@ -2417,7 +2418,7 @@ body.no-blur * {
     border-radius: var(--radius-md);
     box-shadow: 0 12px 32px rgba(0, 0, 0, .4);
 
-    z-index: 100;
+    z-index: 50; /* Выше содержимого страницы, но ниже шапки сайта */
 }
 
 #friendSearchResults[style*="display: block"] {
@@ -3244,6 +3245,16 @@ body.no-blur * {
     color: var(--text-primary);
 }
 
+.catalog-hidden-note {
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+    text-decoration: none;
+}
+
+.catalog-hidden-note:hover {
+    color: var(--text-primary);
+}
+
 .catalog-layout {
     display: grid;
     grid-template-columns: 250px minmax(0, 1fr);
@@ -3512,6 +3523,20 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
     }
 }
 
+/* Настройка «Уменьшить анимацию». Уведомления не трогаем: их время показа задаёт анимация */
+html[data-motion="reduced"] {
+    scroll-behavior: auto;
+}
+
+html[data-motion="reduced"] *:not(.message-toast),
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+}
+
 /* Шапка: на средних экранах все пункты должны помещаться без прокрутки страницы */
 .user-name {
     display: inline-block;
@@ -3614,8 +3639,8 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
     top: var(--padding-sm);
     right: var(--padding-sm);
     z-index: 3;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     padding: 0;
     color: var(--text-primary);
     background: rgba(0, 0, 0, 0.6);
@@ -3740,8 +3765,8 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     padding: 0;
     color: var(--text-primary);
     background: rgba(0, 0, 0, 0.6);

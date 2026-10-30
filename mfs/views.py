@@ -11,6 +11,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.auth.views import redirect_to_login
+from django.contrib.sessions.models import Session
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.core.validators import validate_email
@@ -136,10 +137,20 @@ def settings_view(request):
             profile.hide_stats = 'hide_stats' in request.POST
             profile.font_size = _step(request.POST.get('font_size'))
             profile.radius_size = _step(request.POST.get('radius_size'))
+            profile.reduce_motion = 'reduce_motion' in request.POST
             profile.save()
             return JsonResponse({'status': 'success'})
 
-        # 3. СМЕНА ПАРОЛЯ
+        # 3. НАСТРОЙКИ КАТАЛОГА
+        elif form_type == 'catalog':
+            profile.hide_owned_in_catalog = 'hide_owned_in_catalog' in request.POST
+            sort = request.POST.get('default_catalog_sort')
+            if sort in CATALOG_SORTS:
+                profile.default_catalog_sort = sort
+            profile.save()
+            return JsonResponse({'status': 'success'})
+
+        # 4. СМЕНА ПАРОЛЯ
         elif form_type == 'password':
             old_password = request.POST.get('old_password', '')
             new_password = request.POST.get('new_password', '')
@@ -161,17 +172,25 @@ def settings_view(request):
             update_session_auth_hash(request, user)
             return JsonResponse({'status': 'success', 'message': 'Пароль изменён.'})
 
-        # 4. ПРИВАТНОСТЬ
+        # 5. ВЫХОД НА ДРУГИХ УСТРОЙСТВАХ
+        elif form_type == 'logout_others':
+            ended = _end_other_sessions(request)
+            message = f'Завершено сеансов: {ended}.' if ended else 'Других активных сеансов нет.'
+            return JsonResponse({'status': 'success', 'message': message})
+
+        # 6. ПРИВАТНОСТЬ
         elif form_type == 'privacy':
             value = request.POST.get('profile_visibility', 'everyone')
             profile.profile_visibility = value if value in Profile.Visibility.values else Profile.Visibility.EVERYONE
             # В режиме «Только я» библиотека закрыта в любом случае, а выбор сохраняем на будущее
             if profile.profile_visibility != Profile.Visibility.PRIVATE:
                 profile.show_library = 'show_library' in request.POST
+                profile.show_wishlist = 'show_wishlist' in request.POST
+                profile.allow_friend_requests = 'allow_friend_requests' in request.POST
             profile.save()
             return JsonResponse({'status': 'success'})
 
-        # 5. УДАЛЕНИЕ АККАУНТА
+        # 7. УДАЛЕНИЕ АККАУНТА
         elif form_type == 'delete_account':
             username = user.username
             logout(request)
@@ -179,7 +198,69 @@ def settings_view(request):
             messages.success(request, f'Аккаунт {username} удалён.')
             return redirect('mfs:index')
 
-    return render(request, 'users/settings.html', {'profile': profile})
+    return render(request, 'users/settings.html', {
+        'profile': profile,
+        'sort_options': [(key, value[0]) for key, value in CATALOG_SORTS.items()],
+    })
+
+
+def _end_other_sessions(request):
+    """Завершает все сеансы пользователя, кроме текущего, и возвращает их количество."""
+    ended = 0
+    active = Session.objects.filter(expire_date__gte=timezone.now()).exclude(session_key=request.session.session_key)
+    for session in active.iterator():
+        if session.get_decoded().get('_auth_user_id') == str(request.user.pk):
+            session.delete()
+            ended += 1
+    return ended
+
+
+@login_required
+def export_data(request):
+    """Все данные пользователя одним JSON-файлом. Пароль и чужие данные в него не входят."""
+    user = request.user
+    profile, _ = Profile.objects.get_or_create(user=user)
+    friendships = Friendship.objects.filter(
+        Q(sender=profile) | Q(receiver=profile), status=Friendship.Status.ACCEPTED
+    ).select_related('sender__user', 'receiver__user')
+
+    data = {
+        'account': {
+            'username': user.username,
+            'email': user.email,
+            'date_joined': user.date_joined.isoformat(),
+            'bio': profile.bio or '',
+        },
+        'library': [
+            {
+                'game': entry.game.title,
+                'purchased_at': entry.purchased_at.isoformat(),
+                'last_played': entry.last_played.isoformat() if entry.last_played else None,
+                'playtime_hours': entry.playtime_hours,
+            }
+            for entry in UserLibrary.objects.filter(user=user).select_related('game').order_by('purchased_at')
+        ],
+        'favorites': [favorite.game.title for favorite in _favorites(user)],
+        'wishlist': list(_wishlist_games(user).values_list('title', flat=True)),
+        'reviews': [
+            {
+                'game': review.game.title,
+                'rating': review.rating,
+                'text': review.text,
+                'created_at': review.created_at.isoformat(),
+            }
+            for review in Review.objects.filter(user=user).select_related('game')
+        ],
+        'friends': [
+            (f.receiver if f.sender_id == profile.pk else f.sender).user.username
+            for f in friendships
+        ],
+    }
+
+    response = JsonResponse(data, json_dumps_params={'ensure_ascii': False, 'indent': 2})
+    response['Content-Disposition'] = 'attachment; filename="gamestore-data.json"'
+    return response
+
 
 def _user_game_state(request):
     """Какие игры пользователь уже купил, какие лежат в корзине и в списке желаемого."""
@@ -250,16 +331,16 @@ def _catalog_categories():
     }
 
 
-def _catalog_category_options(categories, selected):
+def _catalog_category_options(categories, selected, hidden_ids=()):
     """Пункты меню категорий: подборки из админки и автоматические категории, в которых есть игры."""
-    counts = Game.objects.aggregate(
+    counts = Game.objects.exclude(pk__in=hidden_ids).aggregate(
         total=Count('pk'),
         **{key: Count('pk', filter=condition) for key, (_, condition) in categories.items()},
     )
     # Подборка только из бесплатных игр дублировала бы категорию «Бесплатные»,
     # поэтому в меню она появляется, лишь когда на неё перешли со страницы магазина
     collections = Collection.objects.annotate(
-        games_count=Count('game_products'),
+        games_count=Count('game_products', filter=~Q(game_products__in=hidden_ids)),
         paid_count=Count('game_products', filter=Q(game_products__price__gt=0, game_products__discount__lt=100)),
     ).filter(Q(paid_count__gt=0) | Q(slug=selected)).order_by('title')
 
@@ -276,11 +357,17 @@ def catalog(request):
     query = request.GET.get('q', '').strip()
     category = request.GET.get('category', '').strip()
     selected_genres = request.GET.getlist('genre')
+    prefs = Profile.objects.filter(user=request.user).first() if request.user.is_authenticated else None
+
     sort = request.GET.get('sort')
     if sort not in CATALOG_SORTS:
-        sort = 'new'
+        sort = prefs.default_catalog_sort if prefs and prefs.default_catalog_sort in CATALOG_SORTS else 'new'
 
-    games = Game.objects.prefetch_related('genres').annotate(
+    hidden_ids = []
+    if prefs and prefs.hide_owned_in_catalog:
+        hidden_ids = list(request.user.purchased_games.values_list('id', flat=True))
+
+    games = Game.objects.exclude(pk__in=hidden_ids).prefetch_related('genres').annotate(
         final_price=ExpressionWrapper(
             F('price') * (100 - F('discount')) / 100,
             output_field=DecimalField(max_digits=12, decimal_places=2),
@@ -316,10 +403,13 @@ def catalog(request):
         'page': page,
         'title': title,
         'query': query,
-        'category_options': _catalog_category_options(categories, category),
+        'category_options': _catalog_category_options(categories, category, hidden_ids),
         'selected_category': category,
-        'genres': Genre.objects.annotate(games_count=Count('games')).filter(games_count__gt=0).order_by('name'),
+        'genres': Genre.objects.annotate(
+            games_count=Count('games', filter=~Q(games__in=hidden_ids)),
+        ).filter(games_count__gt=0).order_by('name'),
         'selected_genres': selected_genres,
+        'owned_hidden': bool(hidden_ids),
         'has_filters': bool(query or category or selected_genres),
         'sort': sort,
         'sort_options': [(key, value[0]) for key, value in CATALOG_SORTS.items()],
@@ -799,7 +889,7 @@ def friends_search(request):
         f = relations.get(p.pk)
 
         if f is None or f.status == Friendship.Status.REJECTED:
-            state = 'none'
+            state = 'none' if p.allow_friend_requests else 'closed'
         elif f.status == Friendship.Status.ACCEPTED:
             state = 'friends'
         else:
@@ -831,6 +921,11 @@ def friend_request(request):
         return JsonResponse({'status': 'error', 'message': 'Пользователь не принимает заявки.'}, status=400)
 
     f = _get_relation(me, target)
+    # Встречная заявка всё равно проходит: человек сам уже позвал вас в друзья
+    is_new_request = f is None or f.status == Friendship.Status.REJECTED
+    if is_new_request and not target.allow_friend_requests:
+        return JsonResponse({'status': 'error', 'message': 'Пользователь не принимает заявки.'}, status=400)
+
     if f is None:
         Friendship.objects.create(sender=me, receiver=target)
     elif f.status == Friendship.Status.ACCEPTED:
@@ -957,7 +1052,7 @@ def user_profile(request, username):
         'recent_games': recent_games,
         'show_library': show_library,
         'favorites': _favorites(target.user) if show_library else [],
-        'wishlist_games': _wishlist_games(target.user) if show_library else [],
+        'wishlist_games': _wishlist_games(target.user) if show_library and (is_self or target.show_wishlist) else [],
         'games_count': stats['games_count'],
         'total_hours': stats['total_hours'],
         'friends': friends,

@@ -5,7 +5,7 @@
 {% block title %}GameStore | Настройки{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static '/css/settings.css' %}?v=10">
+    <link rel="stylesheet" href="{% static '/css/settings.css' %}?v=11">
 
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>
@@ -74,7 +74,7 @@
             justify-content: center;
             font-size: 24px;
             cursor: pointer;
-            z-index: 999;
+            z-index: 3;
 
             /* Делаем плавание/появление при ховере: */
             opacity: 0;
@@ -115,6 +115,10 @@
                 <a href="#appearance" class="settings-nav-link">
                     <img src="{% static 'css/icons/appearance.png' %}" alt="" class="nav-icon">
                     Внешний вид
+                </a>
+                <a href="#catalog" class="settings-nav-link">
+                    <img src="{% static 'css/icons/search.png' %}" alt="" class="nav-icon">
+                    Каталог
                 </a>
                 <a href="#privacy" class="settings-nav-link">
                     <img src="{% static 'css/icons/privacy.png' %}" alt="" class="nav-icon">
@@ -231,6 +235,14 @@
 
                         <button type="submit" class="btn-primary" style="margin-top: 10px;">Сменить пароль</button>
                     </form>
+
+                    <form method="post" action="{% url 'mfs:settings' %}" class="settings-form settings-extra-action" id="sessionsForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="form" value="logout_others">
+                        <span class="settings-toggle-title">Другие устройства</span>
+                        <span class="settings-hint">Завершает все сеансы, кроме этого. Пригодится, если вы входили с чужого компьютера.</span>
+                        <button type="submit" class="btn-secondary">Выйти на других устройствах</button>
+                    </form>
                 </section>
 
                 <!-- Внешний вид -->
@@ -287,6 +299,40 @@
                             </div>
                             <input type="checkbox" name="hide_stats" class="settings-toggle" {% if user.profile.hide_stats %}checked{% endif %}>
                         </label>
+
+                        <label class="settings-toggle-row">
+                            <div>
+                                <span class="settings-toggle-title">Уменьшить анимацию</span>
+                                <span class="settings-hint">Убирает плавные переходы и движущиеся эффекты</span>
+                            </div>
+                            <input type="checkbox" name="reduce_motion" id="reduceMotionToggle" class="settings-toggle" {% if user.profile.reduce_motion %}checked{% endif %}>
+                        </label>
+                    </form>
+                </section>
+
+                <!-- Каталог -->
+                <section id="catalog" class="settings-card">
+                    <h2>Каталог</h2>
+                    <form method="post" action="{% url 'mfs:settings' %}" class="settings-form" id="catalogForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="form" value="catalog">
+
+                        <div class="settings-field">
+                            <label for="default_catalog_sort">Сортировка по умолчанию</label>
+                            <select id="default_catalog_sort" name="default_catalog_sort">
+                                {% for key, label in sort_options %}
+                                    <option value="{{ key }}" {% if user.profile.default_catalog_sort == key %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <label class="settings-toggle-row">
+                            <div>
+                                <span class="settings-toggle-title">Скрывать купленные игры</span>
+                                <span class="settings-hint">В каталоге останутся только игры, которых у вас ещё нет</span>
+                            </div>
+                            <input type="checkbox" name="hide_owned_in_catalog" class="settings-toggle" {% if user.profile.hide_owned_in_catalog %}checked{% endif %}>
+                        </label>
                     </form>
                 </section>
 
@@ -309,11 +355,33 @@
                         <label class="settings-toggle-row" id="showLibraryRow" {% if user.profile.profile_visibility == 'private' %}inert{% endif %}>
                             <div>
                                 <span class="settings-toggle-title">Показывать библиотеку игр</span>
-                                <span class="settings-hint" id="showLibraryHint">{% if user.profile.profile_visibility == 'private' %}Профиль виден только вам, поэтому библиотека тоже скрыта{% else %}Другие пользователи увидят список ваших игр, избранное и желаемое{% endif %}</span>
+                                <span class="settings-hint" id="showLibraryHint">{% if user.profile.profile_visibility == 'private' %}Профиль виден только вам, поэтому библиотека тоже скрыта{% else %}Другие пользователи увидят список ваших игр и избранное{% endif %}</span>
                             </div>
                             <input type="checkbox" name="show_library" class="settings-toggle" {% if user.profile.show_library %}checked{% endif %}>
                         </label>
+
+                        <label class="settings-toggle-row" id="showWishlistRow" {% if user.profile.profile_visibility == 'private' %}inert{% endif %}>
+                            <div>
+                                <span class="settings-toggle-title">Показывать список желаемого</span>
+                                <span class="settings-hint">Виден другим, только если открыта библиотека</span>
+                            </div>
+                            <input type="checkbox" name="show_wishlist" class="settings-toggle" {% if user.profile.show_wishlist %}checked{% endif %}>
+                        </label>
+
+                        <label class="settings-toggle-row" id="allowRequestsRow" {% if user.profile.profile_visibility == 'private' %}inert{% endif %}>
+                            <div>
+                                <span class="settings-toggle-title">Принимать заявки в друзья</span>
+                                <span class="settings-hint">Если выключить, новые заявки отправить нельзя. Текущие друзья останутся</span>
+                            </div>
+                            <input type="checkbox" name="allow_friend_requests" class="settings-toggle" {% if user.profile.allow_friend_requests %}checked{% endif %}>
+                        </label>
                     </form>
+
+                    <div class="settings-form settings-extra-action">
+                        <span class="settings-toggle-title">Ваши данные</span>
+                        <span class="settings-hint">Файл JSON с библиотекой, желаемым, отзывами и списком друзей</span>
+                        <a href="{% url 'mfs:export_data' %}" class="btn-secondary settings-link-button" download>Скачать мои данные</a>
+                    </div>
                 </section>
 
                 <!-- Опасная зона -->
@@ -338,15 +406,15 @@
 document.addEventListener('DOMContentLoaded', () => {
     // В режиме «Только я» настройка библиотеки не действует, поэтому переключатель заблокирован
     const visibility = document.getElementById('profile_visibility');
-    const row = document.getElementById('showLibraryRow');
+    const rows = ['showLibraryRow', 'showWishlistRow', 'allowRequestsRow'].map(id => document.getElementById(id));
     const hint = document.getElementById('showLibraryHint');
 
     visibility.addEventListener('change', () => {
         const isPrivate = visibility.value === 'private';
-        row.inert = isPrivate;
+        rows.forEach(row => { row.inert = isPrivate; });
         hint.textContent = isPrivate
             ? 'Профиль виден только вам, поэтому библиотека тоже скрыта'
-            : 'Другие пользователи увидят список ваших игр, избранное и желаемое';
+            : 'Другие пользователи увидят список ваших игр и избранное';
     });
 });
 </script>
@@ -608,7 +676,7 @@ document.addEventListener("DOMContentLoaded", () => {
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const saveStatus = document.querySelector('.save-status');
-        const autoSaveForms = document.querySelectorAll('#profileForm, #appearanceForm, #privacyForm');
+        const autoSaveForms = document.querySelectorAll('#profileForm, #appearanceForm, #catalogForm, #privacyForm');
         let statusTimeout;
 
         function showStatus(text, isError = false) {
@@ -754,6 +822,18 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
+        // Уменьшение анимации на лету
+        const reduceMotionToggle = document.getElementById('reduceMotionToggle');
+        if (reduceMotionToggle) {
+            reduceMotionToggle.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    document.documentElement.dataset.motion = 'reduced';
+                } else {
+                    delete document.documentElement.dataset.motion;
+                }
+            });
+        }
+
         // Счетчики символов
         function setupCounter(inputId, counterId, maxLen) {
             const input = document.getElementById(inputId);
@@ -789,6 +869,22 @@ document.addEventListener("DOMContentLoaded", () => {
                         showStatus(data.message || 'Ошибка', true);
                     }
                 })
+                .catch(() => showStatus('Ошибка сети', true));
+            });
+        }
+
+        // Выход на других устройствах
+        const sessionsForm = document.getElementById('sessionsForm');
+        if (sessionsForm) {
+            sessionsForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                fetch(sessionsForm.action, {
+                    method: 'POST',
+                    body: new FormData(sessionsForm),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.json())
+                .then(data => showStatus(data.message || 'Ошибка', data.status !== 'success'))
                 .catch(() => showStatus('Ошибка сети', true));
             });
         }
