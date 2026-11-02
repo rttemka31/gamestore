@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Collection, Dlc, Game, Genre, News, Review, Screenshot
+from .models import Collection, Dlc, Game, Genre, News, Review, Screenshot, UserLibrary
+from .templatetags.store_extras import playtime
 
 @admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
@@ -62,7 +63,8 @@ class GameAdmin(admin.ModelAdmin):
             'fields': (
                 ('price', 'discount'),
                 ('is_not_on_steam', 'is_game_of_the_week'),  # Переключатели в одну строку
-                'release_date'
+                'release_date',
+                'size_gb',
             ),
         }),
         ('Категории', {
@@ -99,8 +101,9 @@ class NewsAdmin(admin.ModelAdmin):
     search_fields = ("title", "description")
     date_hierarchy = "created_at"
     actions = ("publish", "unpublish")
+    filter_horizontal = ("games",)
     fieldsets = (
-        (None, {"fields": ("title", "category", "description", "image")}),
+        (None, {"fields": ("title", "category", "description", "image", "games")}),
         ("Публикация", {"fields": ("is_published", "is_pinned")}),
     )
 
@@ -119,3 +122,16 @@ class ReviewAdmin(admin.ModelAdmin):
     list_filter = ('rating',)
     search_fields = ('game__title', 'user__username', 'text')
     list_select_related = ('game', 'user')
+
+
+@admin.register(UserLibrary)
+class UserLibraryAdmin(admin.ModelAdmin):
+    list_display = ('user', 'game', 'playtime_display', 'last_played', 'session_started_at', 'purchased_at')
+    list_filter = (('session_started_at', admin.EmptyFieldListFilter),)
+    search_fields = ('game__title', 'user__username')
+    list_select_related = ('game', 'user')
+    readonly_fields = ('purchased_at',)
+
+    @admin.display(description='Время в игре', ordering='playtime_seconds')
+    def playtime_display(self, obj):
+        return playtime(obj.playtime_seconds)

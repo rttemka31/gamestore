@@ -5,7 +5,7 @@
 {% block title %}GameStore | Настройки{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static '/css/settings.css' %}?v=11">
+    <link rel="stylesheet" href="{% static '/css/settings.css' %}?v=12">
 
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>
@@ -21,7 +21,7 @@
             -webkit-backdrop-filter: none !important;
         }
         .settings-content {
-            padding-bottom: 50vh !important;
+            padding-bottom: 40px !important;
         }
 
         /* Стиль плавающего уведомления об автосохранении */
@@ -117,12 +117,16 @@
                     Внешний вид
                 </a>
                 <a href="#catalog" class="settings-nav-link">
-                    <img src="{% static 'css/icons/search.png' %}" alt="" class="nav-icon">
+                    <img src="{% static 'css/icons/catalog.png' %}" alt="" class="nav-icon">
                     Каталог
                 </a>
                 <a href="#privacy" class="settings-nav-link">
                     <img src="{% static 'css/icons/privacy.png' %}" alt="" class="nav-icon">
                     Приватность
+                </a>
+                <a href="#about" class="settings-nav-link">
+                    <img src="{% static 'css/icons/about.png' %}" alt="" class="nav-icon">
+                    О сайте
                 </a>
                 <a href="#danger" class="settings-nav-link settings-nav-danger">
                     <img src="{% static 'css/icons/delete.png' %}" alt="" class="nav-icon">
@@ -140,6 +144,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="form" value="profile">
 
+                        <div class="settings-profile-top">
                         <div class="settings-field">
                             <label>Аватар</label>
                             <div class="avatar-wrapper" id="avatarWrapper">
@@ -156,25 +161,30 @@
                             <input type="file" name="avatar" id="avatarInput" accept="image/*" style="display: none;">
                         </div>
 
-                        <div class="settings-field">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <label for="username">Имя пользователя</label>
-                                <small id="NameCounter" style="color: var(--text-muted); font-size: 13px;">0 / 24</small>
-                            </div>
-                            <input type="text" id="username" name="username" value="{{ user.username }}" maxlength="24">
-                        </div>
+                        <div class="settings-form">
+                            <div class="settings-grid">
+                                <div class="settings-field">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <label for="username">Имя пользователя</label>
+                                        <small id="NameCounter" style="color: var(--text-muted); font-size: 13px;">0 / 24</small>
+                                    </div>
+                                    <input type="text" id="username" name="username" value="{{ user.username }}" maxlength="24">
+                                </div>
 
-                        <div class="settings-field">
-                            <label for="email">Почта</label>
-                            <input type="email" id="email" name="email" value="{{ user.email }}">
-                        </div>
-
-                        <div class="settings-field">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <label for="bio">О себе</label>
-                                <small id="bioCounter" style="color: var(--text-muted); font-size: 13px;">0 / 150</small>
+                                <div class="settings-field">
+                                    <label for="email">Почта</label>
+                                    <input type="email" id="email" name="email" value="{{ user.email }}">
+                                </div>
                             </div>
-                            <textarea id="bio" name="bio" rows="3" maxlength="150" placeholder="Нет описания">{% if user.profile.bio and user.profile.bio != "None" %}{{ user.profile.bio }}{% endif %}</textarea>
+
+                            <div class="settings-field">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <label for="bio">О себе</label>
+                                    <small id="bioCounter" style="color: var(--text-muted); font-size: 13px;">0 / 150</small>
+                                </div>
+                                <textarea id="bio" name="bio" rows="2" maxlength="150" placeholder="Нет описания">{% if user.profile.bio and user.profile.bio != "None" %}{{ user.profile.bio }}{% endif %}</textarea>
+                            </div>
+                        </div>
                         </div>
 
                         <div class="settings-field">
@@ -218,22 +228,24 @@
                         {% csrf_token %}
                         <input type="hidden" name="form" value="password">
 
-                        <div class="settings-field">
-                            <label for="old_password">Текущий пароль</label>
-                            <input type="password" id="old_password" name="old_password">
+                        <div class="settings-grid">
+                            <div class="settings-field">
+                                <label for="old_password">Текущий пароль</label>
+                                <input type="password" id="old_password" name="old_password" autocomplete="current-password">
+                            </div>
+
+                            <div class="settings-field">
+                                <label for="new_password">Новый пароль</label>
+                                <input type="password" id="new_password" name="new_password" autocomplete="new-password">
+                            </div>
+
+                            <div class="settings-field">
+                                <label for="confirm_password">Подтверждение пароля</label>
+                                <input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password">
+                            </div>
                         </div>
 
-                        <div class="settings-field">
-                            <label for="new_password">Новый пароль</label>
-                            <input type="password" id="new_password" name="new_password">
-                        </div>
-
-                        <div class="settings-field">
-                            <label for="confirm_password">Подтверждение пароля</label>
-                            <input type="password" id="confirm_password" name="confirm_password">
-                        </div>
-
-                        <button type="submit" class="btn-primary" style="margin-top: 10px;">Сменить пароль</button>
+                        <button type="submit" class="btn-primary">Сменить пароль</button>
                     </form>
 
                     <form method="post" action="{% url 'mfs:settings' %}" class="settings-form settings-extra-action" id="sessionsForm">
@@ -259,23 +271,25 @@
                             <input type="checkbox" name="disable_blur" id="disableBlurToggle" class="settings-toggle" {% if user.profile.disable_blur %}checked{% endif %}>
                         </label>
 
-                        <div class="settings-field" style="margin-top: 16px;">
-                            <span class="settings-toggle-title">Размер шрифта</span>
-                            <input type="range" class="settings-slider" name="font_size"
-                                   id="fontSizeSlider" min="0" max="2" step="1"
-                                   value="{{ user.profile.font_size }}">
-                            <div class="slider-labels"><span>Мелкий</span><span>Средний</span><span>Крупный</span></div>
+                        <div class="settings-grid">
+                            <div class="settings-field">
+                                <span class="settings-toggle-title">Размер шрифта</span>
+                                <input type="range" class="settings-slider" name="font_size"
+                                       id="fontSizeSlider" min="0" max="2" step="1"
+                                       value="{{ user.profile.font_size }}">
+                                <div class="slider-labels"><span>Мелкий</span><span>Средний</span><span>Крупный</span></div>
+                            </div>
+
+                            <div class="settings-field">
+                                <span class="settings-toggle-title">Скругление элементов</span>
+                                <input type="range" class="settings-slider" name="radius_size"
+                                       id="radiusSizeSlider" min="0" max="2" step="1"
+                                       value="{{ user.profile.radius_size }}">
+                                <div class="slider-labels"><span>Острые</span><span>Средние</span><span>Круглые</span></div>
+                            </div>
                         </div>
 
-                        <div class="settings-field" style="margin-top: 16px;">
-                            <span class="settings-toggle-title">Скругление элементов</span>
-                            <input type="range" class="settings-slider" name="radius_size"
-                                   id="radiusSizeSlider" min="0" max="2" step="1"
-                                   value="{{ user.profile.radius_size }}">
-                            <div class="slider-labels"><span>Острые</span><span>Средние</span><span>Круглые</span></div>
-                        </div>
-
-                        <div class="settings-field" style="margin-top: 16px;">
+                        <div class="settings-field">
                             <label class="settings-toggle-row">
                                 <div>
                                     <span class="settings-toggle-title">Акцентный цвет сайта</span>
@@ -385,6 +399,62 @@
                 </section>
 
                 <!-- Опасная зона -->
+                <!-- О сайте -->
+                <section id="about" class="settings-card">
+                    <h2>О сайте</h2>
+
+                    <div class="about-version">
+                        <div class="logo">GAME<span>STORE</span></div>
+                        {% if site_version %}
+                            <span class="about-version-text">
+                                Версия {{ site_version.number }} от {{ site_version.date|date:"d E Y" }}
+                                <a href="{{ site_version.url }}">Что нового ➜</a>
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <span class="settings-toggle-title">Создатели</span>
+                    <ul class="about-team">
+                        <li>
+                            <a href="https://github.com/rttemka31" target="_blank" rel="noopener noreferrer">
+                                <span class="about-avatar">R</span>
+                                <span>
+                                    <strong>rttemka31</strong>
+                                    <small>Автор, разработчик, основной код</small>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.anthropic.com/claude" target="_blank" rel="noopener noreferrer">
+                                <span class="about-avatar about-avatar-claude">C</span>
+                                <span>
+                                    <strong>Claude</strong>
+                                    <small>ИИ-ассистент Anthropic: код, дизайн и тесты</small>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <dl class="about-facts">
+                        <div>
+                            <dt>Игр в каталоге</dt>
+                            <dd>{{ site_stats.games }}</dd>
+                        </div>
+                        <div>
+                            <dt>Игроков</dt>
+                            <dd>{{ site_stats.players }}</dd>
+                        </div>
+                        <div>
+                            <dt>Работает на</dt>
+                            <dd>Django и Python</dd>
+                        </div>
+                        <div>
+                            <dt>Исходный код</dt>
+                            <dd><a href="https://github.com/rttemka31/gamestore" target="_blank" rel="noopener noreferrer">GitHub ➜</a></dd>
+                        </div>
+                    </dl>
+                </section>
+
                 <section id="danger" class="settings-card settings-card-danger">
                     <h2>Удаление аккаунта</h2>
                     <p class="settings-hint">Это действие необратимо. Все данные профиля, библиотека и история заказов будут удалены навсегда.</p>
@@ -760,37 +830,36 @@ document.addEventListener("DOMContentLoaded", () => {
         const navLinks = document.querySelectorAll('.settings-nav-link');
         const sections = document.querySelectorAll('.settings-card');
 
-        // 1. Переключение класса active при клике
+        // Подсвечиваем раздел, до которого дочитали. Выбранный кликом пункт держится, пока пользователь сам не прокрутит
+        let clickedId = null;
+
+        function updateActiveLink() {
+            let current = sections[0];
+            sections.forEach(section => {
+                if (section.getBoundingClientRect().top <= window.innerHeight * 0.3) current = section;
+            });
+            // Нижние разделы короткие и не доезжают до верха экрана
+            if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
+                current = sections[sections.length - 1];
+            }
+
+            const id = clickedId || current.id;
+            navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${id}`));
+        }
+
         navLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                navLinks.forEach(l => l.classList.remove('active'));
-                this.classList.add('active');
+            link.addEventListener('click', () => {
+                clickedId = link.getAttribute('href').slice(1);
+                updateActiveLink();
             });
         });
 
-        // 2. Автоматическое переключение active при прокрутке страницы
-        const observerOptions = {
-            root: null,
-            rootMargin: '-20% 0px -60% 0px', // Зона срабатывания вверху экрана
-            threshold: 0
-        };
+        ['wheel', 'touchmove', 'keydown'].forEach(type => {
+            window.addEventListener(type, () => { clickedId = null; }, { passive: true });
+        });
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.getAttribute('id');
-                    navLinks.forEach(link => {
-                        if (link.getAttribute('href') === `#${id}`) {
-                            link.classList.add('active');
-                        } else {
-                            link.classList.remove('active');
-                        }
-                    });
-                }
-            });
-        }, observerOptions);
-
-        sections.forEach(section => observer.observe(section));
+        window.addEventListener('scroll', updateActiveLink, { passive: true });
+        updateActiveLink();
 
         // Выбор акцентного цвета
         const colorDots = document.querySelectorAll('.color-dot');

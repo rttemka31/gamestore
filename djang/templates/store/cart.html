@@ -5,7 +5,7 @@
 {% block title %}GameStore | Корзина{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static '/css/cart.css' %}?v=16">
+    <link rel="stylesheet" href="{% static '/css/cart.css' %}?v=17">
 {% endblock %}
 
 {% block content %}
@@ -64,8 +64,10 @@
                             </div>
                         {% endif %}
                         {% if game.discount > 0 %}
-                            <span class="old-price">{{ game.price|floatformat:0 }}₴</span>
-                            <span class="current-price">{{ game.discounted_price|floatformat:0 }}₴</span>
+                            <div class="cart-price-row">
+                                <span class="old-price">{{ game.price|floatformat:0 }}₴</span>
+                                <span class="current-price">{{ game.discounted_price|floatformat:0 }}₴</span>
+                            </div>
                         {% else %}
                             <span class="current-price">{{ game.price|floatformat:0 }}₴</span>
                         {% endif %}
@@ -139,11 +141,12 @@
                                 <h3 class="rec-card-title">{{ game.title }}</h3>
                             </a>
                             <div class="rec-card-genre">
-                                {% for genre in game.genres.all %}
-                                    {{ genre.name }}{% if not forloop.last %}, {% endif %}
-                                {% empty %}
-                                    Игры
+                                {% for genre in game.genres.all|slice:":2" %}
+                                    <a href="{% url 'mfs:catalog' %}?genre={{ genre.slug }}" class="chip" title="Похожие игры в каталоге">{{ genre.name }}</a>
                                 {% endfor %}
+                                {% if game.genres.all|length > 2 %}
+                                    <a href="{% url 'mfs:game_detail' game.id %}" class="chip" title="Все жанры на странице игры">+{{ game.genres.all|length|add:"-2" }}</a>
+                                {% endif %}
                             </div>
                         </div>
 

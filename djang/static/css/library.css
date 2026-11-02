@@ -503,7 +503,9 @@ body {
 
 .steam-container {
     display: flex;
-    height: calc(100vh - 60px);
+    /* 74px — высота шапки: иначе страница длиннее окна и появляется второй скроллбар */
+    height: calc(100vh - 74px);
+    height: calc(100dvh - 74px);
     overflow: hidden;
 }
 
@@ -727,8 +729,10 @@ body {
 
 /* ОПИСАНИЕ */
 .detail-body {
-    padding: var(--padding-big);
-    max-width: 900px;
+    width: 100%;
+    max-width: 1700px;
+    margin: 0 auto;
+    padding: var(--padding-big) 40px 60px;
 }
 
 .section-block h3 {
@@ -817,8 +821,8 @@ body {
 }
 
 .hero-icon {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     object-fit: contain;
     display: block;      /* Убирает базовый нижний отступ картинки */
     flex-shrink: 0;
@@ -946,22 +950,6 @@ body {
     transform: translateX(-50%) translateY(6px);
 }
 
-.user-dropdown-menu .logout-item {
-    display: block;
-    padding: 12px 16px;
-    color: #c6d4df !important;
-    text-decoration: none !important;
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-normal);
-    border-radius: var(--radius-sm);
-    transition: background 0.2s, color 0.2s;
-}
-
-.user-dropdown-menu .logout-item:hover {
-    background-color: var(--danger);
-    color: var(--text-primary);
-}
-
 .user-dropdown-menu .admin-item {
     display: block;
     padding: 12px 16px;
@@ -984,7 +972,7 @@ body {
     flex-shrink: 0;
     margin: 0 var(--padding-sm) var(--padding-sm);
     padding: 3px;
-    border: 2px dashed var(--border-subtle);
+    border: 2px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     transition: border-color 0.2s, background-color 0.2s;
 }
@@ -1026,8 +1014,9 @@ body {
 
 .fav-row .fav-remove {
     flex-shrink: 0;
-    width: 22px;
-    height: 22px;
+    width: 22.5px;
+    height: 22.5px;
+    font-size: 20px;
     opacity: 0;
     transition: opacity 0.2s, background 0.2s, border-color 0.2s;
 }
@@ -1090,4 +1079,439 @@ body {
     .action-bar {
         padding: var(--padding-md) var(--padding-sm2);
     }
+
+    .detail-body {
+        padding: var(--padding-md) var(--padding-sm2) 40px;
+    }
+}
+
+/* --- ПАНЕЛЬ ИГРЫ: новости и скриншоты слева, сведения об игре справа --- */
+.library-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: var(--padding-big);
+    align-items: start;
+}
+
+.library-panel-main,
+.library-panel-side {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: var(--padding-big);
+}
+
+.library-panel-side {
+    gap: var(--padding-md);
+}
+
+.library-panel .section-header {
+    margin-bottom: var(--padding-sm2);
+}
+
+.library-panel .section-header h2 {
+    margin: 0;
+}
+
+/* Окна панели выглядят так же, как карточки настроек и новостей */
+.library-card,
+.library-about {
+    padding: var(--padding-md);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.library-card h2,
+.library-about summary {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: calc(24px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.library-card h2 {
+    margin-bottom: var(--padding-sm2);
+}
+
+.library-card-link {
+    display: inline-block;
+    margin-top: var(--padding-sm2);
+    color: var(--accent);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.library-card-link:hover {
+    color: var(--text-primary);
+}
+
+.library-screenshots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--padding-sm2);
+}
+
+@media (max-width: 480px) {
+    .library-screenshots {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.library-screenshots a {
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+}
+
+.library-screenshots img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: filter 0.2s;
+}
+
+.library-screenshots a:hover img {
+    filter: brightness(1.15);
+}
+
+.library-about summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    list-style: none;
+    cursor: pointer;
+}
+
+.library-about summary::-webkit-details-marker {
+    display: none;
+}
+
+.library-about-arrow {
+    color: var(--text-muted);
+    font-size: calc(18px * var(--font-scale, 1));
+    transition: transform 0.2s, color 0.2s;
+}
+
+.library-about summary:hover .library-about-arrow {
+    color: var(--text-primary);
+}
+
+.library-about[open] .library-about-arrow {
+    transform: rotate(90deg);
+}
+
+.library-about-text {
+    margin-top: var(--padding-sm2);
+    color: var(--text-secondary);
+    font-size: calc(16px * var(--font-scale, 1));
+    line-height: 1.5;
+}
+
+.library-about-text p {
+    margin: 0 0 10px;
+}
+
+.library-about-text p:last-child {
+    margin-bottom: 0;
+}
+
+.library-stats {
+    margin: 0;
+}
+
+.library-stats > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--padding-sm2);
+    padding: 10px 0;
+    font-size: calc(14px * var(--font-scale, 1));
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.library-stats > div:first-child {
+    padding-top: 0;
+}
+
+.library-stats > div:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.library-stats dt {
+    color: var(--text-muted);
+}
+
+.library-stats dd {
+    margin: 0;
+    color: var(--text-secondary);
+    font-weight: var(--text-normal);
+    text-align: right;
+}
+
+.library-muted {
+    color: var(--text-muted);
+    font-weight: var(--text-normal);
+}
+
+.library-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--padding-sm);
+    margin-top: var(--padding-sm);
+    padding: 6px 7px;
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.library-empty,
+.library-review-text {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: calc(14px * var(--font-scale, 1));
+    line-height: 1.5;
+}
+
+.library-rating {
+    margin-bottom: var(--padding-sm);
+    color: var(--border);
+    font-size: calc(22px * var(--font-scale, 1));
+    letter-spacing: 2px;
+    line-height: 1;
+}
+
+.library-rating .is-on {
+    color: #f5b301;
+}
+
+.library-friends {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 0 calc(var(--padding-sm) * -1);
+    padding: 0;
+    list-style: none;
+}
+
+.library-friends a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: var(--padding-sm);
+    color: var(--text-primary);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    font-family: var(--font-display);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.library-friends a:hover {
+    color: var(--text-primary);
+    background: var(--bg-card);
+}
+
+.library-friend-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+    color: var(--text-primary);
+    background: var(--bg-card-hover);
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.library-friend-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+    .library-panel {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .library-panel-side {
+        order: -1;
+    }
+}
+
+/* --- ЗАПУСК ИГРЫ: статус, таймер сеанса и экран запуска --- */
+.action-bar [hidden],
+.launch-overlay[hidden],
+.launch-card [hidden] {
+    display: none !important;
+}
+
+.status-running {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: var(--padding-sm);
+    cursor: default;
+}
+
+.status-running .status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: running-pulse 1.6s ease-in-out infinite;
+}
+
+.running-timer {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+}
+
+@keyframes running-pulse {
+    50% { opacity: 0.3; }
+}
+
+.stop-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 11px 20px;
+    color: var(--text-primary);
+    background: var(--bg-card-hover);
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.stop-button:hover {
+    border-color: var(--danger);
+    background: rgba(199, 49, 42, 0.2);
+}
+
+.stop-button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+/* Метка запущенной игры в списке слева */
+.sidebar-running {
+    display: none;
+    margin-left: auto;
+    padding: 2px 7px;
+    color: var(--bg-primary);
+    background: var(--success);
+    border-radius: var(--radius-sm);
+    font-size: calc(13px * var(--font-scale, 1));
+    font-weight: var(--text-bold);
+    white-space: nowrap;
+}
+
+.sidebar-item.is-running .sidebar-running {
+    display: inline-block;
+}
+
+.sidebar-item .game-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.launch-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--padding-md);
+    animation: launch-fade 0.25s ease-out;
+}
+
+.launch-backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: var(--bg-primary);
+    background-size: cover;
+    background-position: center;
+    filter: blur(18px) brightness(0.35);
+    transform: scale(1.1); /* размытые края не просвечивают по краям экрана */
+}
+
+.launch-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(420px, 100%);
+    padding: var(--padding-big);
+    text-align: center;
+    background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+}
+
+.launch-icon {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+}
+
+.launch-title {
+    margin: var(--padding-sm2) 0 5px;
+    color: var(--text-primary);
+    font-size: calc(24px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.launch-step {
+    min-height: 1.5em;
+    margin: 0 0 var(--padding-sm2);
+    color: var(--text-secondary);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.launch-progress {
+    width: 100%;
+    height: 6px;
+    overflow: hidden;
+    background: var(--bg-card-hover);
+    border-radius: 999px;
+}
+
+.launch-progress-bar {
+    width: 0;
+    height: 100%;
+    background: var(--accent);
+    border-radius: inherit;
+}
+
+.launch-note {
+    margin: var(--padding-sm2) 0 0;
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.launch-cancel {
+    margin-top: var(--padding-md);
+    align-self: center;
+}
+
+body.launch-open {
+    overflow: hidden;
+}
+
+@keyframes launch-fade {
+    from { opacity: 0; }
 }

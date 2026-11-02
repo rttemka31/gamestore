@@ -1,5 +1,6 @@
 import random
 import re
+from collections import defaultdict
 from datetime import datetime, time, timedelta
 
 from allauth.socialaccount.adapter import get_adapter as get_social_adapter
@@ -26,13 +27,17 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from .models import Collection, FavoriteGame, Friendship, Game, Genre, News, Profile, Review, UserLibrary, Wishlist
+from .templatetags.store_extras import playtime
 
 MAX_USERNAME_LENGTH = 24
 MAX_IMAGE_SIZE = 5 * 1024 * 1024
 ACCENT_COLOR_RE = re.compile(r'^#[0-9a-fA-F]{6}$')
+SITE_VERSION_RE = re.compile(r'^[vV]?(\d+(?:\.\d+)+)')
 CATALOG_PAGE_SIZE = 12
 NEWS_PAGE_SIZE = 8
 MAX_FAVORITES = 6
+LIBRARY_NEWS_COUNT = 3
+MAX_SESSION = timedelta(hours=12)  # дольше игру, скорее всего, просто забыли закрыть
 
 
 def custom_page_not_found(request, exception):
@@ -201,7 +206,28 @@ def settings_view(request):
     return render(request, 'users/settings.html', {
         'profile': profile,
         'sort_options': [(key, value[0]) for key, value in CATALOG_SORTS.items()],
+        'site_version': _site_version(),
+        'site_stats': {
+            'games': Game.objects.count(),
+            'players': get_user_model().objects.filter(is_active=True).count(),
+        },
     })
+
+
+def _site_version():
+    """Версия сайта берётся из последней опубликованной новости с номером версии, например «V1.2.0»."""
+    item = (
+        News.objects.filter(is_published=True, title__iregex=r'^v?[0-9]+(\.[0-9]+)+')
+        .order_by('-created_at', '-pk')
+        .first()
+    )
+    if item is None:
+        return None
+    return {
+        'number': SITE_VERSION_RE.match(item.title).group(1),
+        'date': item.created_at,
+        'url': item.get_absolute_url(),
+    }
 
 
 def _end_other_sessions(request):
@@ -236,7 +262,7 @@ def export_data(request):
                 'game': entry.game.title,
                 'purchased_at': entry.purchased_at.isoformat(),
                 'last_played': entry.last_played.isoformat() if entry.last_played else None,
-                'playtime_hours': entry.playtime_hours,
+                'playtime_minutes': entry.playtime_seconds // 60,
             }
             for entry in UserLibrary.objects.filter(user=user).select_related('game').order_by('purchased_at')
         ],
@@ -648,27 +674,82 @@ def checkout(request):
     return redirect('mfs:library')
 
 
+def _library_news(games):
+    """Последние опубликованные новости каждой игры."""
+    links = (
+        News.games.through.objects
+        .filter(game__in=games, news__is_published=True)
+        .select_related('news')
+        .order_by('-news__created_at', '-news__pk')
+    )
+    by_game = defaultdict(list)
+    for link in links:
+        if len(by_game[link.game_id]) < LIBRARY_NEWS_COUNT:
+            by_game[link.game_id].append(link.news)
+    return by_game
+
+
+def _friends_by_game(request, games):
+    """Друзья с каждой игрой. Тех, кто скрыл библиотеку или весь профиль, не показываем."""
+    me = _my_profile(request)
+    friendships = Friendship.objects.filter(
+        Q(sender=me) | Q(receiver=me), status=Friendship.Status.ACCEPTED
+    ).values_list('sender_id', 'receiver_id')
+    friend_ids = {sender if receiver == me.pk else receiver for sender, receiver in friendships}
+
+    friends = {
+        profile.user_id: profile
+        for profile in Profile.objects.filter(pk__in=friend_ids, show_library=True)
+        .exclude(profile_visibility=Profile.Visibility.PRIVATE)
+        .select_related('user')
+    }
+    by_game = defaultdict(list)
+    owners = Game.owners.through.objects.filter(game__in=games, user_id__in=friends).values_list('game_id', 'user_id')
+    for game_id, user_id in owners:
+        by_game[game_id].append(friends[user_id])
+    return by_game
+
+
 @login_required
 def library(request):
-    user_games = list(request.user.purchased_games.all().order_by('title'))
-
-    played = dict(
-        UserLibrary.objects
-        .filter(user=request.user, last_played__isnull=False)
-        .values_list('game_id', 'last_played')
+    user_games = list(
+        request.user.purchased_games.prefetch_related('genres', 'screenshots').order_by('title')
     )
+
+    now = timezone.now()
+    entries = {entry.game_id: entry for entry in UserLibrary.objects.filter(user=request.user)}
+    reviews = {review.game_id: review for review in Review.objects.filter(user=request.user)}
+    news_by_game = _library_news(user_games)
+    friends_by_game = _friends_by_game(request, user_games)
+
+    running = None
+    for entry in entries.values():
+        if entry.session_started_at and now - entry.session_started_at >= MAX_SESSION:
+            _finish_session(entry, now)  # игру забыли закрыть: засчитываем максимум и закрываем
+        elif entry.session_started_at:
+            running = {'game_id': entry.game_id, 'seconds': int((now - entry.session_started_at).total_seconds())}
+
     for g in user_games:
-        g.user_last_played = played.get(g.id)
+        entry = entries.get(g.id)
+        g.user_last_played = entry.last_played if entry else None
+        g.user_purchased_at = entry.purchased_at if entry else None
+        g.user_playtime = entry.playtime_seconds if entry else 0
+        g.user_review = reviews.get(g.id)
+        g.game_news = news_by_game.get(g.id, [])
+        g.friends_with_game = friends_by_game.get(g.id, [])
 
     active_id = request.GET.get('active')
-    is_launched = request.GET.get('launched') == '1'
+    if active_id and active_id.isdigit():
+        active_id = int(active_id)
+    else:
+        active_id = running['game_id'] if running else None
 
     context = {
         'games': user_games,
         'favorites': _favorites(request.user),
         'max_favorites': MAX_FAVORITES,
-        'active_id': int(active_id) if active_id and active_id.isdigit() else None,
-        'is_launched': is_launched,
+        'active_id': active_id,
+        'running': running,
     }
     return render(request, 'store/library.html', context)
 
@@ -754,9 +835,9 @@ def register_view(request):
 
 def _library_stats(user):
     stats = UserLibrary.objects.filter(user=user).aggregate(
-        games_count=Count('id'), total_hours=Sum('playtime_hours')
+        games_count=Count('id'), total_seconds=Sum('playtime_seconds')
     )
-    stats['total_hours'] = stats['total_hours'] or 0
+    stats['total_hours'] = (stats.pop('total_seconds') or 0) // 3600
     return stats
 
 
@@ -819,28 +900,67 @@ def profile(request):
 
     return render(request, 'users/profile.html', context)
 
+def _finish_session(entry, now):
+    """Закрывает сеанс игры и прибавляет его ко времени в игре. Брошенный сеанс засчитывается не дольше MAX_SESSION."""
+    if entry.session_started_at is None:
+        return 0
+    seconds = int(min(max(now - entry.session_started_at, timedelta(0)), MAX_SESSION).total_seconds())
+    entry.playtime_seconds += seconds
+    entry.session_started_at = None
+    entry.save(update_fields=['playtime_seconds', 'session_started_at'])
+    return seconds
+
+
 @login_required
 @require_POST
 def launch_game(request, game_id):
     game = get_object_or_404(request.user.purchased_games, id=game_id)
-
-    library_item, _ = UserLibrary.objects.get_or_create(
-        user=request.user,
-        game=game
-    )
-
     now = timezone.now()
-    library_item.last_played = now
-    library_item.save(update_fields=['last_played'])
+
+    closed = []
+    with transaction.atomic():
+        # Одновременно запущена только одна игра: предыдущую закрываем и засчитываем
+        running = UserLibrary.objects.select_for_update().filter(user=request.user, session_started_at__isnull=False)
+        for other in running.exclude(game=game):
+            _finish_session(other, now)
+            closed.append({'game_id': other.game_id, 'playtime_display': playtime(other.playtime_seconds)})
+
+        entry, _ = UserLibrary.objects.get_or_create(user=request.user, game=game)
+        if entry.session_started_at is None:
+            entry.session_started_at = now
+        entry.last_played = now
+        entry.save(update_fields=['session_started_at', 'last_played'])
 
     if _is_ajax(request):
         return JsonResponse({
             'status': 'success',
             'game_id': game.id,
             'last_played_display': timezone.localtime(now).strftime('%d.%m.%Y в %H:%M'),
+            'session_seconds': int((now - entry.session_started_at).total_seconds()),
+            'closed': closed,
         })
 
-    return redirect(f"{reverse('mfs:library')}?active={game_id}&launched=1")
+    return redirect(f"{reverse('mfs:library')}?active={game_id}")
+
+
+@login_required
+@require_POST
+def stop_game(request, game_id):
+    entry = get_object_or_404(UserLibrary, user=request.user, game_id=game_id)
+    with transaction.atomic():
+        entry = UserLibrary.objects.select_for_update().get(pk=entry.pk)
+        session_seconds = _finish_session(entry, timezone.now())
+
+    if _is_ajax(request):
+        return JsonResponse({
+            'status': 'success',
+            'game_id': game_id,
+            'session_display': playtime(session_seconds),
+            'playtime_seconds': entry.playtime_seconds,
+            'playtime_display': playtime(entry.playtime_seconds),
+        })
+
+    return redirect(f"{reverse('mfs:library')}?active={game_id}")
 
 def _get_relation(me, other):
     return Friendship.objects.filter(

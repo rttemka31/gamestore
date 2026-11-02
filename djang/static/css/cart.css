@@ -321,19 +321,29 @@ html {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    align-self: stretch;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 10px;
     padding-right: 10px;
 }
 
-/* Эксклюзив и скидка стоят в одном ряду в углу карточки и не перекрывают друг друга */
+/* Эксклюзив и скидка закреплены в углу карточки на одной высоте; цена остаётся по центру */
 .cart-badges {
+    position: absolute;
+    top: var(--padding-sm2);
+    right: 25px;
+    z-index: 2;
     display: flex;
     align-items: center;
     justify-content: flex-end;
     gap: var(--padding-sm);
-    margin-bottom: auto;
+    pointer-events: none;
+}
+
+/* Старая и новая цена в одну строку: так цена не наезжает на значки в углу */
+.cart-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--padding-sm);
 }
 
 /* Одинаковая высота: с рамкой и без неё значки не отличаются */
@@ -637,7 +647,8 @@ html {
     }
 
     .cart-badges {
-        margin-bottom: 0;
+        position: static;
+        margin-right: auto;
     }
 }
 
@@ -885,10 +896,20 @@ a.game-card:hover {
     text-overflow: ellipsis;
 }
 
+/* Жанры в рекомендациях — такие же метки, как на странице игры, в одну строку */
 .rec-card-genre {
-    font-size: calc(14px * var(--font-scale, 1));
-    color: var(--text-secondary);
-    margin-bottom: 30px;
+    position: relative;
+    z-index: 3;
+    display: flex;
+    gap: 5px;
+    overflow: hidden;
+    margin-bottom: var(--padding-sm2);
+}
+
+.rec-card-genre .chip {
+    flex-shrink: 0;
+    padding: 3px 9px;
+    font-size: calc(13px * var(--font-scale, 1));
 }
 
 .rec-card-footer {

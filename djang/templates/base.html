@@ -7,8 +7,8 @@
     <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}GameStore{% endblock %}</title>
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=31">
-    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=1">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=33">
+    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=2">
     <script src="{% static 'js/event/halloween.js' %}"></script>
     <link id="siteIcon" rel="icon"
         href="{% static 'css/icons/gamestore.png' %}?v=2"
@@ -18,7 +18,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
-    <!-- Применение динамической темы на ВСЕХ страницах -->
+    {% block extra_head %}{% endblock %}
+    <!-- Цвет пользователя подключается после стилей страницы: иначе cart.css и library.css перебивают его своими цветами -->
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>
         :root {
@@ -33,7 +34,6 @@
         }
     </style>
     {% endif %}
-    {% block extra_head %}{% endblock %}
 </head>
 
 <body class="{% if request.user.is_authenticated and request.user.profile.disable_blur %}no-blur{% endif %}"

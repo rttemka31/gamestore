@@ -28,6 +28,7 @@ urlpatterns = [
     path("profile/", views.profile, name="profile"),
     path('settings/', views.settings_view, name='settings'),
     path('library/launch/<int:game_id>/', views.launch_game, name='launch_game'),
+    path('library/stop/<int:game_id>/', views.stop_game, name='stop_game'),
     path('friends/search/', views.friends_search, name='friends_search'),
     path('friends/request/', views.friend_request, name='friend_request'),
     path('friends/respond/<int:pk>/', views.friend_respond, name='friend_respond'),

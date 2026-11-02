@@ -80,9 +80,9 @@
 
             <div class="detail-row">
                 <span class="detail-label">Жанры:</span>
-                <span>
+                <span class="detail-genres">
                     {% for genre in game.genres.all %}
-                        {{ genre.name }}{% if not forloop.last %}, {% endif %}
+                        <a href="{% url 'mfs:catalog' %}?genre={{ genre.slug }}" class="chip" title="Похожие игры в каталоге">{{ genre.name }}</a>
                     {% empty %}
                         Без жанра
                     {% endfor %}

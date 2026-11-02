@@ -87,7 +87,9 @@ html[data-season="halloween"] {
     & .buy-button,
     & .btn-add-rec,
     & .checkout-button,
-    & .cart-badge  {
+    & .cart-badge,
+    & .play-button,
+    & .status-running {
         color: #1a0d03;
     }
 

@@ -16,6 +16,17 @@ def _format_inline(text):
 
 
 @register.filter
+def playtime(seconds):
+    """Время в игре: «45 мин», «3 ч 20 мин», «127 ч»."""
+    hours, minutes = divmod(int(seconds or 0) // 60, 60)
+    if not hours:
+        return f'{minutes} мин'
+    if hours >= 10 or not minutes:
+        return f'{hours} ч'
+    return f'{hours} ч {minutes} мин'
+
+
+@register.filter
 def news_format(text):
     """Текст новости в HTML: абзацы, **жирный**, списки «- пункт» и ссылки. Всё остальное экранируется."""
     blocks, paragraph, items = [], [], []

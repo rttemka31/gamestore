@@ -1,6 +1,7 @@
 import io
 import shutil
 import tempfile
+from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -11,7 +12,7 @@ from django.utils import timezone
 from PIL import Image
 
 from .models import Collection, FavoriteGame, Friendship, Game, Genre, News, Profile, Review, UserLibrary, Wishlist
-from .templatetags.store_extras import news_format, news_plain
+from .templatetags.store_extras import news_format, news_plain, playtime
 
 MEDIA_ROOT = tempfile.mkdtemp()
 
@@ -364,7 +365,7 @@ class ProfileAndSettingsTests(StoreTestCase):
     def test_export_contains_my_data_and_downloads_as_file(self):
         Profile.objects.filter(user=self.user).update(bio='hi')
         self.game.owners.add(self.user)
-        UserLibrary.objects.create(user=self.user, game=self.game, playtime_hours=3)
+        UserLibrary.objects.create(user=self.user, game=self.game, playtime_seconds=3 * 60)
         Wishlist.objects.create(user=self.user).games.add(self.game2)
         Review.objects.create(user=self.user, game=self.game, rating=5, text='Отлично')
         Friendship.objects.create(sender=self.user.profile, receiver=self.other.profile, status=Friendship.Status.ACCEPTED)
@@ -374,18 +375,38 @@ class ProfileAndSettingsTests(StoreTestCase):
 
         self.assertIn('attachment', response['Content-Disposition'])
         self.assertEqual(data['account']['bio'], 'hi')
-        self.assertEqual(data['library'][0]['playtime_hours'], 3)
+        self.assertEqual(data['library'][0]['playtime_minutes'], 3)
         self.assertEqual(data['wishlist'], ['Beta'])
         self.assertEqual(data['reviews'][0]['text'], 'Отлично')
         self.assertEqual(data['friends'], ['bob'])
         self.assertNotIn('password', response.content.decode())
+
+    def test_about_section_shows_creators_stats_and_latest_version(self):
+        News.objects.create(title='V1.1.0', description='Текст')
+        newest = News.objects.create(title='v1.2.0 — большое обновление', description='Текст')
+        News.objects.create(title='Обычная новость', description='Текст')
+        News.objects.create(title='V9.9.9', description='Текст', is_published=False)
+
+        response = self.client.get(reverse('mfs:settings'))
+        self.assertEqual(response.context['site_version']['number'], '1.2.0')
+        self.assertEqual(response.context['site_version']['url'], newest.get_absolute_url())
+        self.assertEqual(response.context['site_stats'], {'games': 2, 'players': 2})
+        self.assertContains(response, 'rttemka31')
+        self.assertContains(response, 'Claude')
+        self.assertContains(response, 'Версия 1.2.0')
+
+    def test_about_section_works_without_version_news(self):
+        response = self.client.get(reverse('mfs:settings'))
+        self.assertIsNone(response.context['site_version'])
+        self.assertContains(response, 'О сайте')
+        self.assertNotContains(response, 'Версия ')
 
     def test_export_requires_login(self):
         self.client.logout()
         self.assertEqual(self.client.get(reverse('mfs:export_data')).status_code, 302)
 
     def test_own_profile_shows_real_stats(self):
-        UserLibrary.objects.create(user=self.user, game=self.game, playtime_hours=7)
+        UserLibrary.objects.create(user=self.user, game=self.game, playtime_seconds=7 * 3600 + 59 * 60)
         response = self.client.get(reverse('mfs:profile'))
         self.assertEqual((response.context['games_count'], response.context['total_hours']), (1, 7))
 
@@ -438,6 +459,82 @@ class PrivacyTests(StoreTestCase):
         self.client.force_login(self.other)
         self.client.post(reverse('mfs:settings'), {'form': 'privacy', 'profile_visibility': 'private'})
         self.assertTrue(Profile.objects.get(user=self.other).show_library)
+
+
+class LibraryPanelTests(StoreTestCase):
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.user)
+        self.game.owners.add(self.user)
+        self.url = reverse('mfs:library')
+
+    def panel_game(self):
+        return self.client.get(self.url).context['games'][0]
+
+    def test_shows_playtime_size_and_missing_size(self):
+        UserLibrary.objects.create(user=self.user, game=self.game, playtime_seconds=2 * 3600 + 5 * 60)
+        self.assertContains(self.client.get(self.url), '2 ч 5 мин')
+        self.assertContains(self.client.get(self.url), 'Не указан')
+
+        Game.objects.filter(pk=self.game.pk).update(size_gb=Decimal('85.5'))
+        response = self.client.get(self.url)
+        self.assertContains(response, '85,5 ГБ')
+        self.assertNotContains(response, 'Не указан')
+
+    def test_about_section_is_collapsed_below_the_news(self):
+        Game.objects.filter(pk=self.game.pk).update(description='Рекламный текст')
+        News.objects.create(title='Про эту игру', description='Текст').games.add(self.game)
+        content = self.client.get(self.url).content.decode()
+        self.assertIn('<details class="library-about">', content)
+        self.assertLess(content.index('Новости игры'), content.index('Рекламный текст'))
+
+    def test_only_published_news_of_this_game_are_shown(self):
+        News.objects.create(title='Новость магазина', description='Текст')
+        News.objects.create(title='Про другую игру', description='Текст').games.add(self.game2)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.context['games'][0].game_news, [])
+        self.assertNotContains(response, 'Новости игры')
+        self.assertNotContains(response, 'Новость магазина')
+
+        own = News.objects.create(title='Про эту игру', description='Текст')
+        own.games.add(self.game)
+        News.objects.create(title='Черновик', description='Текст', is_published=False).games.add(self.game)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.context['games'][0].game_news, [own])
+        self.assertContains(response, 'Новости игры')
+
+    def test_friends_who_hide_their_games_are_not_listed(self):
+        self.game.owners.add(self.other)
+        stranger = User.objects.create_user('carol', password='Str0ng-pass-123')
+        self.game.owners.add(stranger)
+        self.assertEqual(self.panel_game().friends_with_game, [])
+
+        Friendship.objects.create(sender=self.user.profile, receiver=self.other.profile, status=Friendship.Status.ACCEPTED)
+        Friendship.objects.create(sender=stranger.profile, receiver=self.user.profile)
+        self.assertEqual(self.panel_game().friends_with_game, [self.other.profile])
+
+        Profile.objects.filter(user=self.other).update(show_library=False)
+        self.assertEqual(self.panel_game().friends_with_game, [])
+
+        Profile.objects.filter(user=self.other).update(show_library=True, profile_visibility='private')
+        self.assertEqual(self.panel_game().friends_with_game, [])
+
+    def test_review_block_follows_my_review(self):
+        self.assertContains(self.client.get(self.url), 'Оставить отзыв')
+        Review.objects.create(user=self.user, game=self.game, rating=4, text='Хорошая')
+        response = self.client.get(self.url)
+        self.assertContains(response, 'Оценка: 4 из 5')
+        self.assertContains(response, 'Изменить отзыв')
+
+    def test_game_panel_escapes_news_and_review_text(self):
+        Review.objects.create(user=self.user, game=self.game, rating=5, text='<script>alert(1)</script>')
+        self.assertNotContains(self.client.get(self.url), '<script>alert(1)')
+
+    def test_empty_library_still_renders(self):
+        self.game.owners.remove(self.user)
+        self.assertContains(self.client.get(self.url), 'В вашей библиотеке пока нет игр')
 
 
 class WishlistTests(StoreTestCase):
@@ -589,6 +686,102 @@ class NewsTests(StoreTestCase):
         response = self.client.get(first.get_absolute_url())
         self.assertEqual(response.context['newer'], second)
         self.assertIsNone(response.context['older'])
+
+
+class PlaySessionTests(StoreTestCase):
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.user)
+        self.game.owners.add(self.user)
+        self.game2.owners.add(self.user)
+
+    def post(self, name, game):
+        return self.client.post(reverse(name, args=[game.pk]), HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+    def entry(self, game):
+        return UserLibrary.objects.get(user=self.user, game=game)
+
+    def started(self, game, ago):
+        UserLibrary.objects.filter(user=self.user, game=game).update(session_started_at=timezone.now() - ago)
+
+    def test_launch_then_stop_adds_the_session_to_playtime(self):
+        self.assertEqual(self.post('mfs:launch_game', self.game).json()['session_seconds'], 0)
+        self.assertIsNotNone(self.entry(self.game).session_started_at)
+
+        self.started(self.game, timedelta(minutes=25, seconds=10))
+        data = self.post('mfs:stop_game', self.game).json()
+        self.assertEqual(data['session_display'], '25 мин')
+        self.assertEqual(self.entry(self.game).playtime_seconds, 25 * 60 + 10)
+        self.assertIsNone(self.entry(self.game).session_started_at)
+
+        # Повторная остановка ничего не добавляет
+        self.post('mfs:stop_game', self.game)
+        self.assertEqual(self.entry(self.game).playtime_seconds, 25 * 60 + 10)
+
+    def test_launching_another_game_closes_the_running_one(self):
+        self.post('mfs:launch_game', self.game)
+        self.started(self.game, timedelta(hours=1))
+
+        data = self.post('mfs:launch_game', self.game2).json()
+        self.assertEqual(data['closed'], [{'game_id': self.game.pk, 'playtime_display': '1 ч'}])
+        self.assertIsNone(self.entry(self.game).session_started_at)
+        self.assertIsNotNone(self.entry(self.game2).session_started_at)
+
+    def test_relaunching_the_same_game_keeps_the_session(self):
+        self.post('mfs:launch_game', self.game)
+        self.started(self.game, timedelta(minutes=5))
+        self.assertGreaterEqual(self.post('mfs:launch_game', self.game).json()['session_seconds'], 300)
+
+    def test_forgotten_session_counts_at_most_twelve_hours(self):
+        self.post('mfs:launch_game', self.game)
+        self.started(self.game, timedelta(days=3))
+
+        response = self.client.get(reverse('mfs:library'))
+        self.assertIsNone(response.context['running'])
+        self.assertEqual(self.entry(self.game).playtime_seconds, 12 * 3600)
+
+    def test_library_reports_the_running_game(self):
+        self.post('mfs:launch_game', self.game2)
+        response = self.client.get(reverse('mfs:library'))
+        self.assertEqual(response.context['running']['game_id'], self.game2.pk)
+        self.assertEqual(response.context['active_id'], self.game2.pk)
+        self.assertContains(response, f'data-running-game="{self.game2.pk}"')
+
+    def test_profiles_show_playtime_and_who_is_playing_now(self):
+        UserLibrary.objects.create(user=self.user, game=self.game, playtime_seconds=95 * 60, last_played=timezone.now())
+        self.assertContains(self.client.get(reverse('mfs:profile')), '1 ч 35 мин в игре')
+
+        self.post('mfs:launch_game', self.game)
+        self.assertContains(self.client.get(reverse('mfs:profile')), 'Сейчас в игре')
+
+        self.client.force_login(self.other)
+        self.assertContains(self.client.get(reverse('mfs:user_profile', args=['alice'])), 'Сейчас в игре')
+
+    def test_only_owned_games_can_be_launched(self):
+        self.game.owners.remove(self.user)
+        self.assertEqual(self.post('mfs:launch_game', self.game).status_code, 404)
+        self.assertEqual(self.post('mfs:stop_game', self.game).status_code, 404)
+
+    def test_playtime_format(self):
+        cases = {0: '0 мин', 59: '0 мин', 45 * 60: '45 мин', 3600: '1 ч', 3 * 3600 + 20 * 60: '3 ч 20 мин', 127 * 3600 + 59 * 60: '127 ч'}
+        for seconds, expected in cases.items():
+            self.assertEqual(playtime(seconds), expected, seconds)
+
+
+class AccentAndGenreLinkTests(StoreTestCase):
+    def test_user_accent_comes_after_page_stylesheets(self):
+        Profile.objects.filter(user=self.user).update(accent_color='#10b981')
+        self.client.force_login(self.user)
+
+        for url, stylesheet in ((reverse('mfs:library'), 'library.css'), (reverse('mfs:cart_detail'), 'cart.css')):
+            content = self.client.get(url).content.decode()
+            self.assertLess(content.index(stylesheet), content.index('--accent: #10b981'), url)
+
+    def test_game_page_genres_link_to_catalog(self):
+        genre = Genre.objects.create(name='Песочница', slug='sandbox')
+        self.game.genres.add(genre)
+        response = self.client.get(reverse('mfs:game_detail', args=[self.game.pk]))
+        self.assertContains(response, f'href="{reverse("mfs:catalog")}?genre=sandbox"')
 
 
 class PagesTests(StoreTestCase):

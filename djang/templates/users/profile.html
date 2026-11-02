@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load store_extras %}
 
 {% block title %}GameStore | Профиль{% endblock %}
 
@@ -162,7 +163,7 @@
                                     <div class="activity-info-game">
                                         <h3>{{ item.game.title }}</h3>
                                         <div class="activity-info-t">
-                                            {{ item.hours_played|default:"0" }} ч. в игре
+                                            {% if item.session_started_at %}<span class="activity-playing">● Сейчас в игре</span>{% else %}{{ item.playtime_seconds|playtime }} в игре{% endif %}
                                         </div>
                                     </div>
                                     <div class="activity-time">

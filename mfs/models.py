@@ -63,7 +63,12 @@ class Game(BaseMediaProduct):
     collections = models.ManyToManyField(Collection, related_name='game_products', verbose_name="Подборки", blank=True)
     is_game_of_the_week = models.BooleanField(default=False, verbose_name="Игра недели")
     is_not_on_steam = models.BooleanField(default=False, verbose_name="Нет в Steam")
-    
+    size_gb = models.DecimalField(
+        max_digits=6, decimal_places=1, blank=True, null=True,
+        validators=[MinValueValidator(Decimal('0.1'))],
+        verbose_name="Размер игры (ГБ)",
+    )
+
     # ИСПРАВЛЕНО: Заменено User на settings.AUTH_USER_MODEL
     owners = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='purchased_games', blank=True)
 
@@ -231,6 +236,10 @@ class News(models.Model):
         help_text="Пустая строка начинает новый абзац. **текст** — жирный, строка с «- » — пункт списка, ссылки становятся кликабельными.",
     )
     image = models.ImageField(upload_to='news/', blank=True, null=True, verbose_name="Обложка")
+    games = models.ManyToManyField(
+        Game, blank=True, related_name='news', verbose_name="Игры",
+        help_text="Новость появится на странице этих игр в библиотеке.",
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата публикации")
     category = models.CharField(
         max_length=50,
@@ -267,7 +276,9 @@ class UserLibrary(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     purchased_at = models.DateTimeField(auto_now_add=True)
     last_played = models.DateTimeField(null=True, blank=True)
-    playtime_hours = models.PositiveIntegerField(default=0, verbose_name="Сыграно часов")
+    playtime_seconds = models.PositiveIntegerField(default=0, verbose_name="Время в игре (секунд)")
+    # Начало текущего сеанса; пусто, пока игра не запущена
+    session_started_at = models.DateTimeField(null=True, blank=True, verbose_name="Запущена в")
 
     class Meta:
         verbose_name = 'Игра пользователя'

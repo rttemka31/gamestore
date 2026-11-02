@@ -577,6 +577,19 @@ a.game-card:hover::after {
     min-width: 130px;
 }
 
+/* Жанры на странице игры ведут в каталог с похожими играми */
+.detail-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.detail-genres .chip {
+    padding: 6px 7px;
+    font-size: calc(14px * var(--font-scale, 1));
+    gap: var(--padding-sm);
+}
+
 .purchase-box {
     display: flex;
     align-items: center;
@@ -1417,7 +1430,7 @@ a.game-card:hover::after {
     height: 42px;
     flex-shrink: 0;
     border-radius: 50%;
-    border: 1px solid var(--card-border, rgba(255, 255, 255, .12));
+    border: 2px solid var(--card-border, rgba(255, 255, 255, .12));
     background: rgba(255, 255, 255, .06);
     color: #fff;
     font-size: calc(18px * var(--font-scale, 1));
@@ -2282,8 +2295,8 @@ body.no-blur * {
 }
 
 .nav-icon {
-    width: 42px;
-    height: 42px;
+    width: 50px;
+    height: 50px;
     flex-shrink: 0;
     transition: transform 0.2s ease;
     border-radius: 50%;
@@ -2298,8 +2311,8 @@ body.no-blur * {
     padding: 0px;
     text-decoration: none;
     line-height: 0;
-    width: 42px;
-    height: 42px;
+    width: 50px;
+    height: 50px;
 }
 
 .nav-icon-wrapper::after {
@@ -2452,9 +2465,9 @@ body.no-blur * {
 
 #friendSearchResults .search-avatar-ph,
 #friendSearchResults .search-result-item img {
-    flex: 0 0 75px;
-    width: 75px;
-    height: 75px;
+    flex: 0 0 50px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     object-fit: cover;
 }
@@ -3639,8 +3652,8 @@ html[data-motion="reduced"] *::after {
     top: var(--padding-sm);
     right: var(--padding-sm);
     z-index: 3;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     padding: 0;
     color: var(--text-primary);
     background: rgba(0, 0, 0, 0.6);
@@ -3765,14 +3778,14 @@ html[data-motion="reduced"] *::after {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
     padding: 0;
     color: var(--text-primary);
     background: rgba(0, 0, 0, 0.6);
     border: 2px solid var(--border);
     border-radius: var(--radius-sm);
-    font-size: calc(16px * var(--font-scale, 1));
+    font-size: calc(18px * var(--font-scale, 1));
     line-height: 1;
     cursor: pointer;
     transition: background 0.2s, border-color 0.2s;
@@ -3860,7 +3873,7 @@ html[data-motion="reduced"] *::after {
     color: var(--text-muted);
     background: none;
     border: none;
-    font-size: calc(20px * var(--font-scale, 1));
+    font-size: calc(22px * var(--font-scale, 1));
     line-height: 1;
     cursor: pointer;
     transition: color 0.2s, transform 0.175s ease-out;
@@ -4129,4 +4142,10 @@ html[data-motion="reduced"] *::after {
     .purchase-actions {
         justify-content: stretch;
     }
+}
+
+/* Игра, запущенная прямо сейчас, в недавней активности профиля */
+.activity-playing {
+    color: var(--success);
+    font-weight: var(--text-semibold);
 }
