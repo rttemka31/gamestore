@@ -5,7 +5,9 @@
    поэтому тему можно включать и выключать, не трогая основной CSS.
    Использует CSS-вложенность (Chrome/Opera/Edge 112+, Safari 16.5+, Firefox 117+).
 ========================================================= */
-
+html[data-season="halloween"]:not([data-accent="custom"]) {
+    --accent: #ff7a1a;
+}
 html[data-season="halloween"] {
 
     /* ---------- Палитра: тёплый «угольный» фон + оранжевый акцент ---------- */
@@ -20,6 +22,7 @@ html[data-season="halloween"] {
     --text-muted: #9c8468;
 
     --accent: #ff7a1a;          /* тыквенный оранжевый */
+    --on-accent: #1a0d03;
     --success: #a6e22e;         /* токсично-зелёный для скидок — меняйте на свой вкус */
     --danger: #ff3b2f;
 
@@ -54,7 +57,7 @@ html[data-season="halloween"] {
     /* ---------- Шапка ---------- */
     & .navbar {
         background: rgba(14, 9, 5, 0.96);
-        border-bottom: 1px solid rgba(255, 122, 26, 0.3);
+        border-bottom: 1px solid rgba(206, 98, 22, 0.3);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 122, 26, 0.15);
     }
 
@@ -73,11 +76,7 @@ html[data-season="halloween"] {
 
     & .logo::before {
         content: "🎃";
-        margin-right: 10px;
-    }
-
-    & .nav-link.active::after {
-        box-shadow: 0 0 10px var(--accent);
+        margin-right: 15px;
     }
 
     & .hero-title-container {
@@ -87,7 +86,10 @@ html[data-season="halloween"] {
     /* ---------- Кнопки: тёмный текст на оранжевом читается лучше белого ---------- */
     & .buy-button,
     & .btn-add-rec,
-    & .checkout-button{
+    & .checkout-button,
+    & .cart-badge,
+    & .play-button,
+    & .status-running {
         color: #1a0d03;
     }
 
@@ -95,8 +97,7 @@ html[data-season="halloween"] {
     & .btn-secondary,
     & .nav-left.button,
     & .search-box button,
-    & .friend-add-btn,
-    & .cart-badge {
+    & .friend-add-btn {
         color: var(--text-secondary);
     }
 
@@ -168,11 +169,6 @@ html[data-season="halloween"] {
         box-shadow: 0 15px 35px var(--shadow), 0 0 24px rgba(255, 122, 26, 0.08);
     }
 
-    & .profile-avatar {
-        border-color: var(--accent);
-        box-shadow: 0 0 20px var(--glow);
-    }
-
     & .settings-nav-link:hover {
         box-shadow: inset 0 0 20px rgba(255, 122, 26, 0.08);
     }
@@ -197,10 +193,10 @@ html[data-season="halloween"] {
 .season-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    height: 36px;
-    padding: 0 10px;
-    border: 2px solid var(--border);
+    gap: 10px;
+    height: 42px;
+    padding: 0 7.5px;
+    border: 2px solid transparent;
     border-radius: var(--radius-sm);
     background: var(--bg-card);
     cursor: pointer;
@@ -209,7 +205,6 @@ html[data-season="halloween"] {
 
 .season-toggle:hover {
     border-color: #ff7a1a;
-    box-shadow: 0 0 14px rgba(255, 122, 26, 0.3);
 }
 
 .season-toggle:focus-visible {
@@ -219,8 +214,8 @@ html[data-season="halloween"] {
 
 .season-switch {
     position: relative;
-    width: 34px;
-    height: 18px;
+    width: 50px;
+    height: 25px;
     border-radius: 99px;
     background: var(--bg-card-hover);
     transition: background 0.2s;
@@ -229,12 +224,12 @@ html[data-season="halloween"] {
 .season-switch::after {
     content: "";
     position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 14px;
-    height: 14px;
+    top: 3.5px;
+    left: 3.5px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    background: var(--text-muted);
+    background: var(--text-secondary);
     transition: transform 0.2s, background 0.2s;
 }
 
@@ -243,6 +238,6 @@ html[data-season="halloween"] {
 }
 
 .season-toggle[aria-pressed="true"] .season-switch::after {
-    transform: translateX(16px);
+    transform: translateX(25px);
     background: #1a0d03;
 }

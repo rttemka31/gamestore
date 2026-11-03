@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="ru"{% if user.is_authenticated %} data-font="{{ user.profile.font_size }}" data-radius="{{ user.profile.radius_size }}"{% endif %}>
+<html lang="ru"{% if user.is_authenticated %} data-font="{{ user.profile.font_size }}" data-radius="{{ user.profile.radius_size }}"{% if user.profile.reduce_motion %} data-motion="reduced"{% endif %}{% if user.profile.accent_color %} data-accent="custom"{% endif %}{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}GameStore{% endblock %}</title>
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=19">
-    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=1">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=33">
+    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=2">
     <script src="{% static 'js/event/halloween.js' %}"></script>
     <link id="siteIcon" rel="icon"
         href="{% static 'css/icons/gamestore.png' %}?v=2"
         data-default="{% static 'css/icons/gamestore.png' %}?v=2"
         data-halloween="{% static 'css/icons/gamestore_halloween.png' %}?v=2">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
-    <!-- Применение динамической темы на ВСЕХ страницах -->
+    {% block extra_head %}{% endblock %}
+    <!-- Цвет пользователя подключается после стилей страницы: иначе cart.css и library.css перебивают его своими цветами -->
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>
         :root {
@@ -30,16 +34,19 @@
         }
     </style>
     {% endif %}
-    {% block extra_head %}{% endblock %}
 </head>
 
-<body class="{% if request.user.is_authenticated and request.user.profile.disable_blur %}no-blur{% endif %}">
+<body class="{% if request.user.is_authenticated and request.user.profile.disable_blur %}no-blur{% endif %}"
+      data-cart-url="{% url 'mfs:cart_detail' %}"
+      data-library-url="{% url 'mfs:library' %}"
+      data-login-url="{% url 'mfs:login' %}">
 
     <!-- Общий Navbar для всего сайта -->
     <header class="navbar">
         <div class="nav-left">
             <div class="logo">GAME<span>STORE</span></div>
             <a href="{% url 'mfs:index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">МАГАЗИН</a>
+            <a href="{% url 'mfs:catalog' %}" class="nav-link {% if request.resolver_match.url_name == 'catalog' %}active{% endif %}">КАТАЛОГ</a>
             <a href="{% url 'mfs:library' %}" class="nav-link {% if request.resolver_match.url_name == 'library' %}active{% endif %}">БИБЛИОТЕКА</a>
             <a href="{% url 'mfs:news' %}" class="nav-link {% if request.resolver_match.url_name == 'news' %}active{% endif %}">НОВОСТИ</a>
         </div>
@@ -60,11 +67,15 @@
                     </a>
                     <div class="user-dropdown-menu" id="userDropdownMenu">
                         <a href="{% url 'mfs:profile' %}" class="admin-item">Профиль</a>
+                        <a href="{% url 'mfs:profile' %}#wishlist" class="admin-item">Желаемое</a>
                         {% if request.user.is_staff %}
                             <a href="{% url 'admin:index' %}" class="admin-item" target="_blank">Админ-панель</a>
                         {% endif %}
                         <a href="{% url 'mfs:settings' %}" class="admin-item">Настройки</a>
-                        <a href="{% url 'mfs:logout' %}" class="logout-item">Выйти</a>
+                        <form method="post" action="{% url 'mfs:logout' %}" class="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-item">Выйти</button>
+                        </form>
                     </div>
                 </div>
             {% else %}
@@ -75,6 +86,14 @@
 
     <!-- Основное содержимое каждой страницы -->
     {% block content %}{% endblock %}
+
+    {% if messages %}
+    <div class="messages-stack" role="status">
+        {% for message in messages %}
+            <div class="message-toast {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -122,6 +141,7 @@
             }
         });
     </script>
+    <script src="{% static 'js/store.js' %}?v=1"></script>
     {% block extra_js %}{% endblock %}
     <div id="installToast" class="toast-notification">
     Приложение пока недоступно для установки

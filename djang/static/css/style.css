@@ -110,8 +110,8 @@ body {
     font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-bold);
     letter-spacing: 1px;
-    color: white;
-    margin-right: 25px;
+    color: var(--text-primary);
+    margin-right: 30px;
 }
 
 .logo span {
@@ -230,7 +230,7 @@ body {
 .featured-info p {
     margin: 0;
     color: var(--text-secondary);
-    line-height: 1.75;
+    line-height: 1.5;
     font-size: calc(16px * var(--font-scale, 1));
     max-width: 390px;
 }
@@ -577,6 +577,19 @@ a.game-card:hover::after {
     min-width: 130px;
 }
 
+/* Жанры на странице игры ведут в каталог с похожими играми */
+.detail-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.detail-genres .chip {
+    padding: 6px 7px;
+    font-size: calc(14px * var(--font-scale, 1));
+    gap: var(--padding-sm);
+}
+
 .purchase-box {
     display: flex;
     align-items: center;
@@ -661,7 +674,7 @@ a.game-card:hover::after {
         grid-template-columns: 1fr;
     }
 
-    .game-detail-cover img {
+    .main-image-box img {
         min-height: 300px;
     }
 }
@@ -750,6 +763,12 @@ a.game-card:hover::after {
 .arrow-down {
     display: inline-block;
     transform: rotate(90deg);
+}
+
+/* Левой версии этой стрелки в шрифте нет, поэтому поворачиваем правую */
+.arrow-left {
+    display: inline-block;
+    transform: rotate(180deg);
 }
 
 ::-webkit-scrollbar {
@@ -894,6 +913,7 @@ a.game-card:hover::after {
     overflow-x: auto;
     align-items: center;
     justify-content: center;
+    justify-content: safe center; /* Если миниатюры не помещаются, первая не обрезается слева */
     padding: 5px;
 }
 
@@ -1258,7 +1278,7 @@ a.game-card:hover::after {
     background: var(--bg-primary);
     color: var(--text-primary);
     border: 2px solid var(--border);
-    padding: 4px 8px;
+    padding: 7px 6px;
     border-radius: var(--radius-sm);
     font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
@@ -1271,8 +1291,8 @@ a.game-card:hover::after {
     color: white;
     font-size: calc(14px * var(--font-scale, 1));
     padding: 2px 10px;
-    border-radius: var(--radius-big);
-    margin-left: 5px;
+    border-radius: 999px;
+    margin-left: var(--padding-sm);
 }
 
 .news-badge {
@@ -1410,7 +1430,7 @@ a.game-card:hover::after {
     height: 42px;
     flex-shrink: 0;
     border-radius: 50%;
-    border: 1px solid var(--card-border, rgba(255, 255, 255, .12));
+    border: 2px solid var(--card-border, rgba(255, 255, 255, .12));
     background: rgba(255, 255, 255, .06);
     color: #fff;
     font-size: calc(18px * var(--font-scale, 1));
@@ -1527,7 +1547,7 @@ a.game-card:hover::after {
 
 .news-date {
     color: var(--text-primary);
-    font-size: calc(16px * var(--font-scale, 1));
+    font-size: calc(14px * var(--font-scale, 1));
     margin-top: 0px;
     line-height: 1;
 }
@@ -1682,7 +1702,7 @@ a.game-card:hover::after {
 
 .news-date {
     color: var(--text-muted);
-    font-size: calc(16px * var(--font-scale, 1));
+    font-size: calc(14px * var(--font-scale, 1));
     line-height: 1;
     height: fit-content;
     white-space: nowrap; /* Не даёт дате разрываться */
@@ -1747,8 +1767,8 @@ a.game-card:hover::after {
     justify-content: center;
     font-size: calc(24px * var(--font-scale, 1));
     cursor: pointer;
-    z-index: 999;
-    
+    z-index: 3; /* Только над баннером: шапка сайта (z-index: 100) должна оставаться выше */
+
     /* Делаем плавание/появление при ховере: */
     opacity: 0;
     transition: opacity 0.2s ease, background 0.2s ease;
@@ -2251,7 +2271,8 @@ body.no-blur * {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 10px;
+    padding: 10px;
+    margin-bottom: var(--padding-sm);
     cursor: pointer;
     color: var(--text-muted);
     border-radius: var(--radius-verysm);
@@ -2269,13 +2290,14 @@ body.no-blur * {
     width: 22.5px;
     height: 22.5px;
     flex-shrink: 0; /* Не дает иконке сжиматься */
+    border-radius: 0; /* Круглая маска от .nav-icon обрезает значки без полей, например лупу */
     transition: transform 0.2s ease;
 }
 
 .nav-icon {
-    width: 42px;
-    height: 42px;
-    flex-shrink: 0; /* Не дает иконке сжиматься */
+    width: 50px;
+    height: 50px;
+    flex-shrink: 0;
     transition: transform 0.2s ease;
     border-radius: 50%;
 }
@@ -2286,11 +2308,11 @@ body.no-blur * {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    padding: 0px; /* Задаёт отступ от картинки до рамки */
+    padding: 0px;
     text-decoration: none;
-    line-height: 0; /* Исключаем влияния шрифтовых отступов */
-    width: 42px;  /* Фиксируем размеры точно по картинке */
-    height: 42px;
+    line-height: 0;
+    width: 50px;
+    height: 50px;
 }
 
 .nav-icon-wrapper::after {
@@ -2409,7 +2431,7 @@ body.no-blur * {
     border-radius: var(--radius-md);
     box-shadow: 0 12px 32px rgba(0, 0, 0, .4);
 
-    z-index: 100;
+    z-index: 50; /* Выше содержимого страницы, но ниже шапки сайта */
 }
 
 #friendSearchResults[style*="display: block"] {
@@ -2443,9 +2465,9 @@ body.no-blur * {
 
 #friendSearchResults .search-avatar-ph,
 #friendSearchResults .search-result-item img {
-    flex: 0 0 75px;
-    width: 75px;
-    height: 75px;
+    flex: 0 0 50px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     object-fit: cover;
 }
@@ -2622,7 +2644,7 @@ body.no-blur * {
 .search-sub {
     display: block;
     overflow: hidden;
-    line-height: 1.3;
+    line-height: 1.5;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -3150,6 +3172,980 @@ body.no-blur * {
     align-items: center;
     margin-bottom: var(--padding-sm);
 }
+.review-author-block {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    min-width: 0;
+}
+.review-status {
+    padding: 3px 6px;
+    color: var(--text-secondary);
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: calc(12px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    line-height: 1.2;
+    white-space: nowrap;
+}
 .review-author { color: inherit; font-weight: var(--text-semibold); text-decoration: none; font-size: calc(18px * var(--font-scale, 1));}
 .review-rating { color: #f5b301; letter-spacing: 3px; font-size: calc(22px * var(--font-scale, 1));}
 .review-date { color: var(--text-muted); font-size: calc(14px * var(--font-scale, 1)); }
+/* =========================
+   КАТАЛОГ, ЧИПЫ, УВЕДОМЛЕНИЯ
+========================= */
+
+.chip {
+    display: inline-block;
+    padding: 9px 14px;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-accent);
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.chip:hover {
+    color: var(--text-primary);
+    border-color: var(--accent);
+}
+
+.chip.active {
+    color: var(--text-primary);
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.chip-count {
+    margin-left: 4px;
+    font-size: calc(12px * var(--font-scale, 1));
+    opacity: 0.7;
+}
+
+.catalog-header {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.catalog-header h1 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: calc(32px * var(--font-scale, 1));
+}
+
+.catalog-count {
+    color: var(--text-muted);
+    font-size: calc(24px * var(--font-scale, 1));
+}
+
+.catalog-reset {
+    margin-left: auto;
+    color: var(--accent);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+}
+
+.catalog-reset:hover {
+    color: var(--text-primary);
+}
+
+.catalog-hidden-note {
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+    text-decoration: none;
+}
+
+.catalog-hidden-note:hover {
+    color: var(--text-primary);
+}
+
+.catalog-layout {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.catalog-sidebar {
+    position: sticky;
+    top: 90px;
+    max-height: calc(100vh - 110px);
+    overflow-y: auto;
+    padding: var(--padding-sm);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.catalog-sidebar-toggle {
+    display: none;
+    color: var(--text-primary);
+    font-weight: var(--text-semibold);
+    cursor: pointer;
+}
+
+.filter-group {
+    min-width: 0;
+    margin: 0 0 18px;
+    padding: 0;
+    border: none;
+}
+
+.filter-group:last-child {
+    margin-bottom: 0;
+}
+
+.filter-group legend {
+    padding: var(--padding-sm);
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    letter-spacing: 0.3px;
+}
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    color: var(--text-muted);
+    border-left: 3px solid transparent;
+    border-radius: var(--radius-verysm);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.filter-option:hover {
+    transform: translateX(5px);
+    color: var(--text-primary);
+    background-color: var(--bg-card);
+    border-left-color: var(--accent);
+}
+
+.filter-option input {
+    flex: none;
+    margin: 0;
+}
+
+.filter-option input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    display: grid;
+    place-content: center;
+    width: 18px;
+    height: 18px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-verysm);
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.filter-option:hover input[type="checkbox"] {
+    border-color: var(--accent);
+}
+
+.filter-option input[type="checkbox"]::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    margin-top: -2px;
+    border: solid var(--on-accent, var(--text-primary));
+    border-width: 0 2px 2px 0;
+    opacity: 0;
+    transform: rotate(45deg) scale(0.6);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.filter-option input[type="checkbox"]:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.filter-option input[type="checkbox"]:checked::after {
+    opacity: 1;
+    transform: rotate(45deg) scale(1);
+}
+
+.filter-option:has(input[type="checkbox"]:checked) {
+    color: var(--text-primary);
+}
+
+.filter-count {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: calc(12px * var(--font-scale, 1));
+}
+
+/* Категории выглядят как меню: круглая радиокнопка не нужна, выбранный пункт подсвечен */
+.filter-option-radio {
+    position: relative;
+}
+
+.filter-option-radio input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.filter-option-radio:has(input:checked) {
+    color: var(--text-primary);
+    background-color: var(--bg-card-hover);
+    border-left-color: var(--accent);
+}
+
+.filter-option-radio:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.catalog-main {
+    min-width: 0;
+}
+
+.catalog-main .games-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.catalog-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.catalog-search {
+    flex: 1 1 240px;
+    width: auto;
+    min-width: 0;
+}
+
+.catalog-toolbar .filter-select {
+    height: 42px;
+}
+
+@media (max-width: 900px) {
+    .catalog-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .catalog-sidebar {
+        position: static;
+        max-height: none;
+    }
+
+    .catalog-sidebar-toggle {
+        display: list-item;
+    }
+
+    .catalog-sidebar[open] .catalog-sidebar-toggle {
+        margin-bottom: 14px;
+    }
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin: 30px 0;
+}
+
+.pagination-current {
+    color: var(--text-secondary);
+}
+
+.logout-form {
+    margin: 0;
+}
+
+/* "Выйти" — кнопка формы, но выглядит так же, как ссылки меню */
+.user-dropdown-menu button.logout-item {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    border: none;
+    background: none;
+    font-family: inherit;
+    line-height: inherit;
+    text-align: center;
+    cursor: pointer;
+}
+
+.messages-stack {
+    position: fixed;
+    top: 85px;
+    left: 50%;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: min(420px, calc(100vw - 32px));
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.message-toast {
+    padding: 11px 20px;
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius-md);
+    box-shadow: 0 15px 25px var(--shadow);
+    text-align: center;
+    animation: message-toast 5s ease forwards;
+}
+
+.message-toast.success { border-color: var(--success); }
+.message-toast.error { border-color: var(--danger); }
+
+@keyframes message-toast {
+    0% { opacity: 0; transform: translateY(-12px); }
+    6%, 90% { opacity: 1; transform: none; }
+    100% { opacity: 0; visibility: hidden; }
+}
+
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* У этих полей фокус уже показывает собственная рамка: вторая обводка не нужна */
+.search-box input:focus-visible,
+.form-group input:focus-visible,
+.friends-search input:focus-visible,
+.filter-select:focus-visible {
+    outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Настройка «Уменьшить анимацию». Уведомления не трогаем: их время показа задаёт анимация */
+html[data-motion="reduced"] {
+    scroll-behavior: auto;
+}
+
+html[data-motion="reduced"] *:not(.message-toast),
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+}
+
+/* Шапка: на средних экранах все пункты должны помещаться без прокрутки страницы */
+.user-name {
+    display: inline-block;
+    max-width: 150px;
+    overflow: hidden;
+    vertical-align: middle;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (min-width: 901px) and (max-width: 1500px) {
+    .navbar { padding: 0 2%; }
+    .nav-left, .nav-right { gap: 16px; }
+    .logo { margin-right: 10px; }
+}
+
+@media (max-width: 1150px) {
+    .install-btn { display: none; }
+    .nav-link { font-size: calc(13px * var(--font-scale, 1)); }
+    .nav-left, .nav-right { gap: 12px; }
+    .logo { font-size: calc(18px * var(--font-scale, 1)); margin-right: 0; }
+    .user-name { max-width: 100px; }
+}
+
+/* Телефоны: корзина, вход и меню пользователя должны оставаться доступными */
+@media (max-width: 600px) {
+    .navbar {
+        position: static;
+        padding: 12px 4%;
+        gap: 10px;
+    }
+
+    .nav-left, .nav-right {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px 14px;
+    }
+
+    .logo { width: 100%; text-align: center; }
+}
+
+/* Баннер по умолчанию, пока пользователь не загрузил свой */
+.profile-banner {
+    background-color: var(--bg-card);
+    background-image: linear-gradient(135deg, color-mix(in srgb, var(--accent) 45%, var(--bg-card)), var(--bg-card));
+}
+
+/* Профиль на планшетах и телефонах: меню над содержимым, а не отдельной колонкой */
+@media (max-width: 768px) {
+    .profile-layout {
+        flex-direction: column;
+        padding: 10px 0;
+        gap: 15px;
+    }
+
+    .profile-sidebar {
+        position: static;
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box;
+    }
+
+    .profile-content {
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: none;
+    }
+}
+
+/* =========================
+   ЖЕЛАЕМОЕ И ИЗБРАННОЕ
+========================= */
+
+/* !important: сезонная тема перекрашивает текст всех .buy-button в тёмный под оранжевый фон */
+.btn-muted {
+    background: var(--bg-card-hover);
+    color: var(--text-primary) !important;
+}
+
+.purchase-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.wishlist-wide.active {
+    box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.game-image {
+    position: relative;
+}
+
+.wishlist-btn {
+    position: absolute;
+    top: var(--padding-sm);
+    right: var(--padding-sm);
+    z-index: 3;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    backdrop-filter: blur(5px);
+    font-size: calc(18px * var(--font-scale, 1));
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.175s ease-out, color 0.2s, border-color 0.2s;
+}
+
+.wishlist-btn:hover {
+    transform: scale(1.1);
+    border-color: var(--accent);
+}
+
+.wishlist-btn:active {
+    transform: scale(0.9);
+}
+
+.wishlist-btn.active {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.profile-hint {
+    margin: -10px 0 var(--padding-sm2);
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.profile-games-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 15px;
+}
+
+.favorites-zone {
+    border-radius: var(--radius-md);
+    outline: 2px dashed transparent;
+    outline-offset: 6px;
+    transition: outline-color 0.2s;
+}
+
+.fav-dragging .favorites-zone {
+    outline-color: var(--border);
+}
+
+.favorites-zone.is-drag-over {
+    outline-color: var(--accent) !important;
+}
+
+.fav-card {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.fav-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
+    transition: border-color 0.3s;
+    pointer-events: none;
+}
+
+.fav-card:hover {
+    box-shadow: 0 15px 25px var(--shadow);
+}
+
+.fav-card:hover::after {
+    border-color: var(--border);
+}
+
+.fav-card[draggable="true"] {
+    cursor: grab;
+}
+
+.fav-card img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.fav-card .no-cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+}
+
+.fav-card-title {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 24px var(--padding-sm2) var(--padding-sm);
+    overflow: hidden;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fav-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: calc(18px * var(--font-scale, 1));
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.fav-remove:hover {
+    background: var(--danger);
+    border-color: var(--danger);
+}
+
+.fav-card .fav-remove {
+    position: absolute;
+    top: var(--padding-sm);
+    right: var(--padding-sm);
+    z-index: 2;
+}
+
+.fav-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 16 / 9;
+    padding: var(--padding-sm2);
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    font-size: calc(14px * var(--font-scale, 1));
+    text-align: center;
+}
+
+.is-dragging {
+    opacity: 0.4;
+}
+
+.drop-before {
+    box-shadow: -4px 0 0 var(--accent);
+}
+
+.owned-games {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--padding-sm);
+}
+
+.owned-game {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+    cursor: grab;
+    transition: filter 0.2s, color 0.2s;
+}
+
+.owned-game:hover {
+    color: var(--text-primary);
+    filter: brightness(1.1);
+}
+
+.owned-game img {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: var(--radius-verysm);
+    object-fit: cover;
+}
+
+.owned-game .game-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fav-star {
+    flex-shrink: 0;
+    padding: 0 4px;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    font-size: calc(22px * var(--font-scale, 1));
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.175s ease-out;
+}
+
+.fav-star:hover {
+    transform: scale(1.15);
+}
+
+.fav-star.active,
+.fav-toggle.active {
+    color: #f5b301;
+}
+
+/* =========================
+   НОВОСТИ: СПИСОК И СТАТЬЯ
+========================= */
+
+.news-container .catalog-header {
+    align-items: center;
+    margin-bottom: var(--padding-md);
+}
+
+.news-title {
+    margin-bottom: 0;
+}
+
+.news-create {
+    margin: 0 0 0 auto;
+}
+
+.news-filters {
+    margin-top: 0;
+    margin-bottom: var(--padding-md);
+}
+
+.news-search {
+    display: flex;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: var(--padding-sm);
+    margin: 0;
+}
+
+.news-search .search-box {
+    flex: 1 1 240px;
+    width: auto;
+    min-width: 0;
+}
+
+.news-search .filter-select {
+    height: 42px;
+}
+
+.news-results {
+    display: flex;
+    align-items: center;
+    margin: 0 0 var(--padding-md);
+    color: var(--text-muted);
+    font-weight: var(--text-semibold);
+    font-size: calc(16px * var(--font-scale, 1));
+}
+
+.news-group-title {
+    margin: var(--padding-sm2) 0 0;
+    color: var(--text-muted);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    letter-spacing: 0.3px;
+    text-transform: capitalize;
+}
+
+.news-group-title:first-child {
+    margin-top: 0;
+}
+
+.news-list {
+    gap: var(--padding-sm2);
+}
+
+.news-card {
+    display: flex;
+    gap: var(--padding-md);
+}
+
+.news-card-pinned {
+    border-color: var(--border-accent);
+}
+
+.news-card-image {
+    flex-shrink: 0;
+    width: 200px;
+    height: 112px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+}
+
+.news-card-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.news-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--padding-sm) var(--padding-sm2);
+    margin-bottom: var(--padding-sm2);
+}
+
+.news-card-meta .news-date {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.news-card-meta .catalog-reset {
+    margin-left: 0;
+}
+
+.news-pin {
+    color: var(--accent);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.news-card-title {
+    margin: 0 0 var(--padding-sm);
+    font-family: var(--font-display);
+    font-size: calc(20px * var(--font-scale, 1));
+    font-weight: var(--text-normal);
+    line-height: 1.25;
+}
+
+/* Вся карточка кликабельна */
+.news-card-link {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.news-card-link::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.news-excerpt {
+    margin: 0 0 var(--padding-sm);
+    color: var(--text-secondary);
+    font-size: calc(16px * var(--font-scale, 1));
+    line-height: 1.5;
+}
+
+.news-more {
+    color: var(--accent);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.news-back {
+    display: inline-block;
+    margin-bottom: var(--padding-md);
+    color: var(--accent);
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+}
+
+.news-back:hover {
+    color: var(--text-primary);
+}
+
+.news-article {
+    padding: var(--padding-big);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.news-article-title {
+    margin: 0 0 var(--padding-md);
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    font-size: calc(28px * var(--font-scale, 1));
+    font-weight: var(--text-normal);
+    line-height: 1.25;
+}
+
+.news-article-image {
+    display: block;
+    width: 100%;
+    max-height: 420px;
+    margin-bottom: var(--padding-md);
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+}
+
+.news-description a {
+    color: var(--accent);
+    overflow-wrap: anywhere;
+}
+
+.news-draft {
+    margin: 0 0 var(--padding-sm2);
+    padding: 9px 14px;
+    color: #ffab00;
+    border: 2px solid rgba(255, 171, 0, 0.3);
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.news-neighbours {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--padding-sm2);
+    margin-top: var(--padding-md);
+}
+
+.news-neighbour {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--padding-sm2);
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+    transition: background 0.3s, border-color 0.3s;
+}
+
+.news-neighbour:hover {
+    background: var(--bg-surface);
+    border-color: var(--border-accent);
+}
+
+.news-neighbour span {
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.news-neighbour-next {
+    text-align: right;
+}
+
+@media (max-width: 768px) {
+    .news-container {
+        padding: 15px 0;
+    }
+
+    .news-card {
+        flex-direction: column;
+    }
+
+    .news-card-image {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+    }
+
+    .news-article {
+        padding: var(--padding-md);
+    }
+
+    .purchase-actions {
+        justify-content: stretch;
+    }
+}
+
+/* Игра, запущенная прямо сейчас, в недавней активности профиля */
+.activity-playing {
+    color: var(--success);
+    font-weight: var(--text-semibold);
+}

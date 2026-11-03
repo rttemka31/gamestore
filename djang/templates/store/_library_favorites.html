@@ -1,0 +1,9 @@
+{% for fav in favorites %}
+    <li class="fav-row" draggable="true" data-fav-id="{{ fav.game_id }}">
+        <img src="{{ fav.game.get_icon_url }}" alt="" class="sidebar-game-icon" draggable="false">
+        <span class="game-name">{{ fav.game.title }}</span>
+        <button type="button" class="fav-remove" data-fav-toggle="{{ fav.game_id }}" aria-label="Убрать из избранного" title="Убрать из избранного">&times;</button>
+    </li>
+{% empty %}
+    <li class="fav-empty">Перетащите игру сюда</li>
+{% endfor %}

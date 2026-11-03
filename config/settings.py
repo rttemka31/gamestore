@@ -23,9 +23,24 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '*', '.trycloudflare.com']
+SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
+DEBUG = os.environ.get('DJANGO_DEBUG') == '1'
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,.trycloudflare.com').split(',')
+    if host.strip()
+]
 CSRF_TRUSTED_ORIGINS = ['https://*.trycloudflare.com']
+
+# Для сайта за HTTPS-прокси (например, Cloudflare Tunnel). При обычном http://localhost оставляйте выключенным
+if os.environ.get('DJANGO_HTTPS') == '1':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # HSTS включайте только на постоянном домене: браузеры запоминают его надолго
+    SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_HSTS_SECONDS', '0'))
 
 # Application definition
 INSTALLED_APPS = [
@@ -169,12 +184,6 @@ SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 
 # Не требовать подтверждения почты при входе через соцсети
 SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
-
-# Указываем редирект после успешного входа (например, на главную страницу)
-LOGIN_REDIRECT_URL = '/'
-
-SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
-DEBUG = os.environ.get('DJANGO_DEBUG') == '1'
 
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')

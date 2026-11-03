@@ -1,29 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load store_extras %}
 
 {% block title %}GameStore | Профиль{% endblock %}
 
-{% block extra_head %}
-<head>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=19">
-
-    {% if user.is_authenticated and user.profile.accent_color %}
-    <style>
-        :root {
-            --accent: {{ user.profile.accent_color }};
-            --accent-color: {{ user.profile.accent_color }};
-            --accent-hover: {{ user.profile.accent_color }}cc;
-        }
-        body.no-blur, body.no-blur * {
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-        }
-    </style>
-    {% endif %}
-</head>
-{% endblock %}
-
-<body>
 {% block content %}
 
 <main class="container profile-container">
@@ -40,6 +20,11 @@
                 Друзья
                 {% if incoming_requests %}<span>({{ incoming_requests|length }})</span>{% endif %}
             </a>
+            <a href="#wishlist" class="settings-nav-link" data-tab="wishlist">
+                <img src="{% static 'css/icons/wishlist.png' %}" alt="" class="nav-icon">
+                Желаемое
+                {% if wishlist_games %}<span>({{ wishlist_games|length }})</span>{% endif %}
+            </a>
         </aside>
  
         <div class="profile-content">
@@ -51,7 +36,7 @@
                     {% csrf_token %}
  
                     <section class="profile-card" id="profileCard">
-                        <div class="profile-banner" id="bannerPreview" style="background-image: url('{% if user.profile.banner %}{{ user.profile.banner.url }}{% else %}/static/images/default-banner.jpg{% endif %}');">
+                        <div class="profile-banner" id="bannerPreview"{% if user.profile.banner %} style="background-image: url('{{ user.profile.banner.url }}');"{% endif %}>
                             <label for="bannerInput" class="banner-overlay" id="bannerOverlay" style="display: none;">📷</label>
                         </div>
                         <input type="file" name="banner" id="bannerInput" accept="image/*" style="display: none;">
@@ -178,7 +163,7 @@
                                     <div class="activity-info-game">
                                         <h3>{{ item.game.title }}</h3>
                                         <div class="activity-info-t">
-                                            {{ item.hours_played|default:"0" }} ч. в игре
+                                            {% if item.session_started_at %}<span class="activity-playing">● Сейчас в игре</span>{% else %}{{ item.playtime_seconds|playtime }} в игре{% endif %}
                                         </div>
                                     </div>
                                     <div class="activity-time">
@@ -196,18 +181,63 @@
                 <section class="profile-section">
                     <div class="section-header">
                         <h2>Избранное</h2>
-                        <span class="profile-placeholder">Пока пусто</span>
+                        <span class="profile-placeholder"><span data-fav-count>{{ favorites|length }}</span> из {{ max_favorites }}</span>
                     </div>
-                    <div class="profile-empty">
-                        <div class="profile-empty-icon">❤</div>
-                        <h3>Здесь появятся любимые игры</h3>
-                        <p>Добавляй игры в избранное, чтобы быстро находить их.</p>
+                    <div class="favorites-zone" data-favorites data-layout="profile" data-url="{% url 'mfs:favorites_update' %}">
+                        {% include 'users/_favorites.html' %}
                     </div>
+                </section>
+
+                <!-- Мои игры: источник для перетаскивания -->
+                <section class="profile-section">
+                    <div class="section-header">
+                        <h2>Мои игры</h2>
+                        <a href="{% url 'mfs:library' %}">Библиотека ➜</a>
+                    </div>
+                    {% if owned_games %}
+                        <p class="profile-hint">Перетащите игру в «Избранное» или нажмите на звёздочку.</p>
+                        <div class="owned-games">
+                            {% for game in owned_games %}
+                                <a href="{% url 'mfs:game_detail' game.id %}" class="owned-game" draggable="true" data-fav-source="{{ game.id }}">
+                                    <img src="{{ game.get_icon_url }}" alt="" draggable="false" loading="lazy">
+                                    <span class="game-name">{{ game.title }}</span>
+                                    <button type="button" class="fav-star" data-fav-toggle="{{ game.id }}" data-on="★" data-off="☆" aria-label="Избранное" title="Избранное">☆</button>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="empty-activity">В вашей библиотеке пока нет игр.</p>
+                    {% endif %}
                 </section>
             </div>
             <!-- ================= /ПРОФИЛЬ ================= -->
  
  
+            <!-- ===================== ЖЕЛАЕМОЕ ===================== -->
+            <div class="profile-tab" id="tab-wishlist" hidden>
+                <section class="profile-section">
+                    <div class="section-header">
+                        <h2>Желаемое</h2>
+                        <a href="{% url 'mfs:catalog' %}">В каталог ➜</a>
+                    </div>
+                    {% if wishlist_games %}
+                        <div class="games-grid profile-games-grid">
+                            {% for game in wishlist_games %}
+                                {% include 'store/_game_card.html' with show_wishlist=True reload_on_wishlist_remove=True %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="profile-empty">
+                            <div class="profile-empty-icon">♥</div>
+                            <h3>Список желаемого пуст</h3>
+                            <p>Нажмите на сердечко на карточке игры, чтобы сохранить её здесь.</p>
+                        </div>
+                    {% endif %}
+                </section>
+            </div>
+            <!-- ================= /ЖЕЛАЕМОЕ ================= -->
+
+
             <!-- ===================== ДРУЗЬЯ ===================== -->
             <div class="profile-tab" id="tab-friends" hidden>
  
@@ -333,6 +363,7 @@
 </main>
 {% endblock %}
 {% block extra_js %}
+<script src="{% static 'js/favorites.js' %}?v=1"></script>
 <script>
 (function () {
     const EXPORT_WIDTH = 1200; // ширина готовой обложки в пикселях
@@ -682,6 +713,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Обработка прямого перехода по URL с хэшем
     const initialHash = window.location.hash || '#profile';
     switchTab(initialHash);
+
+    // Переход из меню пользователя, когда профиль уже открыт
+    window.addEventListener('hashchange', () => switchTab(window.location.hash || '#profile'));
 });
 </script>
 
@@ -721,6 +755,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sent:     '<span class="search-badge-muted">Заявка отправлена</span>',
         received: '<span class="search-badge-muted">Хочет дружить</span>',
         friends:  '<span class="search-badge-muted">Уже друзья</span>',
+        closed:   '<span class="search-badge-muted">Не принимает заявки</span>',
     };
 
     input.addEventListener('input', () => {

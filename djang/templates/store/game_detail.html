@@ -1,14 +1,8 @@
-<!DOCTYPE html>
 {% extends 'base.html' %}
-{% load static %}
-<html lang="ru">
+{% load store_extras %}
 
-<head>
-    {% block title %}GameStore | {{ game.title }}{% endblock %}
-    <link rel="stylesheet" href="{% static 'style.css' %}?v=5">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-</head>
-<body>
+{% block title %}GameStore | {{ game.title }}{% endblock %}
+
 {% block content %}
 
 <main class="container">
@@ -78,7 +72,7 @@
                 <div class="stars-static" style="--percent: {{ avg_percent|floatformat:0 }}%;" aria-hidden="true">★★★★★</div>
                 {% if reviews_count %}
                     <strong>{{ avg_rating|floatformat:1 }}</strong>
-                    <span class="game-rating-count">· {{ reviews_count }} отзыв(ов)</span>
+                    <span class="game-rating-count">· {{ reviews_count }} {{ reviews_count|ru_plural:"отзыв,отзыва,отзывов" }}</span>
                 {% else %}
                     <span class="game-rating-count">Пока нет оценок</span>
                 {% endif %}
@@ -86,9 +80,9 @@
 
             <div class="detail-row">
                 <span class="detail-label">Жанры:</span>
-                <span>
+                <span class="detail-genres">
                     {% for genre in game.genres.all %}
-                        {{ genre.name }}{% if not forloop.last %}, {% endif %}
+                        <a href="{% url 'mfs:catalog' %}?genre={{ genre.slug }}" class="chip" title="Похожие игры в каталоге">{{ genre.name }}</a>
                     {% empty %}
                         Без жанра
                     {% endfor %}
@@ -140,23 +134,14 @@
                     {% endif %}
                 </div>
 
-                {% if game.id in owned_game_ids %}
-                    <!-- Игра уже куплена -->
-                    <button data-url="{% url 'mfs:library' %}" class="buy-button owned js-redirect">
-                        В библиотеке ➜
-                    </button>
-                
-                {% elif game.id in cart_ids %}
-                    <button data-url="{% url 'mfs:cart_detail' %}" class="buy-button in-cart js-redirect">
-                        ✓ Добавлено
-                    </button>
-                
-                {% else %}
-                    <!-- Игру можно добавить -->
-                    <button data-url="{% url 'mfs:add_to_cart' game.id %}" class="buy-button js-add-to-cart">
-                        В корзину
-                    </button>
-                {% endif %}
+                <div class="purchase-actions">
+                    {% if game.id not in owned_game_ids %}
+                        <button type="button" class="buy-button btn-muted wishlist-wide js-wishlist-toggle {% if game.id in wishlist_ids %}active{% endif %}"
+                                data-url="{% url 'mfs:wishlist_toggle' game.id %}" data-on="♥ В желаемом" data-off="♡ В желаемое"
+                                aria-pressed="{% if game.id in wishlist_ids %}true{% else %}false{% endif %}">{% if game.id in wishlist_ids %}♥ В желаемом{% else %}♡ В желаемое{% endif %}</button>
+                    {% endif %}
+                    {% include 'store/_buy_button.html' %}
+                </div>
             </div>
         </div>
     </section>
@@ -168,7 +153,7 @@
         <div class="description-box">
             {% if game.long_description %}
                 <!-- Фильтр linebreaks красиво сохраняет абзацы и переносы строк -->
-                <p>{{ game.long_description|linebreaks }}</p>
+                {{ game.long_description|linebreaks }}
             {% else %}
                 <p>Описание игры пока не добавлено.</p>
             {% endif %}
@@ -180,7 +165,7 @@
 <section class="detail-section" id="reviews">
     <div class="section-header">
         <h2>Отзывы</h2>
-        <span>{{ reviews_count }} отзыв(ов)</span>
+        <span>{{ reviews_count }} {{ reviews_count|ru_plural:"отзыв,отзыва,отзывов" }}</span>
     </div>
 
     {% if user.is_authenticated %}
@@ -221,9 +206,12 @@
         {% for review in reviews %}
             <div class="review">
                 <div class="review-header">
-                    <a href="{% url 'mfs:user_profile' review.user.username %}" class="review-author">
-                        {{ review.user.username }}
-                    </a>
+                    <div class="review-author-block">
+                        <a href="{% url 'mfs:user_profile' review.user.username %}" class="review-author">
+                            {{ review.user.username }}
+                        </a>
+                        <span class="review-status">{{ review.user|user_status }}</span>
+                    </div>
                     <span class="review-rating">
                         {% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}
                     </span>
@@ -280,121 +268,4 @@
     }
 </script>
 
-<script>
-document.querySelectorAll('.js-add-to-cart').forEach(button => {
-    button.addEventListener('click', function(e) {
-        e.preventDefault();
-        const btn = this; // Запоминаем ссылку на кнопку
-        const url = btn.getAttribute('data-url');
-        
-        fetch(url, {
-            method: 'GET',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Динамически меняем класс и текст
-            btn.textContent = '✓ Добавлено';
-            btn.classList.remove('js-add-to-cart');
-            btn.classList.add('in-cart', 'js-redirect');
-            btn.setAttribute('data-url', "{% url 'mfs:cart_detail' %}");
-            
-            // Навешиваем переход в корзину
-            btn.onclick = function() {
-                window.location.href = "{% url 'mfs:cart_detail' %}";
-            };
-            
-            // Обновляем бейдж корзины в шапке
-            const badge = document.querySelector('.cart-badge');
-            if (badge) {
-                badge.textContent = data.cart_count;
-                badge.style.display = 'inline-block';
-            }
-        })
-        .catch(error => console.error('Ошибка:', error));
-    });
-});
-</script>
-
-<script>
-document.querySelectorAll('.js-redirect').forEach(button => {
-    button.addEventListener('click', function() {
-        window.location.href = this.getAttribute('data-url');
-    });
-});
-</script>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const searchInput = document.getElementById('game-search-input');
-    const resultsDropdown = document.getElementById('search-results-dropdown');
-    const clearBtn = document.getElementById('clear-search');
-    const userMenuBtn = document.getElementById('userMenuBtn');
-    const userDropdownMenu = document.getElementById('userDropdownMenu');
-
-    // Проверяем наличие блока поиска на странице перед навешиванием событий
-    if (searchInput && resultsDropdown && clearBtn) {
-        function toggleClearButton() {
-            if (searchInput.value.trim().length > 0) {
-                clearBtn.style.display = 'block';
-            } else {
-                clearBtn.style.display = 'none';
-            }
-        }
-
-        searchInput.addEventListener('input', function() {
-            const query = this.value.trim();
-            toggleClearButton();
-
-            if (query.length < 2) {
-                resultsDropdown.style.display = 'none';
-                resultsDropdown.innerHTML = '';
-                return;
-            }
-
-            fetch(`/api/search/?q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(data => {
-                    resultsDropdown.innerHTML = '';
-                    if (data.games.length > 0) {
-                        data.games.forEach(game => {
-                            const item = document.createElement('a');
-                            item.href = `/game/${game.id}/`;
-                            item.className = 'search-result-item';
-                            item.innerHTML = `
-                                <img src="${game.cover_url}" alt="${game.title}">
-                                <div class="search-result-info">
-                                    <h4>${game.title}</h4>
-                                    <span class="search-price">${game.price}</span>
-                                </div>
-                            `;
-                            resultsDropdown.appendChild(item);
-                        });
-                        resultsDropdown.style.display = 'block';
-                    } else {
-                        resultsDropdown.style.display = 'none';
-                    }
-                })
-                .catch(error => console.error('Ошибка поиска:', error));
-        });
-
-        clearBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            resultsDropdown.innerHTML = '';
-            resultsDropdown.style.display = 'none';
-            clearBtn.style.display = 'none';
-            searchInput.focus();
-        });
-
-        document.addEventListener('click', function(e) {
-            if (!searchInput.contains(e.target) && !resultsDropdown.contains(e.target) && !clearBtn.contains(e.target)) {
-                resultsDropdown.style.display = 'none';
-            }
-        });
-    }
-});
-</script>
 {% endblock %}
-
-</body>
-</html>

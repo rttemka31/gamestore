@@ -1,7 +1,8 @@
 from django.contrib import admin
-from .models import Genre, Collection, Game, Dlc
-from .models import Game, Screenshot
-from .models import News
+from django.utils.html import format_html
+
+from .models import Collection, Dlc, Game, Genre, News, Review, Screenshot, UserLibrary
+from .templatetags.store_extras import playtime
 
 @admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
@@ -28,10 +29,6 @@ class ScreenshotInline(admin.TabularInline):  # Табличный вид вме
         return "Нет изображения"
     image_preview.short_description = "Превью"
 
-from django.contrib import admin
-from django.utils.html import format_html
-from .models import Game
-
 
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):
@@ -48,16 +45,17 @@ class GameAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Основная информация', {
             'fields': (
-                'title', 
-                'description', 
-                # Если второго описания нет — просто удалите эту строку или укажите правильное имя из models.py
+                'title',
+                'author',
+                'description',
+                'long_description',
             )
         }),
         ('Медиафайлы', {
             'fields': (
                 ('icon', 'icon_preview'),
                 ('cover', 'cover_preview'),
-                # Укажите тут реальное поле для HD обложки, если оно есть (например: 'banner', 'hd_cover_image')
+                'cover_hd',
                 'trailer_file',
             ),
         }),
@@ -65,13 +63,18 @@ class GameAdmin(admin.ModelAdmin):
             'fields': (
                 ('price', 'discount'),
                 ('is_not_on_steam', 'is_game_of_the_week'),  # Переключатели в одну строку
-                'release_date'
+                'release_date',
+                'size_gb',
             ),
         }),
         ('Категории', {
             'fields': ('genres', 'collections'),
         }),
     )
+
+    def get_changeform_initial_data(self, request):
+        # Автор новой игры по умолчанию — тот, кто её добавляет
+        return {'author': request.user.pk, **super().get_changeform_initial_data(request)}
 
     # Методы превью картинок
     def icon_preview(self, obj):
@@ -92,11 +95,43 @@ class DlcAdmin(admin.ModelAdmin):
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
-    list_display = (
-        "title",
-        "created_at",
+    list_display = ("title", "category", "is_published", "is_pinned", "created_at")
+    list_editable = ("is_published", "is_pinned")
+    list_filter = ("is_published", "is_pinned", "category")
+    search_fields = ("title", "description")
+    date_hierarchy = "created_at"
+    actions = ("publish", "unpublish")
+    filter_horizontal = ("games",)
+    fieldsets = (
+        (None, {"fields": ("title", "category", "description", "image", "games")}),
+        ("Публикация", {"fields": ("is_published", "is_pinned")}),
     )
 
-    search_fields = (
-        "title",
-    )
+    @admin.action(description="Опубликовать выбранные новости")
+    def publish(self, request, queryset):
+        queryset.update(is_published=True)
+
+    @admin.action(description="Снять с публикации (в черновики)")
+    def unpublish(self, request, queryset):
+        queryset.update(is_published=False)
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('game', 'user', 'rating', 'created_at')
+    list_filter = ('rating',)
+    search_fields = ('game__title', 'user__username', 'text')
+    list_select_related = ('game', 'user')
+
+
+@admin.register(UserLibrary)
+class UserLibraryAdmin(admin.ModelAdmin):
+    list_display = ('user', 'game', 'playtime_display', 'last_played', 'session_started_at', 'purchased_at')
+    list_filter = (('session_started_at', admin.EmptyFieldListFilter),)
+    search_fields = ('game__title', 'user__username')
+    list_select_related = ('game', 'user')
+    readonly_fields = ('purchased_at',)
+
+    @admin.display(description='Время в игре', ordering='playtime_seconds')
+    def playtime_display(self, obj):
+        return playtime(obj.playtime_seconds)

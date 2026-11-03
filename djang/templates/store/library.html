@@ -4,24 +4,7 @@
 {% block title %}GameStore | Библиотека{% endblock %}
 
 {% block extra_head %}
-    {{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/library.css' %}?v=11">
-    <link rel="stylesheet" href="{% static 'library.css' %}?v=12">
-
-
-    {% if user.is_authenticated and user.profile.accent_color %}
-    <style>
-        :root {
-            --accent: {{ user.profile.accent_color }};
-            --accent-color: {{ user.profile.accent_color }};
-            --accent-hover: {{ user.profile.accent_color }}cc;
-        }
-        body.no-blur, body.no-blur * {
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-        }
-    </style>
-    {% endif %}
+    <link rel="stylesheet" href="{% static 'css/library.css' %}?v=22">
 {% endblock %}
 
 {% block content %}
@@ -29,30 +12,28 @@
 
     <!-- Левая панель -->
     <aside class="steam-sidebar">
+        <div class="sidebar-title">ИЗБРАННОЕ (<span data-fav-count>{{ favorites|length }}</span> из {{ max_favorites }})</div>
+        <ul class="sidebar-list favorites-list" data-favorites data-layout="library" data-url="{% url 'mfs:favorites_update' %}">
+            {% include 'store/_library_favorites.html' %}
+        </ul>
+
         <div class="sidebar-title">ВСЕ ({{ games|length }})</div>
         <ul class="sidebar-list">
             {% for game in games %}
                 <li class="sidebar-item {% if active_id %}{% if game.id == active_id %}active{% endif %}{% else %}{% if forloop.first %}active{% endif %}{% endif %}"
+                    draggable="true" data-fav-source="{{ game.id }}"
                     data-game-id="{{ game.id }}"
                     data-title="{{ game.title }}"
                     data-cover="{% if game.cover_hd %}{{ game.cover_hd.url }}{% elif game.cover %}{{ game.cover.url }}{% endif %}"
                     data-icon="{{ game.get_icon_url }}"
                     data-remove-url="{% url 'mfs:remove_from_library' game.id %}"
                     data-launch-url="{% url 'mfs:launch_game' game.id %}"
+                    data-stop-url="{% url 'mfs:stop_game' game.id %}"
                     data-last-played="{% if game.user_last_played %}{{ game.user_last_played|date:'d.m.Y в H:i' }}{% endif %}">
-                    
+
                     <img src="{{ game.get_icon_url }}" alt="" class="sidebar-game-icon">
                     <span class="game-name">{{ game.title }}</span>
-                    
-                    <template id="game-desc-{{ game.id }}">
-                        {% if game.short_description %}
-                            {{ game.short_description|linebreaks }}
-                        {% elif game.description %}
-                            {{ game.description|linebreaks }}
-                        {% else %}
-                            <p>Описание игры пока не добавлено.</p>
-                        {% endif %}
-                    </template>
+                    <span class="sidebar-running" title="Сейчас в игре">В игре</span>
                 </li>
             {% empty %}
                 <li class="sidebar-empty">Библиотека пуста</li>
@@ -63,8 +44,10 @@
     <!-- Правая панель -->
     <main class="steam-main">
         {% if games %}
-            <div id="gameDetailView" class="game-detail-wrapper">
-                
+            <div id="gameDetailView" class="game-detail-wrapper"
+                 data-running-game="{{ running.game_id|default:'' }}"
+                 data-running-seconds="{{ running.seconds|default:0 }}">
+
                 <div class="hero-header">
                     <img id="detailCover" src="" alt="Обложка" class="hero-image">
                     <div class="hero-overlay"></div>
@@ -84,13 +67,17 @@
                 </div>
 
                 <div class="action-bar">
-                    {% if is_launched %}
-                        <div class="status-running">
-                            <span class="status-dot"></span> В ИГРЕ
-                        </div>
-                    {% else %}
-                        <a id="playBtn" href="#" class="play-button">▶ ИГРАТЬ</a>
-                    {% endif %}
+                    <a id="playBtn" href="#" class="play-button">▶ ИГРАТЬ</a>
+
+                    <div class="status-running" id="runningStatus" hidden>
+                        <span class="status-dot" aria-hidden="true"></span>
+                        В ИГРЕ
+                        <span class="running-timer" id="runningTimer" aria-label="Время сеанса">0:00:00</span>
+                    </div>
+                    <button type="button" class="stop-button" id="stopBtn" hidden>■ Выйти из игры</button>
+
+                    <button type="button" class="settings-btn fav-toggle" id="favToggleBtn" data-fav-toggle=""
+                            data-on="★" data-off="☆" title="Избранное" aria-label="Избранное">☆</button>
 
                     <!-- Меню настроек -->
                     <div class="settings-dropdown">
@@ -101,18 +88,30 @@
                                 <button type="submit" class="dropdown-item delete-item">Удалить из библиотеки</button>
                             </form>
                         </div>
-                    </div> 
+                    </div>
                 </div>
 
-                <div class="detail-body">
-                    <section class="detail-section">
-                        <h2>Об этой игре</h2>
-                        <div id="detailDescContainer" class="description-box">
-                            <!-- Сюда подставится форматированное описание -->
-                        </div>
-                    </section>
-                </div>
+                <!-- Сюда подставляется панель выбранной игры -->
+                <div class="detail-body" id="detailBody"></div>
 
+                {% for game in games %}
+                    <template id="game-panel-{{ game.id }}">
+                        {% include 'store/_library_game_panel.html' %}
+                    </template>
+                {% endfor %}
+            </div>
+
+            <!-- Экран запуска игры -->
+            <div class="launch-overlay" id="launchOverlay" role="dialog" aria-modal="true" aria-labelledby="launchTitle" hidden>
+                <div class="launch-backdrop" id="launchBackdrop"></div>
+                <div class="launch-card">
+                    <img src="" alt="" class="launch-icon" id="launchIcon">
+                    <h2 class="launch-title" id="launchTitle"></h2>
+                    <p class="launch-step" id="launchStep" aria-live="polite"></p>
+                    <div class="launch-progress"><div class="launch-progress-bar" id="launchBar"></div></div>
+                    <p class="launch-note" id="launchNote" hidden></p>
+                    <button type="button" class="btn-secondary launch-cancel" id="launchCancel">Отмена</button>
+                </div>
             </div>
         {% else %}
             <div class="empty-state">
@@ -127,151 +126,215 @@
 </div>
 {% endblock %}
 {% block extra_js %}
+<script src="{% static 'js/favorites.js' %}?v=1"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const detailView = document.getElementById('gameDetailView');
+    if (!detailView) return;
+
     const sidebarItems = document.querySelectorAll('.sidebar-item');
     const detailCover = document.getElementById('detailCover');
     const detailTitle = document.getElementById('detailTitle');
-    const detailDescContainer = document.getElementById('detailDescContainer');
+    const detailBody = document.getElementById('detailBody');
     const detailIcon = document.getElementById('detailIcon');
     const deleteGameForm = document.getElementById('deleteGameForm');
     const settingsBtn = document.getElementById('settingsBtn');
     const dropdownMenu = document.getElementById('dropdownMenu');
-    const actionBar = document.querySelector('.action-bar');
+    const lastPlayedText = document.querySelector('.last-played-text');
 
-    // --- Достаём CSRF-токен из cookie (стандартный способ Django для fetch/AJAX) ---
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let cookie of cookies) {
-                cookie = cookie.trim();
-                if (cookie.startsWith(name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
+    const playBtn = document.getElementById('playBtn');
+    const runningStatus = document.getElementById('runningStatus');
+    const runningTimer = document.getElementById('runningTimer');
+    const stopBtn = document.getElementById('stopBtn');
+
+    const overlay = document.getElementById('launchOverlay');
+    const launchBackdrop = document.getElementById('launchBackdrop');
+    const launchIcon = document.getElementById('launchIcon');
+    const launchTitle = document.getElementById('launchTitle');
+    const launchStep = document.getElementById('launchStep');
+    const launchBar = document.getElementById('launchBar');
+    const launchNote = document.getElementById('launchNote');
+    const launchCancel = document.getElementById('launchCancel');
+
+    const LAUNCH_STEPS = [[0, 'Подготовка…'], [35, 'Проверка файлов…'], [70, 'Запуск игры…']];
+    const LAUNCH_DURATION = 2400;
+
+    // Запущенная игра: время сеанса считаем от момента, присланного сервером
+    let running = detailView.dataset.runningGame
+        ? {gameId: detailView.dataset.runningGame, startedAt: Date.now() - Number(detailView.dataset.runningSeconds) * 1000}
+        : null;
+    let currentItem = null;
+    let timerId = null;
+    let launchTimer = null;
+
+    const itemById = id => document.querySelector(`.sidebar-item[data-game-id="${id}"]`);
+    const titleOf = id => itemById(id)?.dataset.title || '';
+
+    function formatClock(ms) {
+        const total = Math.max(0, Math.floor(ms / 1000));
+        const pad = n => String(n).padStart(2, '0');
+        return `${Math.floor(total / 3600)}:${pad(Math.floor(total / 60) % 60)}:${pad(total % 60)}`;
     }
-    const csrftoken = getCookie('csrftoken');
+
+    // Время в игре меняется и на открытой панели, и в её шаблоне, чтобы не сброситься при переключении игр
+    function setPlaytime(gameId, text) {
+        const template = document.getElementById(`game-panel-${gameId}`);
+        template?.content.querySelector('[data-playtime]')?.replaceChildren(text);
+        if (currentItem?.dataset.gameId === String(gameId)) {
+            detailBody.querySelector('[data-playtime]')?.replaceChildren(text);
+        }
+    }
+
+    function renderActionState() {
+        const gameId = currentItem?.dataset.gameId;
+        const isRunning = Boolean(running && running.gameId === gameId);
+
+        playBtn.hidden = isRunning;
+        runningStatus.hidden = !isRunning;
+        stopBtn.hidden = !isRunning;
+        sidebarItems.forEach(item => item.classList.toggle('is-running', Boolean(running && item.dataset.gameId === running.gameId)));
+
+        clearInterval(timerId);
+        if (isRunning) {
+            const tick = () => { runningTimer.textContent = formatClock(Date.now() - running.startedAt); };
+            tick();
+            timerId = setInterval(tick, 1000);
+        }
+    }
 
     function loadGameData(item) {
         if (!item) return;
+        currentItem = item;
 
         sidebarItems.forEach(el => el.classList.remove('active'));
         item.classList.add('active');
 
-        const title = item.getAttribute('data-title');
-        const cover = item.getAttribute('data-cover');
-        const gameId = item.getAttribute('data-game-id');
-        const iconUrl = item.getAttribute('data-icon');
-        const launchUrl = item.getAttribute('data-launch-url');
-        const removeUrl = item.getAttribute('data-remove-url');
+        const gameId = item.dataset.gameId;
+        detailTitle.textContent = item.dataset.title;
+        detailCover.src = item.dataset.cover || '';
+        detailIcon.src = item.dataset.icon || '';
+        detailIcon.style.display = item.dataset.icon ? 'block' : 'none';
 
-        if (detailTitle) detailTitle.textContent = title;
-        if (detailCover) detailCover.src = cover || '';
+        const panel = document.getElementById(`game-panel-${gameId}`);
+        if (panel) detailBody.innerHTML = panel.innerHTML;
+        if (deleteGameForm) deleteGameForm.action = item.dataset.removeUrl;
 
-        if (detailIcon) {
-            if (iconUrl) {
-                detailIcon.src = iconUrl;
-                detailIcon.style.display = 'block';
-            } else {
-                detailIcon.style.display = 'none';
+        const favToggleBtn = document.getElementById('favToggleBtn');
+        if (favToggleBtn) {
+            favToggleBtn.dataset.favToggle = gameId;
+            window.gsSyncFavorites();
+        }
+
+        lastPlayedText.textContent = item.dataset.lastPlayed || 'Ещё не запускалась';
+        renderActionState();
+    }
+
+    // --- Экран запуска ---
+    function closeOverlay() {
+        clearInterval(launchTimer);
+        launchTimer = null;
+        overlay.hidden = true;
+        document.body.classList.remove('launch-open');
+        playBtn.focus();
+    }
+
+    function openOverlay(item) {
+        const other = running && running.gameId !== item.dataset.gameId ? titleOf(running.gameId) : '';
+
+        launchBackdrop.style.backgroundImage = item.dataset.cover ? `url("${item.dataset.cover}")` : '';
+        launchIcon.src = item.dataset.icon || '';
+        launchTitle.textContent = item.dataset.title;
+        launchNote.hidden = !other;
+        launchNote.textContent = other ? `${other} будет закрыта, время в ней сохранится.` : '';
+        launchCancel.hidden = false;
+        launchBar.style.width = '0%';
+        launchStep.textContent = LAUNCH_STEPS[0][1];
+
+        overlay.hidden = false;
+        document.body.classList.add('launch-open');
+        launchCancel.focus();
+
+        const startedAt = Date.now();
+        launchTimer = setInterval(() => {
+            const percent = Math.min(100, (Date.now() - startedAt) / LAUNCH_DURATION * 100);
+            launchBar.style.width = `${percent}%`;
+            launchStep.textContent = LAUNCH_STEPS.filter(([from]) => percent >= from).pop()[1];
+            if (percent >= 100) {
+                clearInterval(launchTimer);
+                launchTimer = null;
+                finishLaunch(item);
             }
-        }
-
-        const template = document.getElementById(`game-desc-${gameId}`);
-        if (template && detailDescContainer) {
-            detailDescContainer.innerHTML = template.innerHTML;
-        }
-
-        if (deleteGameForm && removeUrl) {
-            deleteGameForm.action = removeUrl;
-        }
-
-        const lastPlayed = item.getAttribute('data-last-played');
-        const lastPlayedText = document.querySelector('.last-played-text');
-        if (lastPlayedText) {
-            lastPlayedText.textContent = lastPlayed ? lastPlayed : 'Ещё не запускалась';
-        }
-
-        // При переключении на другую игру всегда показываем кнопку "ИГРАТЬ",
-        // независимо от того, была ли предыдущая игра запущена
-        renderPlayButton(launchUrl);
+        }, 60);
     }
 
-    // Отрисовывает кнопку "ИГРАТЬ" и вешает на неё AJAX-обработчик
-    function renderPlayButton(launchUrl) {
-        if (!actionBar) return;
+    async function finishLaunch(item) {
+        launchCancel.hidden = true;
+        let data;
+        try {
+            data = await window.gsPost(item.dataset.launchUrl);
+        } catch (error) {
+            data = {status: 'error'};
+        }
+        if (data.status === 'login_required') return;
+        if (data.status !== 'success') {
+            closeOverlay();
+            window.gsToast('Не удалось запустить игру');
+            return;
+        }
 
-        const existing = actionBar.querySelector('#playBtn, .status-running');
-        if (existing) existing.remove();
+        (data.closed || []).forEach(game => setPlaytime(game.game_id, game.playtime_display));
+        running = {gameId: item.dataset.gameId, startedAt: Date.now() - data.session_seconds * 1000};
+        item.dataset.lastPlayed = data.last_played_display;
+        if (currentItem === item) lastPlayedText.textContent = data.last_played_display;
 
-        const btn = document.createElement('a');
-        btn.id = 'playBtn';
-        btn.href = '#';
-        btn.className = 'play-button';
-        btn.textContent = '▶ ИГРАТЬ';
-        btn.setAttribute('data-launch-url', launchUrl || '');
-
-        actionBar.insertBefore(btn, actionBar.firstChild);
-
-        btn.addEventListener('click', handlePlayClick);
+        launchStep.textContent = 'Приятной игры!';
+        renderActionState();
+        setTimeout(closeOverlay, 700);
     }
 
-    function showRunningStatus() {
-        if (!actionBar) return;
-
-        const existing = actionBar.querySelector('#playBtn, .status-running');
-        if (existing) existing.remove();
-
-        const status = document.createElement('div');
-        status.className = 'status-running';
-        status.innerHTML = '<span class="status-dot"></span> В ИГРЕ';
-
-        actionBar.insertBefore(status, actionBar.firstChild);
-    }
-
-    function handlePlayClick(e) {
+    playBtn.addEventListener('click', e => {
         e.preventDefault();
-        const launchUrl = e.currentTarget.getAttribute('data-launch-url');
-        if (!launchUrl) return;
+        if (currentItem && overlay.hidden) openOverlay(currentItem);
+    });
 
-        fetch(launchUrl, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': csrftoken,
-            },
-        })
-            .then((res) => {
-                if (!res.ok) throw new Error('Launch request failed: ' + res.status);
-                return res.json();
-            })
-            .then((data) => {
-                if (data.status === 'success') {
-                    showRunningStatus();
-                                
-                    const lastPlayedText = document.querySelector('.last-played-text');
-                    if (lastPlayedText && data.last_played_display) {
-                        lastPlayedText.textContent = data.last_played_display;
-                    }
-                
-                    const activeItem = document.querySelector('.sidebar-item.active');
-                    if (activeItem && data.last_played_display) {
-                        activeItem.setAttribute('data-last-played', data.last_played_display);
-                    }
-                }
-            })
-            .catch((err) => console.error('Ошибка запуска игры:', err));
-    }
+    launchCancel.addEventListener('click', closeOverlay);
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !overlay.hidden && launchTimer) closeOverlay();
+    });
+
+    stopBtn.addEventListener('click', async () => {
+        if (!running) return;
+        const item = itemById(running.gameId);
+        stopBtn.disabled = true;
+        try {
+            const data = await window.gsPost(item.dataset.stopUrl);
+            if (data.status === 'success') {
+                running = null;
+                setPlaytime(data.game_id, data.playtime_display);
+                renderActionState();
+                window.gsToast(`Сеанс: ${data.session_display}. Всего в игре: ${data.playtime_display}`, 'success');
+            } else if (data.status !== 'login_required') {
+                window.gsToast('Не удалось закрыть игру');
+            }
+        } catch (error) {
+            window.gsToast('Не удалось закрыть игру');
+        } finally {
+            stopBtn.disabled = false;
+        }
+    });
 
     sidebarItems.forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
             loadGameData(item);
         });
+    });
+
+    // Клик по игре в избранном открывает её так же, как в общем списке
+    document.addEventListener('click', (e) => {
+        const row = e.target.closest('.fav-row');
+        if (!row || e.target.closest('[data-fav-toggle]')) return;
+        loadGameData(itemById(row.dataset.favId));
     });
 
     if (settingsBtn && dropdownMenu) {
@@ -285,10 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const initialItem = document.querySelector('.sidebar-item.active') || sidebarItems[0];
-    if (initialItem) {
-        loadGameData(initialItem);
-    }
+    loadGameData(document.querySelector('.sidebar-item.active') || sidebarItems[0]);
 });
 </script>
 {% endblock %}

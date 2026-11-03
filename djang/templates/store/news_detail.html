@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load store_extras %}
+
+{% block title %}GameStore | {{ item.title }}{% endblock %}
+
+{% block content %}
+<main class="container news-container">
+    <a href="{% url 'mfs:news' %}" class="news-back"><span class="arrow-left" aria-hidden="true">➜</span> Все новости</a>
+
+    <article class="news-article">
+        {% if not item.is_published %}
+            <p class="news-draft">Черновик: эту новость видят только администраторы.</p>
+        {% endif %}
+
+        <div class="news-card-meta">
+            <span class="news-badge news-badge-{{ item.category }}">{{ item.get_category_display }}</span>
+            <span class="news-date">{{ item.created_at|date:"d E Y" }}</span>
+            {% if user.is_staff %}
+                <a href="{% url 'admin:mfs_news_change' item.pk %}" class="catalog-reset">Редактировать</a>
+            {% endif %}
+        </div>
+
+        <h1 class="news-article-title">{{ item.title }}</h1>
+
+        {% if item.image %}
+            <img src="{{ item.image.url }}" alt="" class="news-article-image">
+        {% endif %}
+
+        <div class="news-description">{{ item.description|news_format }}</div>
+    </article>
+
+    {% if newer or older %}
+    <nav class="news-neighbours" aria-label="Соседние новости">
+        {% if older %}
+            <a href="{{ older.get_absolute_url }}" class="news-neighbour">
+                <span><span class="arrow-left" aria-hidden="true">➜</span> Предыдущая</span>
+                {{ older.title }}
+            </a>
+        {% endif %}
+        {% if newer %}
+            <a href="{{ newer.get_absolute_url }}" class="news-neighbour news-neighbour-next">
+                <span>Следующая ➜</span>
+                {{ newer.title }}
+            </a>
+        {% endif %}
+    </nav>
+    {% endif %}
+</main>
+{% endblock %}

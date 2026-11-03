@@ -1,15 +1,9 @@
-<!DOCTYPE html>
 {% extends 'base_mini.html' %}
 {% load static %}
 {% load socialaccount %}
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    {% block title %}GameStore | Регистрация{% endblock %}
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="{% static 'library.css' %}?v=3">
-</head>
-<body>
+
+{% block title %}GameStore | Регистрация{% endblock %}
+
 {% block content %}
     <div class="auth-container">
         <div class="auth-box">
@@ -56,12 +50,16 @@
 
         <button type="submit" class="buy-button auth-submit">Зарегистрироваться</button>
         <div class="social-login">
+{% if 'google' in social_providers %}
             <a href="{% provider_login_url 'google' %}" class="nav-icon-wrapper" title="Зарегистрироваться через Google">
                 <img src="{% static 'css/icons/google.png' %}" alt="Google" class="nav-icon">
             </a>
+{% endif %}
+{% if 'discord' in social_providers %}
             <a href="{% provider_login_url 'discord' %}" class="nav-icon-wrapper" title="Зарегистрироваться через Discord" style="text-decoration: none; display: inline-block;">
                 <img src="{% static 'css/icons/discord.png' %}" alt="" class="nav-icon">
             </a>
+{% endif %}
         </div>
     </form>
 
@@ -70,6 +68,4 @@
             </div>
         </div>
     </div>
-</body>
 {% endblock %}
-</html>

@@ -1,0 +1,64 @@
+<a href="{% url 'mfs:game_detail' game.id %}" class="game-card">
+    <div class="game-image">
+        {% if game.cover %}
+            <img src="{{ game.cover.url }}" alt="{{ game.title }}" loading="lazy">
+        {% else %}
+            <div class="no-cover">Нет обложки</div>
+        {% endif %}
+    
+        {% if game.discount > 0 %}
+            <span class="discount">-{{ game.discount }}%</span>
+        {% endif %}
+
+        {% if show_wishlist %}
+        <button type="button" class="wishlist-btn js-wishlist-toggle {% if game.id in wishlist_ids %}active{% endif %}"
+                data-url="{% url 'mfs:wishlist_toggle' game.id %}" data-on="♥" data-off="♡"
+                {% if reload_on_wishlist_remove %}data-reload-on-remove{% endif %}
+                aria-label="Список желаемого" title="Список желаемого"
+                aria-pressed="{% if game.id in wishlist_ids %}true{% else %}false{% endif %}">{% if game.id in wishlist_ids %}♥{% else %}♡{% endif %}</button>
+        {% endif %}
+    </div>
+
+    <div class="game-info">
+        <h3>{{ game.title }}</h3>
+    
+        <p class="game-genres">
+            {% for genre in game.genres.all %}
+                {{ genre.name }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                Без жанра
+            {% endfor %}
+        </p>
+        
+        {% if game.release_date %}
+            <span class="release-date">
+                Дата выхода: {{ game.release_date|date:"d b. Yг." }}
+            </span>
+        {% endif %}
+        
+        <div class="game-bottom">
+            {% if game.discount > 0 %}
+                <span class="discount">-{{ game.discount }}%</span>
+                <div class="price-block">
+                    <span class="old-price">{{ game.price|floatformat:0 }}₴</span>
+                    <span class="price {% if game.discount > 101 %}hot-discount{% endif %}">
+                        {{ game.discounted_price|floatformat:0 }}₴
+                    </span>
+                </div>
+            {% else %}
+                <div class="price-block">
+                {% if game.price == 0 %}
+                    <span class="price">Бесплатно</span>
+                {% else %}
+                    <span class="price">{{ game.price|floatformat:0 }}₴</span>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% if game.is_not_on_steam %}
+                <div>
+                    <span class="not-on-steam-badge2">Эксклюзив</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</a>

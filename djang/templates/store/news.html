@@ -1,96 +1,87 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load store_extras %}
 
 {% block title %}GameStore | Новости{% endblock %}
 
-{% block extra_head %}
-<head>
-    {{ block.super }}
-    <link rel="stylesheet" href="{% static 'style.css' %}?v=10">
-
-    {% if user.is_authenticated and user.profile.accent_color %}
-    <style>
-        :root {
-            --accent: {{ user.profile.accent_color }};
-            --accent-color: {{ user.profile.accent_color }};
-            --accent-hover: {{ user.profile.accent_color }}cc;
-        }
-        body.no-blur, body.no-blur * {
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-        }
-    </style>
-    {% endif %}
-</head>
-{% endblock %}
-
-<body>
 {% block content %}
-
 <main class="container news-container">
-    <h1 class="news-title">Новости GameStore</h1>
+    <div class="catalog-header">
+        <h1 class="news-title">Новости</h1>
+        {% if user.is_staff %}
+            <a href="{% url 'admin:mfs_news_add' %}" class="buy-button news-create">+ Новая публикация</a>
+        {% endif %}
+    </div>
 
     <!-- Панель фильтрации -->
     <div class="news-filters">
-        <!-- Табы категорий -->
         <div class="filter-categories">
-            <a href="?{% if selected_month %}month={{ selected_month }}{% endif %}" 
-               class="filter-chip {% if not selected_category %}active{% endif %}">
-                Все
+            <a href="{% querystring category=None page=None %}" class="chip {% if not selected_category %}active{% endif %}">
+                Все <span class="chip-count">{{ total_count }}</span>
             </a>
-            {% for cat_code, cat_name in categories %}
-                <a href="?category={{ cat_code }}{% if selected_month %}&month={{ selected_month }}{% endif %}" 
-                   class="filter-chip {% if selected_category == cat_code %}active{% endif %}">
-                    {{ cat_name }}
+            {% for code, label, count in categories %}
+                <a href="{% querystring category=code page=None %}" class="chip {% if selected_category == code %}active{% endif %}">
+                    {{ label }} <span class="chip-count">{{ count }}</span>
                 </a>
             {% endfor %}
         </div>
 
-        <!-- Выбор месяца и года -->
-        <form method="get" class="filter-archive-form">
-            {% if selected_category %}
-                <input type="hidden" name="category" value="{{ selected_category }}">
-            {% endif %}
-            <select name="month" onchange="this.form.submit()" class="filter-select">
+        <form method="get" class="news-search">
+            {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+
+            <div class="search-box">
+                <input type="search" name="q" value="{{ query }}" placeholder="Поиск по новостям..." aria-label="Поиск по новостям">
+            </div>
+
+            <select name="month" class="filter-select" aria-label="Месяц" onchange="this.form.submit()">
                 <option value="">Все даты</option>
                 {% for date in archive_months %}
                     <option value="{{ date|date:'Y-m' }}" {% if selected_month == date|date:'Y-m' %}selected{% endif %}>
-                        {{ date|date:"b. Yг."}}
+                        {{ date|date:"F Y" }}
                     </option>
                 {% endfor %}
             </select>
         </form>
     </div>
 
+    {% if has_filters %}
+        <p class="news-results">
+            Найдено: {{ page.paginator.count }}
+            <a href="{% url 'mfs:news' %}" class="catalog-reset">Сбросить фильтры</a>
+        </p>
+    {% endif %}
+
     <!-- Список новостей -->
     <div class="news-list">
-        {% for news in news_list %}
-            <article class="news-card">
-                <div class="news-badge-container">
-                    <span class="news-badge news-badge-{{ news.category }}">
-                        {{ news.get_category_display }}
-                    </span>
-                </div>
-                
-                <div class="news-card-header">
-                    <h2>{{ news.title }}</h2>
-                    <span class="news-date">{{ news.created_at|date:"d b. Yг." }}</span>
-                </div>
+        {% if pinned_news %}
+            <h2 class="news-group-title">Закреплено</h2>
+            {% for item in pinned_news %}
+                {% include 'store/_news_card.html' %}
+            {% endfor %}
+        {% endif %}
 
-                <div class="news-description">
-                    {{ news.description|linebreaks }}
-                </div>
-            </article>
-        {% empty %}
-            <div class="empty-news">
-                Новостей по выбранным фильтрам не найдено.
-            </div>
+        {% regroup regular_news by created_at|date:"F Y" as months %}
+        {% for month in months %}
+            <h2 class="news-group-title">{{ month.grouper }}</h2>
+            {% for item in month.list %}
+                {% include 'store/_news_card.html' %}
+            {% endfor %}
         {% endfor %}
-    </div>
-</main>
 
+        {% if not pinned_news and not regular_news %}
+            <div class="empty-news">Новостей по выбранным фильтрам не найдено.</div>
+        {% endif %}
+    </div>
+
+    {% if page.paginator.num_pages > 1 %}
+    <nav class="pagination" aria-label="Страницы новостей">
+        {% if page.has_previous %}
+            <a href="{% querystring page=page.previous_page_number %}" class="chip"><span class="arrow-left" aria-hidden="true">➜</span> Назад</a>
+        {% endif %}
+        <span class="pagination-current">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+        {% if page.has_next %}
+            <a href="{% querystring page=page.next_page_number %}" class="chip">Вперёд ➜</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+</main>
 {% endblock %}
-{% block extra_js %}
-{% endblock %}
-</body>
-</html>

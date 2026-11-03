@@ -1,9 +1,17 @@
 import os
 
-from django.db.models.signals import pre_save, post_delete
+from django.conf import settings
+from django.db.models.signals import pre_save, post_delete, post_save
 from django.dispatch import receiver
 
 from .models import Profile
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_profile_for_new_user(sender, instance, created, raw=False, **kwargs):
+    """Профиль нужен сразу: иначе нового пользователя нельзя найти в поиске друзей."""
+    if created and not raw:
+        Profile.objects.get_or_create(user=instance)
 
 
 def _delete_file(field_file):

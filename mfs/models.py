@@ -1,12 +1,9 @@
-import os
 from decimal import Decimal
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.urls import reverse
 from django.utils import timezone
-from django.db.models.signals import pre_save, post_delete
-from django.dispatch import receiver
-from django.contrib.auth.models import AbstractUser
 
 # 1. ЖАНРЫ И ПОДБОРКИ
 class Genre(models.Model):
@@ -66,7 +63,12 @@ class Game(BaseMediaProduct):
     collections = models.ManyToManyField(Collection, related_name='game_products', verbose_name="Подборки", blank=True)
     is_game_of_the_week = models.BooleanField(default=False, verbose_name="Игра недели")
     is_not_on_steam = models.BooleanField(default=False, verbose_name="Нет в Steam")
-    
+    size_gb = models.DecimalField(
+        max_digits=6, decimal_places=1, blank=True, null=True,
+        validators=[MinValueValidator(Decimal('0.1'))],
+        verbose_name="Размер игры (ГБ)",
+    )
+
     # ИСПРАВЛЕНО: Заменено User на settings.AUTH_USER_MODEL
     owners = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='purchased_games', blank=True)
 
@@ -119,30 +121,23 @@ class Profile(models.Model):
 
     font_size = models.PositiveSmallIntegerField(default=1)    # 0 мелкий, 1 средний, 2 крупный
     radius_size = models.PositiveSmallIntegerField(default=1)  # 0 острые, 1 средние, 2 круглые
+    reduce_motion = models.BooleanField(default=False)
+
+    hide_owned_in_catalog = models.BooleanField(default=False)
+    default_catalog_sort = models.CharField(max_length=20, default='new')
+
+    class Visibility(models.TextChoices):
+        EVERYONE = 'everyone', 'Все'
+        FRIENDS = 'friends', 'Только друзья'
+        PRIVATE = 'private', 'Только я'
+
+    profile_visibility = models.CharField(max_length=10, choices=Visibility.choices, default=Visibility.EVERYONE)
+    show_library = models.BooleanField(default=True)
+    show_wishlist = models.BooleanField(default=True)
+    allow_friend_requests = models.BooleanField(default=True)
 
     def __str__(self):
         return f'Профиль {self.user.username}'
-
-
-@receiver(pre_save, sender=Profile)
-def delete_old_avatar_on_change(sender, instance, **kwargs):
-    if not instance.pk:
-        return
-
-    try:
-        old_profile = Profile.objects.get(pk=instance.pk)
-    except Profile.DoesNotExist:
-        return
-
-    if old_profile.avatar and old_profile.avatar != instance.avatar:
-        if os.path.isfile(old_profile.avatar.path):
-            os.remove(old_profile.avatar.path)
-
-
-@receiver(post_delete, sender=Profile)
-def delete_avatar_on_profile_delete(sender, instance, **kwargs):
-    if instance.avatar and os.path.isfile(instance.avatar.path):
-        os.remove(instance.avatar.path)
 
 
 # 4. ВЗАИМОДЕЙСТВИЯ ПОЛЬЗОВАТЕЛЕЙ
@@ -191,6 +186,23 @@ class Wishlist(models.Model):
     games = models.ManyToManyField(Game, blank=True)
 
 
+class FavoriteGame(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='favorite_games')
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+    position = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Избранная игра'
+        verbose_name_plural = 'Избранные игры'
+        ordering = ['position', 'pk']
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'game'], name='unique_favorite_game'),
+        ]
+
+    def __str__(self):
+        return f'{self.user} ★ {self.game}'
+
+
 class Cart(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     games = models.ManyToManyField(Game, blank=True)
@@ -219,13 +231,31 @@ class News(models.Model):
     ]
 
     title = models.CharField(max_length=200, verbose_name="Заголовок")
-    description = models.TextField(verbose_name="Описание")
+    description = models.TextField(
+        verbose_name="Текст",
+        help_text="Пустая строка начинает новый абзац. **текст** — жирный, строка с «- » — пункт списка, ссылки становятся кликабельными.",
+    )
+    image = models.ImageField(upload_to='news/', blank=True, null=True, verbose_name="Обложка")
+    games = models.ManyToManyField(
+        Game, blank=True, related_name='news', verbose_name="Игры",
+        help_text="Новость появится на странице этих игр в библиотеке.",
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата публикации")
     category = models.CharField(
         max_length=50,
         choices=CATEGORY_CHOICES,
         default='update',
         verbose_name="Тип публикации"
+    )
+    is_published = models.BooleanField(
+        default=True,
+        verbose_name="Опубликовано",
+        help_text="Без галочки новость остаётся черновиком: её видят только администраторы.",
+    )
+    is_pinned = models.BooleanField(
+        default=False,
+        verbose_name="Закреплено",
+        help_text="Закреплённые новости показываются первыми.",
     )
 
     class Meta:
@@ -236,6 +266,9 @@ class News(models.Model):
     def __str__(self):
         return self.title
 
+    def get_absolute_url(self):
+        return reverse('mfs:news_detail', args=[self.pk])
+
 
 class UserLibrary(models.Model):
     # ИСПРАВЛЕНО: Заменено User на settings.AUTH_USER_MODEL
@@ -243,11 +276,16 @@ class UserLibrary(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     purchased_at = models.DateTimeField(auto_now_add=True)
     last_played = models.DateTimeField(null=True, blank=True)
-    playtime_hours = models.PositiveIntegerField(default=0, verbose_name="Сыграно часов")
+    playtime_seconds = models.PositiveIntegerField(default=0, verbose_name="Время в игре (секунд)")
+    # Начало текущего сеанса; пусто, пока игра не запущена
+    session_started_at = models.DateTimeField(null=True, blank=True, verbose_name="Запущена в")
 
     class Meta:
         verbose_name = 'Игра пользователя'
         verbose_name_plural = 'Библиотека пользователей'
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'game'], name='unique_library_entry'),
+        ]
 
     def __str__(self):
         return f"{self.user.username} — {self.game.title}"

@@ -1,0 +1,117 @@
+{% load store_extras %}
+<div class="library-panel">
+    <div class="library-panel-main">
+        {% if game.game_news %}
+        <section>
+            <div class="section-header">
+                <h2>Новости игры</h2>
+                <a href="{% url 'mfs:news' %}">Все новости ➜</a>
+            </div>
+            <div class="news-list">
+                {% for item in game.game_news %}
+                    {% include 'store/_news_card.html' %}
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if game.screenshots.all %}
+        <section>
+            <div class="section-header">
+                <h2>Скриншоты</h2>
+                <a href="{% url 'mfs:game_detail' game.id %}">Все скриншоты ➜</a>
+            </div>
+            <div class="library-screenshots">
+                {% for shot in game.screenshots.all|slice:":4" %}
+                    <a href="{% url 'mfs:game_detail' game.id %}">
+                        <img src="{{ shot.image.url }}" alt="Скриншот {{ game.title }}" loading="lazy">
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <details class="library-about">
+            <summary>Об этой игре <span class="library-about-arrow" aria-hidden="true">➜</span></summary>
+            <div class="library-about-text">
+                {% if game.description %}
+                    {{ game.description|linebreaks }}
+                {% elif game.long_description %}
+                    {{ game.long_description|linebreaks }}
+                {% else %}
+                    <p>Описание игры пока не добавлено.</p>
+                {% endif %}
+            </div>
+        </details>
+    </div>
+
+    <aside class="library-panel-side">
+        <section class="library-card">
+            <h2>Информация</h2>
+            <dl class="library-stats">
+                <div>
+                    <dt>Время в игре</dt>
+                    <dd data-playtime>{{ game.user_playtime|playtime }}</dd>
+                </div>
+                <div>
+                    <dt>Размер</dt>
+                    <dd>{% if game.size_gb %}{{ game.size_gb|floatformat:"-1" }} ГБ{% else %}<span class="library-muted">Не указан</span>{% endif %}</dd>
+                </div>
+                {% if game.user_purchased_at %}
+                <div>
+                    <dt>В библиотеке с</dt>
+                    <dd>{{ game.user_purchased_at|date:"d E Y" }}</dd>
+                </div>
+                {% endif %}
+                <div>
+                    <dt>Дата выхода</dt>
+                    <dd>{{ game.release_date|date:"d E Y" }}</dd>
+                </div>
+            </dl>
+            {% if game.genres.all %}
+                <div class="library-genres">
+                    {% for genre in game.genres.all %}
+                        <a href="{% url 'mfs:catalog' %}?genre={{ genre.slug }}" class="chip">{{ genre.name }}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <a href="{% url 'mfs:game_detail' game.id %}" class="library-card-link">Страница игры ➜</a>
+        </section>
+
+        <section class="library-card">
+            <h2>Ваш отзыв</h2>
+            {% if game.user_review %}
+                <div class="library-rating" aria-label="Оценка: {{ game.user_review.rating }} из 5">
+                    {% for star in "12345" %}<span class="{% if forloop.counter <= game.user_review.rating %}is-on{% endif %}" aria-hidden="true">★</span>{% endfor %}
+                </div>
+                {% if game.user_review.text %}<p class="library-review-text">{{ game.user_review.text|truncatechars:100 }}</p>{% endif %}
+                <a href="{% url 'mfs:game_detail' game.id %}#reviews" class="library-card-link">Изменить отзыв ➜</a>
+            {% else %}
+                <p class="library-empty">Вы ещё не оценили эту игру.</p>
+                <a href="{% url 'mfs:game_detail' game.id %}#reviews" class="library-card-link">Оставить отзыв ➜</a>
+            {% endif %}
+        </section>
+
+        <section class="library-card">
+            <h2>Друзья с игрой</h2>
+            {% if game.friends_with_game %}
+                <ul class="library-friends">
+                    {% for friend in game.friends_with_game %}
+                        <li>
+                            <a href="{% url 'mfs:user_profile' friend.user.username %}">
+                                {% if friend.avatar %}
+                                    <img src="{{ friend.avatar.url }}" alt="" class="library-friend-avatar" loading="lazy">
+                                {% else %}
+                                    <span class="library-friend-avatar">{{ friend.user.username|first|upper }}</span>
+                                {% endif %}
+                                <span class="library-friend-name">{{ friend.nickname|default:friend.user.username }}</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="library-empty">Пока ни у кого из ваших друзей нет этой игры.</p>
+            {% endif %}
+        </section>
+    </aside>
+</div>
