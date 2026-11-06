@@ -1,6 +1,6 @@
 @font-face {
-    font-family: "MyFont";
-    src: url("../fonts/unbounded.ttf") format("opentype");
+    font-family: "Unbounded";
+    src: url("../fonts/unbounded.ttf") format("truetype");
     font-weight: 100 900;
     font-style: normal;
 }
@@ -16,28 +16,52 @@
     --bg-card: #252833;
     --bg-card-hover: #313442;
 
-    --font-display: "MyFont", Inter, sans-serif;
+    --font-display: "Unbounded", Inter, sans-serif;
     --text-primary: #ffffff;
     --text-secondary: #bcc9d6;
-    --text-muted: #7f8b96;
+    --text-muted: #949fab; /* не темнее: иначе мелкий серый текст на карточках не проходит контраст 4.5:1 */
 
-    --accent: #6366f1;
+    /* Один фиолетовый на весь сайт — для логотипа, кнопок, ссылок и меток.
+       Подобран посередине: белый текст на кнопках и фиолетовый текст на карточках читаются одинаково (~3.8:1) */
+    --accent: #6c71fd;
+    /* Цвет надписей акцентом. По умолчанию это тот же --accent; поднимается только яркость
+       слишком тёмных акцентов, которые пользователь выбрал сам, — оттенок при этом не меняется.
+       Первая строка — для старых браузеров без относительного синтаксиса цвета */
+    --accent-text: var(--accent);
+    --accent-text: oklch(from var(--accent) max(l, 0.62) c h);
     --success: #22c55e;
     --danger: #c7312a;
+    --rating: #f5b301;   /* звёзды оценок */
+    --warning: #ffab00;  /* объявления и черновики */
+    --danger-text: #ef5d55; /* красный для надписей: сам --danger на тёмном фоне читается плохо */
 
     --border: rgba(255, 255, 255, 0.2);
-    --border-accent: #3e3e70;
+    /* Рамки полей ввода с оттенком акцента и контрастом не ниже 3:1, чтобы поле было видно */
+    --border-accent: color-mix(in srgb, var(--accent) 35%, #6e7186);
     --border-subtle: rgba(255, 255, 255, 0.1);
 
     --shadow: rgba(0, 0, 0, 0.2);
+    /* Тени: sm — мелкие элементы, md — карточки и панели, lg — меню и всплывающие окна */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 15px 25px var(--shadow);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
     --font-scale: 1;
     --radius-scale: 1;
     --radius-verysm: calc(2.5px * var(--radius-scale));
     --radius-sm: calc(5px * var(--radius-scale));
     --radius-md: calc(10px * var(--radius-scale));
     --radius-big: calc(50px * var(--radius-scale));
+    --radius-pill: 999px; /* таблетки и переключатели: всегда полностью скруглены */
 
-    --padding-sm: 7.5px;
+    /* Шкала отступов: новые отступы берите из неё */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+
+    --padding-sm: var(--space-2);
     --padding-sm2: 15px;
     --padding-md: 20px;
     --padding-big: 30px;
@@ -79,6 +103,14 @@ body {
     font-family: Inter, Helvetica, sans-serif;
 }
 
+/* Поля и кнопки по умолчанию берут системный шрифт (Arial) — пусть наследуют шрифт сайта */
+input,
+button,
+select,
+textarea {
+    font-family: inherit;
+}
+
 /* =========================
    NAVBAR
 ========================= */
@@ -92,7 +124,7 @@ body {
     padding: 0 7%;
     background: rgba(11, 18, 26, 0.96);
     border-bottom: 1px solid var(--border-subtle);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
     backdrop-filter: blur(5px);
     position: sticky;
     top: 0;
@@ -103,6 +135,18 @@ body {
     display: flex;
     align-items: center;
     gap: 25px;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: inherit;
+}
+
+/* Видны только на телефонах */
+.nav-toggle,
+.nav-cart-mobile {
+    display: none;
 }
 
 .logo {
@@ -130,7 +174,7 @@ body {
 
 .nav-link:hover,
 .nav-link.active {
-    color: var(--accent);
+    color: var(--accent-text);
 }
 
 .nav-link.active::after {
@@ -168,7 +212,7 @@ body {
     overflow: hidden;
     border-radius: var(--radius-md);
     background: var(--bg-card);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
     margin-bottom: 50px;
     border: none; 
     transition: 0.2s;
@@ -212,10 +256,10 @@ body {
 
 .featured-label {
     font-family: var(--font-display);
-    color: var(--accent);
+    color: var(--accent-text);
     font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-bold);
-    letter-spacing: 1px;
+    letter-spacing: 0.3px;
     margin-bottom: 0;
     flex-wrap: nowrap;
 }
@@ -252,17 +296,13 @@ body {
     margin-top: var(--padding-big);
 }
 
-.featured-price {
-    font-size: calc(22px * var(--font-scale, 1));
-    color: white;
-    font-weight: var(--text-semibold);
+/* Крупная цена — игра недели и страница игры: та же цена, что в карточках, только больше */
+.price-block-lg .price {
+    font-size: calc(24px * var(--font-scale, 1));
 }
 
-.old-featured-price {
-    color: var(--text-muted);
+.price-block-lg .old-price {
     font-size: calc(16px * var(--font-scale, 1));
-    line-height: 1;
-    text-decoration: line-through;
 }
 
 /* =========================
@@ -290,7 +330,7 @@ body {
 }
 
 .section-header a {
-    color: var(--accent);
+    color: var(--accent-text);
     text-decoration: none;
     font-weight: var(--text-semibold);
     font-size: calc(16px * var(--font-scale, 1));
@@ -307,7 +347,7 @@ body {
 }
 
 .section-header-2 a {
-    color: var(--accent);
+    color: var(--accent-text);
     text-decoration: none;
     font-size: calc(16px * var(--font-scale, 1));
     transition: 0.2s;
@@ -365,7 +405,7 @@ a.game-card:hover {
     transform: translateY(-8px);
     background: var(--bg-card-hover);
     filter: brightness(1.10);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
 }
 
 /* При ховере меняем цвет рамки у псевдоэлемента */
@@ -436,30 +476,39 @@ a.game-card:hover::after {
 
 .game-bottom {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-2);
     margin-top: auto;
     min-height: 30px;
 }
 
+/* «Эксклюзив» в углу обложки, напротив сердечка: нижняя строка карточки остаётся только для цены */
+.game-card-label {
+    position: absolute;
+    top: var(--space-3);  /* по центру сердечка «В желаемое» (36px) */
+    left: var(--space-2);
+    z-index: 3;
+}
+
+/* Цена — главное в карточке: старая зачёркнутая стоит в той же строке, а не мелко над новой */
 .price-block {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 5px;
+    align-items: baseline;
+    gap: var(--space-2);
 }
 
 .old-price {
     color: var(--text-muted);
-    font-size: calc(13px * var(--font-scale, 1));
+    font-size: calc(14px * var(--font-scale, 1));
     line-height: 1;
     text-decoration: line-through;
 }
 
 .price {
     color: var(--text-primary);
-    font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
+    font-size: calc(18px * var(--font-scale, 1));
+    font-weight: var(--text-bold);
     line-height: 1;
 }
 
@@ -471,35 +520,32 @@ a.game-card:hover::after {
     line-height: 1.75;
 }
 
-.discount {
-    font-family: var(--font-display);
+/* ---------- Значки ----------
+   Одна система для всех плашек: одинаковые высота, шрифт и скругление, различается только цвет */
+.badge {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    background: var(--success);
-    color: var(--bg-primary);
-    padding: 7px 6px;
-    font-size: calc(16px * var(--font-scale, 1));
+    height: calc(26px * var(--font-scale, 1));
+    padding: 0 var(--space-2);
+    border: 2px solid transparent;
     border-radius: var(--radius-sm);
+    font-family: var(--font-display);
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     line-height: 1;
     letter-spacing: 0.3px;
+    white-space: nowrap;
 }
 
-.not-on-steam-badge2 {
-    display: inline-block;
-    font-family: var(--font-display);
-    background: var(--bg-primary);
+.badge-discount {
+    background: var(--success);
+    color: var(--bg-primary);
+}
+
+.badge-exclusive {
+    background: color-mix(in srgb, var(--accent) 15%, var(--bg-primary));
+    border-color: color-mix(in srgb, var(--accent) 60%, transparent);
     color: var(--text-primary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 7px 6px;
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    backdrop-filter: blur(5px);
-    line-height: 1;
 }
 
 /* =========================
@@ -645,7 +691,7 @@ a.game-card:hover::after {
     }
 
     .nav-link {
-        font-size: 15px;
+        font-size: 16px;
     }
 
     .featured {
@@ -680,22 +726,6 @@ a.game-card:hover::after {
 }
 
 @media (max-width: 600px) {
-    .navbar {
-        height: auto;
-        padding: 20px 5%;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .nav-left {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .nav-right {
-        display: none;
-    }
-
     .container {
         width: 92%;
         padding-top: 30px;
@@ -748,7 +778,7 @@ a.game-card:hover::after {
     padding: 11px 27px;
     border-radius: var(--radius-md);
     font-size: calc(16px * var(--font-scale, 1));
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
     transition: top 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s;
     opacity: 0;
     z-index: 1000;
@@ -822,7 +852,7 @@ a.game-card:hover::after {
     padding: var(--padding-md);
     width: 100%;
     max-width: 400px;
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
 }
 
 .auth-box h2 {
@@ -859,7 +889,7 @@ a.game-card:hover::after {
 
 .form-group input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .auth-submit {
@@ -899,7 +929,7 @@ a.game-card:hover::after {
 .auth-tagline {
     margin: 0 0 18px;
     color: var(--text-secondary);
-    font-size: calc(15px * var(--font-scale, 1));
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     text-align: center;
 }
@@ -943,7 +973,7 @@ a.game-card:hover::after {
     height: auto;
     border: 2px solid transparent; /* рамка есть всегда, но видна только при наведении — как у карточек игр в магазине */
     border-radius: var(--radius-md);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
     transition: border-color 0.3s, filter 0.3s;
 }
 
@@ -1054,7 +1084,7 @@ html[data-motion="reduced"] .auth-showcase-track {
 .thumbnails-list img.thumb.active {
     opacity: 1;
     border-color: var(--accent);
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 .thumb {
@@ -1091,7 +1121,7 @@ html[data-motion="reduced"] .auth-showcase-track {
 .thumb.active {
     border-color: var(--accent);
     border-width: 2px;
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 .video-thumb.active img {
@@ -1129,7 +1159,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     right: auto;
     background-color: var(--bg-secondary);
     border: 2px solid var(--border);
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.6);
+    box-shadow: var(--shadow-lg);
     border-radius: var(--radius-sm);
     z-index: 1000;
     min-width: 130px;
@@ -1204,7 +1234,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     border: 2px solid var(--border);
     border-radius: var(--radius-md);
     z-index: 3;
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
     overflow: hidden;
     box-sizing: border-box;
 }
@@ -1302,7 +1332,7 @@ html[data-motion="reduced"] .auth-showcase-track {
 }
 
 .search-price-block .old-price {
-    font-size: calc(13px * var(--font-scale, 1));
+    font-size: calc(12px * var(--font-scale, 1));
     color: var(--text-muted);
     text-decoration: line-through;
     line-height: 1;
@@ -1362,7 +1392,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     height: 42px;
     background: var(--bg-secondary);
     border: 2px solid var(--border-accent);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
     border-radius: var(--radius-sm);
     overflow: hidden; /* Аккуратно срезает углы у инпута и кнопки */
     transition: 0.2s;
@@ -1371,7 +1401,7 @@ html[data-motion="reduced"] .auth-showcase-track {
 /* Красивая подсветка ВСЕГО блока при клике на поиск */
 .search-box:focus-within {
     border-color: var(--accent);
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 .search-box input {
@@ -1392,56 +1422,34 @@ html[data-motion="reduced"] .auth-showcase-track {
    BUTTONS & BADGES
 ========================= */
 
-.badge-exclusive {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    border: 2px solid var(--border);
-    padding: 7px 6px;
-    border-radius: var(--radius-sm);
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-}
-
 .cart-badge {
     background: var(--accent);
     color: white;
     font-size: calc(14px * var(--font-scale, 1));
     padding: 2px 10px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     margin-left: var(--padding-sm);
 }
 
+/* Размеры даёт .badge, здесь только цвета категорий */
 .news-badge {
-    font-size: calc(14px * var(--font-scale, 1));
-    font-family: var(--font-display);
-    font-weight: var(--text-semibold);
-    padding: 7px 6px;
-    border-radius: var(--radius-sm);
-    line-height: 1;
-    white-space: nowrap;
-    height: fit-content;
     width: fit-content;
     background: rgba(3, 0, 26, 0.6);
-    color: #6366f1;
-    border: 2px solid var(--border);
-    border-color: rgba(99, 102, 241, 0.4);
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+    color: var(--accent-text);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
     backdrop-filter: blur(5px);
 }
 
 /* (Опционально) Кастомные цвета под разные типы */
 .news-badge-announcement {
     background: rgba(26, 12, 0, 0.6);
-    color: #ffab00;
+    color: var(--warning);
     border-color: rgba(255, 171, 0, 0.3);
 }
 
 .news-badge-tech {
     background-color: rgba(19, 1, 0, 0.6);
-    color: var(--danger);
+    color: var(--danger-text);
     border-color: rgba(233, 56, 47, 0.3);
 }
 
@@ -1550,7 +1558,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     border-radius: 50%;
     border: 2px solid var(--card-border, rgba(255, 255, 255, .12));
     background: rgba(255, 255, 255, .06);
-    color: #fff;
+    color: var(--text-primary);
     font-size: calc(18px * var(--font-scale, 1));
     line-height: 1;
     cursor: pointer;
@@ -1627,11 +1635,11 @@ html[data-motion="reduced"] .auth-showcase-track {
 
 .news-card:hover {
     background: var(--bg-surface);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
 }
 
 .news-card:hover::after {
-    border-color: var(--border-accent, #4a90e2); /* Укажите ваш акцентный цвет ховера */
+    border-color: var(--border-accent); /* Укажите ваш акцентный цвет ховера */
 }
 
 .news-card-header {
@@ -1649,7 +1657,7 @@ html[data-motion="reduced"] .auth-showcase-track {
 }
 
 .news-card h2 {
-    font-size: calc(22px * var(--font-scale, 1));
+    font-size: calc(24px * var(--font-scale, 1));
     line-height: 1.25;
     font-family: var(--font-display);
     margin-bottom: var(--padding-sm);
@@ -1690,7 +1698,7 @@ html[data-motion="reduced"] .auth-showcase-track {
 
 .news-description strong,
 .news-description b {
-    color: var(--text-primary, #ffffff);
+    color: var(--text-primary);
     display: inline-block;
     margin-top: 10px;
     margin-bottom: 5px;
@@ -1726,7 +1734,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     margin-left: var(--padding-sm);
     outline: none;
 
-    color: var(--accent);
+    color: var(--accent-text);
     text-decoration: none;
     font-weight: var(--text-semibold);
     font-size: calc(16px * var(--font-scale, 1));
@@ -1758,17 +1766,17 @@ html[data-motion="reduced"] .auth-showcase-track {
 }
 
 .filter-select:hover, .filter-select:focus {
-    border-color: var(--accent, #6865f2);
+    border-color: var(--accent);
 }
 
 .filter-select option {
-    background: var(--bg-secondary, #1a1b26);
-    color: var(--text-primary, #ffffff);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .timer-label {
     font-size: calc(14px * var(--font-scale, 1));
-    color: #8f98a0;
+    color: var(--text-muted);
     text-transform: uppercase;
     white-space: nowrap;
 }
@@ -1776,7 +1784,7 @@ html[data-motion="reduced"] .auth-showcase-track {
 .timer-box {
     font-size: calc(18px * var(--font-scale, 1));
     font-weight: var(--text-normal);
-    color: var(--accent);
+    color: var(--accent-text);
     font-family: var(--font-display);
     white-space: nowrap;
     line-height: 1;
@@ -1855,7 +1863,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    border-radius: 10px 10px 0 0;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
  
     /* нужно для позиционирования градиента */
     position: relative;
@@ -1869,7 +1877,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     right: 0;
     bottom: 0;
     height: 30px; /* высота зоны перехода — чем больше, тем мягче и заметнее */
-    background: linear-gradient(to bottom, transparent, var(--bg-surface, #1a1c25));
+    background: linear-gradient(to bottom, transparent, var(--bg-surface));
     pointer-events: none; /* чтобы не мешал кликам по баннеру, если они есть */
 }
 .banner-overlay {
@@ -1879,7 +1887,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.55);
-    color: #fff;
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1919,9 +1927,9 @@ html[data-motion="reduced"] .auth-showcase-track {
     font-size: 64px;
     font-weight: var(--text-semibold);
     color: var(--text-primary);
-    background: #2a2a2a;
+    background: var(--bg-surface);
 
-    border: 4px solid var(--border, #444); 
+    border: 4px solid var(--border); 
     transition: border-color 0.3s ease;
     box-sizing: border-box;
 }
@@ -1947,7 +1955,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     height: 100%;
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.55);
-    color: #fff;
+    color: var(--text-primary);
     display: flex; /* больше не display:none по умолчанию — видимость решает opacity */
     align-items: center;
     justify-content: center;
@@ -1983,13 +1991,13 @@ html[data-motion="reduced"] .auth-showcase-track {
     flex: 1;
 }
 .profile-info h1 {
-    margin: 0 0 7.5px;
+    margin: 0 0 var(--space-2);
     font-size: calc(24px * var(--font-scale, 1));
     font-family: var(--font-display);
     font-weight: var(--text-semibold);
 }
 .profile-status {
-    margin: 0 0 7.5px;
+    margin: 0 0 var(--space-2);
     color: var(--text-secondary);
     font-size: calc(16px * var(--font-scale, 1));
     white-space: normal;
@@ -2022,7 +2030,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     margin-right: -5px;  /* Отступ от линии до следующего элемента */
 }
 .profile-stat strong {
-    font-size: calc(22px * var(--font-scale, 1));
+    font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 .profile-stat span {
@@ -2082,7 +2090,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     flex-shrink: 0;
     border-radius: var(--radius-sm);
     overflow: hidden;
-    background-color: #0f1622;
+    background-color: var(--bg-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2101,7 +2109,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     border-radius: 50%;
     flex-shrink: 0;
     overflow: hidden;
-    background-color: #0f1622;
+    background-color: var(--bg-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2129,13 +2137,13 @@ html[data-motion="reduced"] .auth-showcase-track {
     font-weight: var(--text-normal);
 }
 .activity-info-game h3 {
-    margin: 0 0 7.5px;
+    margin: 0 0 var(--space-2);
     font-size: calc(18px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 .activity-info h3 {
     font-family: var(--font-display);
-    margin: 0 0 7.5px;
+    margin: 0 0 var(--space-2);
     font-size: calc(18px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
@@ -2161,7 +2169,7 @@ html[data-motion="reduced"] .auth-showcase-track {
 .profile-empty-icon {
     font-size: calc(32px * var(--font-scale, 1));
     margin-bottom: 10px;
-    color: #f5b301;
+    color: var(--rating);
 }
 .profile-empty h3 {
     margin: 0 0 15px;
@@ -2246,7 +2254,7 @@ body.no-blur * {
 }
  
 .banner-crop-box {
-    background: var(--card-bg, #1a1c25);
+    background: var(--bg-secondary);
     border: 2px solid var(--card-border, rgba(255, 255, 255, .08));
     border-radius: var(--radius-md);
     padding: 20px;
@@ -2308,7 +2316,7 @@ body.no-blur * {
     -webkit-appearance: none;
     appearance: none;
     height: 5px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: rgba(255, 255, 255, .15); /* перезаписывается JS-ом для заливки по значению */
     outline: none;
 }
@@ -2334,7 +2342,7 @@ body.no-blur * {
  
 #bannerZoom::-moz-range-track {
     height: 5px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: transparent;
 }
  
@@ -2453,13 +2461,13 @@ body.no-blur * {
 .settings-nav-link:hover {
     transform: translateX(5px);
     background-color: var(--bg-card);
-    color: #ffffff;
+    color: var(--text-primary);
     border-left: 3px solid var(--accent);
 }
 
 .settings-nav-link.active {
     background-color: var(--bg-card-hover);
-    color: #ffffff;
+    color: var(--text-primary);
 }
 
 .settings-nav-link span {
@@ -2498,7 +2506,7 @@ body.no-blur * {
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    color: #fff;
+    color: var(--text-primary);
     border-radius: 50%;
 }
 .search-sub, .search-badge-muted { font-size: calc(14px * var(--font-scale, 1)); color: var(--text-muted); }
@@ -2530,7 +2538,7 @@ body.no-blur * {
 
 .friends-search input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-color, var(--accent));
+    box-shadow: 0 0 0 3px var(--accent);
 }
 
 #friendSearchResults {
@@ -2545,11 +2553,11 @@ body.no-blur * {
     box-sizing: border-box;
 
     display: none;
-    padding: 7.5px;
+    padding: var(--space-2);
     background: var(--bg-primary);
     border: 2px solid var(--border);
     border-radius: var(--radius-md);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, .4);
+    box-shadow: var(--shadow-lg);
 
     z-index: 50; /* Выше содержимого страницы, но ниже шапки сайта */
 }
@@ -2687,7 +2695,7 @@ body.no-blur * {
 
 .friends-search input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 /* Результаты: обычный блок под полем */
@@ -2747,7 +2755,7 @@ body.no-blur * {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: var(--text-primary);
     font-size: calc(16px * var(--font-scale, 1));
     font-weight: 700;
 }
@@ -2790,7 +2798,7 @@ body.no-blur * {
 .friend-add-btn {
     flex-shrink: 0;
     padding: 9px 14px;
-    color: #fff;
+    color: var(--text-primary);
     background: var(--accent);
     border: none;
     border-radius: var(--radius-sm);
@@ -2889,7 +2897,7 @@ body.no-blur * {
     }
 
     .search-area h1 {
-        font-size: calc(26px * var(--font-scale, 1));
+        font-size: calc(24px * var(--font-scale, 1));
     }
 
     .search-box-container {
@@ -2919,7 +2927,7 @@ body.no-blur * {
     }
 
     .featured-info h2 {
-        font-size: calc(26px * var(--font-scale, 1));
+        font-size: calc(24px * var(--font-scale, 1));
     }
 
     .featured-info p {
@@ -2957,7 +2965,7 @@ body.no-blur * {
 
     /* ----- Поиск ----- */
     .search-area h1 {
-        font-size: 22px;
+        font-size: 24px;
     }
 
     .search-box {
@@ -3043,7 +3051,7 @@ body.no-blur * {
     }
 
     .featured-info h2 {
-        font-size: 22px;
+        font-size: 24px;
         margin-bottom: 10px;
     }
 
@@ -3068,12 +3076,12 @@ body.no-blur * {
         justify-content: space-between;
     }
 
-    .featured-price {
-        font-size: 20px;
+    .price-block-lg .price {
+        font-size: calc(18px * var(--font-scale, 1));
     }
 
-    .old-featured-price {
-        font-size: 14px;
+    .price-block-lg .old-price {
+        font-size: calc(14px * var(--font-scale, 1));
     }
 
     .featured .buy-button,
@@ -3093,11 +3101,11 @@ body.no-blur * {
     }
 
     .section-header h2 {
-        font-size: 22px;
+        font-size: 24px;
     }
 
     .section-header a {
-        font-size: 13px;
+        font-size: 14px;
     }
 
     /* ----- Сетка карточек: 1 колонка ----- */
@@ -3115,15 +3123,15 @@ body.no-blur * {
     }
 
     .game-info h3 {
-        font-size: 17px;
+        font-size: 18px;
     }
 
     .game-genres {
-        font-size: 13px;
+        font-size: 14px;
     }
 
     .release-date {
-        font-size: 13px;
+        font-size: 14px;
         margin-bottom: 15px;
     }
 
@@ -3132,22 +3140,13 @@ body.no-blur * {
         gap: 8px;
     }
 
-    .price {
-        font-size: 16px;
-    }
-
-    .discount,
-    .not-on-steam-badge2 {
-        font-size: 12px;
-        padding: 6px 5px;
-    }
 }
 
 /* ---------- Очень маленькие экраны ---------- */
 @media (max-width: 380px) {
 
     .search-area h1 {
-        font-size: 21px;
+        font-size: 24px;
     }
 
     .featured > img {
@@ -3155,7 +3154,7 @@ body.no-blur * {
     }
 
     .featured-info h2 {
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .game-image {
@@ -3167,7 +3166,7 @@ body.no-blur * {
     }
 
     .timer-box {
-        font-size: 11px;
+        font-size: 12px;
     }
 }
 
@@ -3183,7 +3182,7 @@ body.no-blur * {
     position: relative;
     font-size: calc(32px * var(--font-scale, 1));
     letter-spacing: 2px;
-    background: linear-gradient(90deg, #f5b301 var(--percent), rgba(255,255,255,.2) var(--percent));
+    background: linear-gradient(90deg, var(--rating) var(--percent), rgba(255,255,255,.2) var(--percent));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -3228,13 +3227,13 @@ body.no-blur * {
     padding: 0 2px;
     font-size: calc(32px * var(--font-scale, 1));
     line-height: 1;
-    color: rgba(255,255,255,.2);
+    color: rgba(255,255,255,.4); /* пустые звёзды должны быть заметны: контраст не ниже 3:1 */
     cursor: pointer;
     transition: color .2s, transform .2s;
 }
 .star-input label:hover,
 .star-input label:hover ~ label,
-.star-input input:checked ~ label { color: #f5b301; }
+.star-input input:checked ~ label { color: var(--rating); }
 .star-input label:hover { transform: scale(1.25); }
 .star-input input:focus-visible + label { outline: 2px solid var(--accent); border-radius: var(--radius-sm); }
 
@@ -3311,7 +3310,7 @@ body.no-blur * {
     white-space: nowrap;
 }
 .review-author { color: inherit; font-weight: var(--text-semibold); text-decoration: none; font-size: calc(18px * var(--font-scale, 1));}
-.review-rating { color: #f5b301; letter-spacing: 3px; font-size: calc(22px * var(--font-scale, 1));}
+.review-rating { color: var(--rating); letter-spacing: 3px; font-size: calc(22px * var(--font-scale, 1));}
 .review-date { color: var(--text-muted); font-size: calc(14px * var(--font-scale, 1)); }
 /* =========================
    КАТАЛОГ, ЧИПЫ, УВЕДОМЛЕНИЯ
@@ -3368,7 +3367,7 @@ body.no-blur * {
 
 .catalog-reset {
     margin-left: auto;
-    color: var(--accent);
+    color: var(--accent-text);
     font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     text-decoration: none;
@@ -3622,7 +3621,7 @@ body.no-blur * {
     background: var(--bg-surface);
     border: 2px solid var(--accent);
     border-radius: var(--radius-md);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
     text-align: center;
     animation: message-toast 5s ease forwards;
 }
@@ -3688,28 +3687,164 @@ html[data-motion="reduced"] *::after {
 
 @media (max-width: 1150px) {
     .install-btn { display: none; }
-    .nav-link { font-size: calc(13px * var(--font-scale, 1)); }
+    .nav-link { font-size: calc(14px * var(--font-scale, 1)); }
     .nav-left, .nav-right { gap: 12px; }
     .logo { font-size: calc(18px * var(--font-scale, 1)); margin-right: 0; }
     .user-name { max-width: 100px; }
 }
 
-/* Телефоны: корзина, вход и меню пользователя должны оставаться доступными */
-@media (max-width: 600px) {
+/* Телефоны и планшеты: в шапке одна строка — логотип, корзина и кнопка ☰.
+   Разделы, переключатель темы и меню пользователя раскрываются по кнопке */
+@media (max-width: 768px) {
     .navbar {
-        position: static;
-        padding: 12px 4%;
-        gap: 10px;
-    }
-
-    .nav-left, .nav-right {
-        display: flex;
+        height: auto;
+        min-height: 64px;
+        padding: var(--space-2) var(--space-4);
         flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px 14px;
+        gap: 0 var(--space-2);
     }
 
-    .logo { width: 100%; text-align: center; }
+    .navbar.menu-open {
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+
+    /* логотип и ссылки становятся отдельными элементами строки шапки */
+    .nav-left {
+        display: contents;
+    }
+
+    .logo {
+        order: 0;
+        margin-right: auto;
+        font-size: calc(18px * var(--font-scale, 1));
+    }
+
+    .nav-cart-mobile {
+        order: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-1);
+        min-height: 44px;
+        padding: 0 var(--space-2);
+        color: var(--text-secondary);
+        text-decoration: none;
+    }
+
+    .nav-cart-mobile .cart-badge {
+        margin-left: 0;
+        padding: 2px 8px;
+        font-size: calc(12px * var(--font-scale, 1));
+    }
+
+    .nav-toggle {
+        order: 2;
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 5px;
+        width: 44px;
+        height: 44px;
+        padding: 0 11px;
+        background: transparent;
+        border: 2px solid var(--border-subtle);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+    }
+
+    .nav-toggle span {
+        display: block;
+        height: 2px;
+        background: var(--text-primary);
+        border-radius: var(--radius-pill);
+        transition: transform var(--transition), opacity var(--transition);
+    }
+
+    /* ☰ превращается в ✕ */
+    .menu-open .nav-toggle span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .menu-open .nav-toggle span:nth-child(2) { opacity: 0; }
+    .menu-open .nav-toggle span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .nav-links,
+    .nav-right {
+        display: none;
+        flex-basis: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+    }
+
+    .menu-open .nav-links,
+    .menu-open .nav-right {
+        display: flex;
+    }
+
+    .nav-links {
+        order: 3;
+        margin-top: var(--space-2);
+        padding-top: var(--space-2);
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .nav-right {
+        order: 4;
+        padding-bottom: var(--space-3);
+    }
+
+    .nav-links .nav-link,
+    .nav-right > .nav-link {
+        padding: var(--space-3) 0;
+    }
+
+    .nav-link.active::after {
+        display: none;
+    }
+
+    /* корзина уже есть в верхней строке */
+    .nav-right > .nav-cart-link {
+        display: none;
+    }
+
+    .season-toggle {
+        align-self: flex-start;
+        margin: var(--space-2) 0;
+    }
+
+    /* меню пользователя сразу раскрыто списком, без второго выпадающего окна */
+    .user-dropdown {
+        margin-top: var(--space-2);
+        padding-top: var(--space-2);
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .user-name {
+        max-width: none;
+        padding: var(--space-2) 0;
+        color: var(--text-muted);
+        font-size: calc(14px * var(--font-scale, 1));
+        pointer-events: none;
+    }
+
+    .user-dropdown-menu {
+        position: static;
+        min-width: 0;
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: none;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        text-align: left;
+    }
+
+    .user-dropdown-menu .admin-item,
+    .user-dropdown-menu .logout-item,
+    .user-dropdown-menu button.logout-item {
+        padding: var(--space-3) 0;
+        font-size: calc(16px * var(--font-scale, 1));
+        text-align: left;
+    }
 }
 
 /* Баннер по умолчанию, пока пользователь не загрузил свой */
@@ -3766,8 +3901,11 @@ html[data-motion="reduced"] *::after {
 }
 
 .wishlist-wide {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
     min-width: 10.5em;
-    text-align: center;
 }
 
 .wishlist-wide.active {
@@ -3808,9 +3946,38 @@ html[data-motion="reduced"] *::after {
     transform: scale(0.9);
 }
 
+/* Сердце «В желаемое» — одна форма во всех местах; закрашено, когда игра в желаемом */
+.heart-icon {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    vertical-align: middle;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linejoin: round;
+}
+
+.active > .heart-icon,
+.heart-icon-filled {
+    fill: currentColor;
+}
+
+.wishlist-btn .heart-icon {
+    display: block;
+    margin: auto;
+}
+
 .wishlist-btn.active {
     color: var(--accent);
     border-color: var(--accent);
+}
+
+.profile-empty-icon .heart-icon {
+    width: 1em;
+    height: 1em;
+    color: var(--accent);
 }
 
 .profile-hint {
@@ -3867,7 +4034,7 @@ html[data-motion="reduced"] *::after {
 }
 
 .fav-card:hover {
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
 }
 
 .fav-card:hover::after {
@@ -4018,7 +4185,7 @@ html[data-motion="reduced"] *::after {
 
 .fav-star.active,
 .fav-toggle.active {
-    color: #f5b301;
+    color: var(--rating);
 }
 
 /* =========================
@@ -4035,7 +4202,24 @@ html[data-motion="reduced"] *::after {
 }
 
 .news-create {
-    margin: 0 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    align-self: stretch; /* та же высота, что у фильтров в ряду */
+    margin-left: auto;
+    color: var(--accent-text);
+    border-color: var(--accent);
+}
+
+/* Когда кнопка уходит на свою строку, она стоит слева, как фильтры */
+@media (max-width: 600px) {
+    .news-create {
+        margin-left: 0;
+    }
+}
+
+.news-create:hover {
+    color: var(--text-primary);
+    background: var(--accent);
 }
 
 .news-filters {
@@ -4128,7 +4312,7 @@ html[data-motion="reduced"] *::after {
 }
 
 .news-pin {
-    color: var(--accent);
+    color: var(--accent-text);
     font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
@@ -4136,7 +4320,7 @@ html[data-motion="reduced"] *::after {
 .news-card-title {
     margin: 0 0 var(--padding-sm);
     font-family: var(--font-display);
-    font-size: calc(20px * var(--font-scale, 1));
+    font-size: calc(18px * var(--font-scale, 1));
     font-weight: var(--text-normal);
     line-height: 1.25;
 }
@@ -4162,7 +4346,7 @@ html[data-motion="reduced"] *::after {
 }
 
 .news-more {
-    color: var(--accent);
+    color: var(--accent-text);
     font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
@@ -4170,7 +4354,7 @@ html[data-motion="reduced"] *::after {
 .news-back {
     display: inline-block;
     margin-bottom: var(--padding-md);
-    color: var(--accent);
+    color: var(--accent-text);
     font-weight: var(--text-semibold);
     text-decoration: none;
 }
@@ -4190,7 +4374,7 @@ html[data-motion="reduced"] *::after {
     margin: 0 0 var(--padding-md);
     color: var(--text-primary);
     font-family: var(--font-display);
-    font-size: calc(28px * var(--font-scale, 1));
+    font-size: calc(32px * var(--font-scale, 1));
     font-weight: var(--text-normal);
     line-height: 1.25;
 }
@@ -4205,14 +4389,14 @@ html[data-motion="reduced"] *::after {
 }
 
 .news-description a {
-    color: var(--accent);
+    color: var(--accent-text);
     overflow-wrap: anywhere;
 }
 
 .news-draft {
     margin: 0 0 var(--padding-sm2);
     padding: 9px 14px;
-    color: #ffab00;
+    color: var(--warning);
     border: 2px solid rgba(255, 171, 0, 0.3);
     border-radius: var(--radius-sm);
     font-size: calc(14px * var(--font-scale, 1));
@@ -4281,4 +4465,166 @@ html[data-motion="reduced"] *::after {
 .activity-playing {
     color: var(--success);
     font-weight: var(--text-semibold);
+}
+
+/* =========================
+   ПОДВАЛ
+========================= */
+
+.site-footer {
+    margin-top: var(--space-5);
+    padding: 40px 0 var(--space-5);
+    border-top: 1px solid var(--border-subtle);
+    background: color-mix(in srgb, var(--bg-primary) 85%, transparent);
+}
+
+.site-footer-inner,
+.site-footer-bottom {
+    width: min(1200px, 90%);
+    margin: 0 auto;
+}
+
+.site-footer-inner {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: var(--space-6);
+}
+
+.site-footer .logo {
+    font-size: calc(24px * var(--font-scale, 1));
+    margin: 0;
+}
+
+.site-footer-brand p {
+    max-width: 36ch;
+    margin: var(--space-3) 0 0;
+    color: var(--text-muted);
+    font-weight: var(--text-normal);
+    font-size: calc(14px * var(--font-scale, 1));
+    line-height: 1.5;
+}
+
+.site-footer-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+}
+
+.site-footer-col h2 {
+    margin: 0 0 var(--space-1);
+    color: var(--text-primary);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.site-footer-col a,
+.site-footer-bottom a {
+    color: var(--text-secondary);
+    font-size: calc(14px * var(--font-scale, 1));
+    text-decoration: none;
+    transition: color var(--transition);
+}
+
+.site-footer-col a:hover,
+.site-footer-bottom a:hover {
+    color: var(--accent-text);
+}
+
+.site-footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+@media (max-width: 768px) {
+    .site-footer-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-5);
+    }
+
+    .site-footer-brand {
+        grid-column: 1 / -1;
+    }
+}
+
+/* =========================
+   ПРОФИЛЬ НА ТЕЛЕФОНЕ
+========================= */
+
+@media (max-width: 600px) {
+    /* Шапка профиля: аватар и имя в строку, кнопка — отдельной строкой во всю ширину; ничего не уходит за край */
+    .profile-main {
+        flex-wrap: wrap;
+        gap: var(--space-3) var(--space-4);
+        padding: 0 var(--space-4) var(--space-4);
+    }
+
+    .profile-avatar-wrapper,
+    .profile-avatar {
+        width: 96px;
+        height: 96px;
+        min-width: 96px;
+    }
+
+    .profile-avatar {
+        font-size: calc(48px * var(--font-scale, 1));
+    }
+
+    .profile-info {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .profile-title {
+        overflow-wrap: anywhere;
+    }
+
+    .profile-actions {
+        flex-basis: 100%;
+    }
+
+    .profile-actions .buy-button,
+    .profile-actions > div {
+        width: 100%;
+        margin: 0;
+    }
+
+    /* Недавняя активность: обложка поменьше, время — под названием, а не узкой колонкой справа */
+    .activity-item {
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-3);
+        min-height: 0;
+        max-height: none;
+    }
+
+    .activity-cover {
+        width: 120px;
+        height: 60px;
+    }
+
+    .activity-info-game {
+        flex: 1 1 0;
+        min-width: 0;
+        margin-left: 0;
+    }
+
+    .activity-info-game h3 {
+        font-size: calc(16px * var(--font-scale, 1));
+    }
+
+    .activity-info-t,
+    .activity-time {
+        font-size: calc(14px * var(--font-scale, 1));
+    }
+
+    .activity-time {
+        flex-basis: 100%;
+        margin-left: 0;
+    }
 }

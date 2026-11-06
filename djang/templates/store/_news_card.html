@@ -5,7 +5,7 @@
     {% endif %}
     <div class="news-card-body">
         <div class="news-card-meta">
-            <span class="news-badge news-badge-{{ item.category }}">{{ item.get_category_display }}</span>
+            <span class="badge news-badge news-badge-{{ item.category }}">{{ item.get_category_display }}</span>
             {% if item.is_pinned %}<span class="news-pin">Закреплено</span>{% endif %}
             <span class="news-date">{{ item.created_at|date:"d E Y" }}</span>
         </div>

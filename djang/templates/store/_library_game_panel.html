@@ -100,7 +100,7 @@
                         <li>
                             <a href="{% url 'mfs:user_profile' friend.user.username %}">
                                 {% if friend.avatar %}
-                                    <img src="{{ friend.avatar.url }}" alt="" class="library-friend-avatar" loading="lazy">
+                                    <img src="{{ friend.avatar.url }}" alt="" data-letter="{{ friend.user.username|first|upper }}" class="library-friend-avatar" loading="lazy">
                                 {% else %}
                                     <span class="library-friend-avatar">{{ friend.user.username|first|upper }}</span>
                                 {% endif %}

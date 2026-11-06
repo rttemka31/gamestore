@@ -47,7 +47,7 @@
                             <div class="profile-avatar-wrapper">
                                 <div class="profile-avatar" id="avatarPreview">
                                     {% if user.profile.avatar %}
-                                        <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" id="avatarImg" crossorigin="anonymous">
+                                        <img src="{{ user.profile.avatar.url }}" alt="" data-letter="{{ user.username|first|upper }}" id="avatarImg" crossorigin="anonymous">
                                     {% else %}
                                         <span id="avatarLetter">{{ user.username|first|upper }}</span>
                                     {% endif %}
@@ -228,7 +228,7 @@
                         </div>
                     {% else %}
                         <div class="profile-empty">
-                            <div class="profile-empty-icon">♥</div>
+                            <div class="profile-empty-icon">{% include 'store/_heart_icon.html' with heart_class='heart-icon-filled' %}</div>
                             <h3>Список желаемого пуст</h3>
                             <p>Нажмите на сердечко на карточке игры, чтобы сохранить её здесь.</p>
                         </div>
@@ -257,7 +257,7 @@
                         <a href="{% url 'mfs:user_profile' f.receiver.user.username %}" class="activity-item-link">
                             <div class="activity-item">
                                 <div class="activity-cover-2">
-                                    {% if f.sender.avatar %}<img src="{{ f.sender.avatar.url }}" alt="">
+                                    {% if f.sender.avatar %}<img src="{{ f.sender.avatar.url }}" alt="" data-letter="{{ f.sender.user.username|first|upper }}">
                                     {% else %}<span>{{ f.sender.user.username|first|upper }}</span>{% endif %}
                                 </div>
                                 <div class="activity-info">
@@ -292,7 +292,7 @@
                         <a href="{% url 'mfs:user_profile' item.profile.user.username %}" class="activity-item-link">
                             <div class="activity-item">
                                 <div class="activity-cover-2">
-                                    {% if item.profile.avatar %}<img src="{{ item.profile.avatar.url }}" alt="">
+                                    {% if item.profile.avatar %}<img src="{{ item.profile.avatar.url }}" alt="" data-letter="{{ item.profile.user.username|first|upper }}">
                                     {% else %}<span>{{ item.profile.user.username|first|upper }}</span>{% endif %}
                                 </div>
                                 <div class="activity-info">
@@ -451,7 +451,7 @@
         const max = Number(zoomSlider.max);
         const pct = (zoomSlider.value - min) / (max - min) * 100;
         zoomSlider.style.background =
-            `linear-gradient(to right, var(--accent, #6366f1) ${pct}%, rgba(255,255,255,.15) ${pct}%)`;
+            `linear-gradient(to right, var(--accent, #6c71fd) ${pct}%, rgba(255,255,255,.15) ${pct}%)`;
     }
  
     zoomSlider.addEventListener('input', () => setZoom(zoomSlider.value));

@@ -1,6 +1,7 @@
 import re
 
 from django import template
+from django.core.cache import cache
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
@@ -84,3 +85,14 @@ def ru_plural(value, forms):
     if 2 <= number % 10 <= 4:
         return few
     return many
+
+
+SITE_VERSION_CACHE_KEY = 'site-version'
+
+
+@register.simple_tag
+def site_version():
+    """Версия сайта для подвала: та же, что в разделе «О сайте» настроек.
+    Подвал есть на каждой странице, поэтому версия кэшируется; при изменении новостей кэш сбрасывается."""
+    from ..views.accounts import _site_version  # здесь, а не наверху: представления сами импортируют эти фильтры
+    return cache.get_or_set(SITE_VERSION_CACHE_KEY, lambda: _site_version() or {}, 300)

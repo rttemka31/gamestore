@@ -74,11 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.classList.add('in-cart');
                 makeRedirect(btn, '✓ Добавлено', cartUrl);
 
-                const badge = document.querySelector('.cart-badge');
-                if (badge) {
+                // счётчик есть и в шапке, и у мобильной иконки корзины
+                document.querySelectorAll('.cart-badge').forEach(badge => {
                     badge.textContent = data.cart_count;
                     badge.style.display = 'inline-block';
-                }
+                });
             } else if (data.status !== 'login_required') {
                 window.gsToast(data.message || 'Не удалось добавить игру в корзину');
             }
@@ -106,7 +106,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 btn.classList.toggle('active', data.in_wishlist);
                 btn.setAttribute('aria-pressed', data.in_wishlist);
-                btn.textContent = data.in_wishlist ? btn.dataset.on : btn.dataset.off;
+                // сердце закрашивается через .active; у кнопки на странице игры ещё меняется надпись
+                const label = btn.querySelector('.js-wishlist-label');
+                if (label) label.textContent = data.in_wishlist ? btn.dataset.on : btn.dataset.off;
             } else if (data.status !== 'login_required') {
                 window.gsToast(data.message || 'Не удалось обновить список желаемого');
             }
@@ -144,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="search-result-right">
                     <div class="search-badges">
-                        ${game.discount ? `<span class="discount">-${Number(game.discount)}%</span>` : ''}
+                        ${game.discount ? `<span class="badge badge-discount">-${Number(game.discount)}%</span>` : ''}
                     </div>
                     <div class="search-price-block">
                         ${game.old_price ? `<span class="old-price">${Number(game.old_price)}₴</span>` : ''}
@@ -201,3 +203,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// ---------- Аватары ----------
+// Если файл аватара пропал с сервера, вместо пустого кружка или подписи картинки показываем первую букву имени
+(() => {
+    const showLetter = img => {
+        const letter = document.createElement('span');
+        letter.textContent = img.dataset.letter;
+        if (img.className) letter.className = img.className;
+        if (img.id === 'avatarImg') letter.id = 'avatarLetter';
+        img.replaceWith(letter);
+    };
+    // события error у картинок не всплывают, поэтому слушаем на этапе перехвата
+    document.addEventListener('error', e => {
+        if (e.target instanceof HTMLImageElement && e.target.dataset.letter) showLetter(e.target);
+    }, true);
+    // картинки, которые не загрузились ещё до этого скрипта
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('img[data-letter]').forEach(img => {
+            if (img.complete && !img.naturalWidth) showLetter(img);
+        });
+    });
+})();

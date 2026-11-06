@@ -13,7 +13,7 @@
         {% endif %}
 
         <div class="news-card-meta">
-            <span class="news-badge news-badge-{{ item.category }}">{{ item.get_category_display }}</span>
+            <span class="badge news-badge news-badge-{{ item.category }}">{{ item.get_category_display }}</span>
             <span class="news-date">{{ item.created_at|date:"d E Y" }}</span>
             {% if user.is_staff %}
                 <a href="{% url 'admin:mfs_news_change' item.pk %}" class="catalog-reset">Редактировать</a>

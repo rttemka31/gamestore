@@ -44,7 +44,7 @@
                 <div class="featured-info">
                     <div class="gotw-header">
                         <!-- Таймер слева -->
-                        <span class="featured-label">ИГРА НЕДЕЛИ</span>
+                        <span class="featured-label">Игра недели</span>
 
                         <div class="timer-container">
                             <span id="countdown-timer" class="timer-box">
@@ -68,18 +68,18 @@
                     <div class="featured-bottom">
                         <div class="price-group">
                             {% if featured_game.discount > 0 %}
-                                <span class="discount">-{{ featured_game.discount }}%</span>
-                                <span class="old-featured-price">{{ featured_game.price|floatformat:0 }}₴</span>
-                                <span class="featured-price">{{ featured_game.discounted_price|floatformat:0 }}₴</span>
-                            {% else %}
-                                <div class="featured-block">
-                                    {% if featured_game.price == 0 %}
-                                        <span class="featured-price">Бесплатно</span>
-                                    {% else %}
-                                        <span class="featured-price">{{ featured_game.price|floatformat:0 }}₴</span>
-                                    {% endif %}
-                                </div>
+                                <span class="badge badge-discount">-{{ featured_game.discount }}%</span>
                             {% endif %}
+                            <div class="price-block price-block-lg">
+                                {% if featured_game.discount > 0 %}
+                                    <span class="old-price">{{ featured_game.price|floatformat:0 }}₴</span>
+                                    <span class="price">{{ featured_game.discounted_price|floatformat:0 }}₴</span>
+                                {% elif featured_game.price == 0 %}
+                                    <span class="price">Бесплатно</span>
+                                {% else %}
+                                    <span class="price">{{ featured_game.price|floatformat:0 }}₴</span>
+                                {% endif %}
+                            </div>
                         </div>
                         {% include 'store/_buy_button.html' with game=featured_game %}
                     </div>

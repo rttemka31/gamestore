@@ -1,6 +1,6 @@
 @font-face {
-    font-family: "MyFont";
-    src: url("../fonts/unbounded.ttf") format("opentype");
+    font-family: "Unbounded";
+    src: url("../fonts/unbounded.ttf") format("truetype");
     font-weight: 100 900;
     font-style: normal;
 }
@@ -14,12 +14,12 @@
     --bg-secondary: #17181f;
     --bg-card: #252833;
 
-    --font-display: "MyFont", Inter, sans-serif;
+    --font-display: "Unbounded", Inter, sans-serif;
     --text-primary: #ffffff;
     --text-secondary: #bcc9d6;
-    --text-muted: #7f8b96;
+    --text-muted: #949fab;
 
-    --accent: #6366f1;
+    --accent: #6c71fd;
     --border: rgba(255, 255, 255, 0.2);
     --border-subtle: rgba(255, 255, 255, 0.1);
 
@@ -31,7 +31,7 @@
     --radius-md: calc(10px * var(--radius-scale));
     --radius-big: calc(50px * var(--radius-scale));
 
-    --padding-sm: 7.5px;
+    --padding-sm: 8px;
     --padding-sm2: 15px;
     --padding-md: 20px;
     --padding-big: 30px;

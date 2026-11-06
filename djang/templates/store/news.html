@@ -7,9 +7,6 @@
 <main class="container news-container">
     <div class="catalog-header">
         <h1 class="news-title">Новости</h1>
-        {% if user.is_staff %}
-            <a href="{% url 'admin:mfs_news_add' %}" class="buy-button news-create">+ Новая публикация</a>
-        {% endif %}
     </div>
 
     <!-- Панель фильтрации -->
@@ -24,6 +21,11 @@
                 </a>
             {% endfor %}
         </div>
+
+        {% if user.is_staff %}
+            <!-- Действие над списком — в панели фильтров, справа, той же высоты, что фильтры -->
+            <a href="{% url 'admin:mfs_news_add' %}" class="chip news-create">+ Новая публикация</a>
+        {% endif %}
 
         <form method="get" class="news-search">
             {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}

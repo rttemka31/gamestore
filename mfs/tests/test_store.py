@@ -94,7 +94,8 @@ class CatalogTests(StoreTestCase):
         self.game.collections.add(collection)
         self.game.genres.add(genre)
 
-        with self.assertNumQueries(6):
+        # 7-й запрос — версия сайта для подвала; дальше она берётся из кэша
+        with self.assertNumQueries(7):
             self.client.get(reverse('mfs:index'))
 
         for i in range(5):
@@ -185,7 +186,7 @@ class PagesTests(StoreTestCase):
 
         response = self.client.get(reverse('mfs:cart_detail'))
         self.assertContains(response, 'cart-badges')
-        self.assertContains(response, '<span class="exclusive">Эксклюзив</span>')
+        self.assertContains(response, '<span class="badge badge-exclusive">Эксклюзив</span>')
         self.assertContains(response, '-50%')
 
     def test_cart_count_agrees_with_number(self):
@@ -223,3 +224,36 @@ class PagesTests(StoreTestCase):
         self.client.force_login(self.user)
         response = self.client.post(reverse('mfs:review_submit', args=[self.game.pk]), {'rating': '9'}, follow=True)
         self.assertContains(response, 'message-toast')
+
+
+class FooterTests(StoreTestCase):
+    def test_footer_shows_links_and_current_version(self):
+        News.objects.create(title='V1.1.0', description='x')
+        response = self.client.get(reverse('mfs:index'))
+        self.assertContains(response, 'site-footer')
+        self.assertContains(response, 'Версия 1.1.0')
+        self.assertContains(response, reverse('mfs:register'))  # гостю — вход и регистрация
+
+        self.client.force_login(self.user)
+        self.assertContains(self.client.get(reverse('mfs:index')), reverse('mfs:settings'))
+
+    def test_new_version_appears_without_waiting_for_cache(self):
+        News.objects.create(title='V1.1.0', description='x')
+        self.client.get(reverse('mfs:index'))  # версия попадает в кэш
+        News.objects.create(title='V1.2.0', description='x')
+        self.assertContains(self.client.get(reverse('mfs:index')), 'Версия 1.2.0')
+
+
+class BadgeAndMenuTests(StoreTestCase):
+    def test_game_card_uses_shared_badges(self):
+        Game.objects.filter(pk=self.game.pk).update(is_not_on_steam=True)
+        response = self.client.get(reverse('mfs:catalog'))
+        self.assertContains(response, 'badge badge-discount')
+        self.assertContains(response, 'badge badge-exclusive game-card-label')
+        self.assertNotContains(response, 'not-on-steam-badge2')
+
+    def test_header_has_mobile_menu_button(self):
+        for url in (reverse('mfs:index'), reverse('mfs:login')):
+            response = self.client.get(url)
+            self.assertContains(response, 'class="nav-toggle"')
+            self.assertContains(response, 'aria-controls="siteNav navRight"')

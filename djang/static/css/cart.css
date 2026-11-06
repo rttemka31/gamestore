@@ -1,87 +1,4 @@
-@font-face {
-    font-family: "MyFont";
-    src: url("../fonts/unbounded.ttf") format("opentype");
-    font-weight: 100 900;
-    font-style: normal;
-}
-
-/* =========================
-   ОСНОВНЫЕ НАСТРОЙКИ
-========================= */
-
-:root {
-    --bg-primary: #111216;
-    --bg-secondary: #17181f;
-    --bg-surface: #20222b;
-    --bg-card: #252833;
-    --bg-card-hover: #313442;
-
-    --font-display: "MyFont", Inter, sans-serif;
-    --text-primary: #ffffff;
-    --text-secondary: #b4c1ce;
-    --text-muted: #7f8b96;
-
-    --accent: #6366f1;
-    --success: #22c55e;
-    --danger: #c7312a;
-
-    --border: rgba(255, 255, 255, 0.2);
-    --border-accent: #3e3e70;
-    --border-subtle: rgba(255, 255, 255, 0.1);
-
-    --shadow: rgba(0, 0, 0, 0.2);
-    --shadow2: 0 15px 25px rgba(0, 0, 0, 0.5);
-    --font-scale: 1;
-    --radius-scale: 1;
-    --radius-verysm: calc(2.5px * var(--radius-scale));
-    --radius-sm: calc(5px * var(--radius-scale));
-    --radius-md: calc(10px * var(--radius-scale));
-    --radius-big: calc(50px * var(--radius-scale));
-
-    --padding-sm: 7.5px;
-    --padding-sm2: 15px;
-    --padding-md: 20px;
-    --padding-big: 30px;
-
-    --text-normal: 500;
-    --text-semibold: 600;
-    --text-bold: 700;
-    --transition: 0.2s ease;
-}
-
-html[data-font="0"]   { --font-scale: 0.9; }
-html[data-font="2"]   { --font-scale: 1.15; }
-html[data-radius="0"] { --radius-scale: 0.5; }
-html[data-radius="2"] { --radius-scale: 1.75; }
-
-body {
-    margin: 0;
-
-    background:
-        radial-gradient(
-            circle at 50% 0%,
-            #282a36 0%,
-            #17181f 35%,
-            #111216 70%
-        );
-
-    background-attachment: fixed;
-
-    color: #d6d7d8;
-
-    font-family:
-        Inter,
-        Helvetica,
-        sans-serif;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-html {
-    scroll-behavior: smooth;
-}
+/* Токены, шрифт и базовые стили (body, настройки размера и скругления) — в style.css */
 
 .cart-link {
     color: var(--text-secondary);
@@ -148,7 +65,7 @@ html {
 .cart-items {
     display: flex;
     flex-direction: column;
-    gap: 7.5px;
+    gap: var(--space-2);
 }
 
 .cart-item {
@@ -165,9 +82,15 @@ html {
     transition: transform 0.3s, box-shadow 0.3s, background 0.3s; 
 }
 
+/* Без filter на всей карточке: он переводит её в отдельный слой, и Chrome рисует текст
+   другим сглаживанием — буквы при наведении будто меняют толщину. Светлеет только обложка */
 .cart-item:hover {
+    background: var(--bg-card-hover);
+    box-shadow: var(--shadow-md);
+}
+
+.cart-item:hover .cart-cover img {
     filter: brightness(1.10);
-    box-shadow: 0 15px 25px var(--shadow);
 }
 
 .cart-item::after {
@@ -240,27 +163,6 @@ html {
     margin-bottom: 5px;
 }
 
-.exclusive {
-    display: inline-block;
-    background-color: var(--bg-secondary);
-    font-weight: var(--text-semibold);
-    padding: 7px 6px;
-    border-radius: var(--radius-sm);
-}
-
-.exclusive {
-    font-family: var(--font-display);
-    border: 2px solid var(--border);
-    background: transparent;
-    display: inline-flex;
-    align-items: center;
-    color: #e2e8f0;
-    font-size: calc(14px * var(--font-scale, 1));
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    backdrop-filter: blur(5px); background: rgba(0, 0, 0, 0.6); color: #fff;
-}
-
 .title-row {
     display: flex;
     align-items: center;
@@ -289,13 +191,8 @@ html {
     text-decoration: underline;
 }
 
-.remove-btn a:hover {
-    color: var(--danger);;
-    text-decoration: underline;
-}
-
 .remove-btn:hover {
-    color: var(--danger);
+    color: var(--danger-text);
     text-decoration: underline;
 }
 
@@ -307,13 +204,6 @@ html {
 /* =========================
    PRICE
 ========================= */
-
-.price-block {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 5px;
-}
 
 .cart-price {
     flex-shrink: 0;
@@ -346,36 +236,6 @@ html {
     gap: var(--padding-sm);
 }
 
-/* Одинаковая высота: с рамкой и без неё значки не отличаются */
-.cart-badges .exclusive,
-.cart-badges .discount {
-    height: calc(30px * var(--font-scale, 1));
-    padding: 7px 6px;
-    line-height: 1;
-}
-
-.discount {
-    font-family: var(--font-display);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--success);
-    color: var(--bg-primary);
-    padding: 7px 6px;
-    font-size: calc(16px * var(--font-scale, 1));
-    border-radius: var(--radius-sm);
-    font-weight: var(--text-semibold);
-    line-height: 1;
-    letter-spacing: 0.3px;
-}
-
-.old-price {
-    color: var(--text-muted);
-    font-size: calc(13px * var(--font-scale, 1));
-    line-height: 1;
-    text-decoration: line-through;
-}
-
 .current-price {
     color: var(--text-primary);
     font-size: calc(18px * var(--font-scale, 1));
@@ -396,7 +256,7 @@ html {
     border:
         2px solid var(--border);
     border-radius: var(--radius-md);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
     position: sticky;
     top: 100px;
     min-height: 300px;
@@ -445,13 +305,13 @@ html {
     justify-content: space-between;
     color: var(--text-primary);
     font-size: calc(18px * var(--font-scale, 1));
-    margin-top: 7.5px;
+    margin-top: var(--space-2);
     
 }
 
 .total-row strong {
     font-size: calc(24px * var(--font-scale, 1));
-    margin-top: 7.5px;
+    margin-top: var(--space-2);
 }
 
 /* =========================
@@ -512,7 +372,7 @@ html {
     background: var(--bg-surface);
     border:
         2px solid var(--border);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
     border-radius: var(--radius-md);
 }
 
@@ -568,12 +428,12 @@ html {
 }
 
 .buy-button.in-cart {
-    background: #10b981 !important;
-    color: #ffffff !important;
+    background: var(--success) !important;
+    color: var(--text-primary) !important;
 }
 
 .buy-button.in-cart:hover {
-    background: #059669 !important;
+    background: color-mix(in srgb, var(--success) 80%, black) !important;
 }
 
 /* =========================
@@ -581,10 +441,6 @@ html {
 ========================= */
 
 @media (max-width: 900px) {
-
-    .navbar {
-        padding: 0 4%;
-    }
 
     .cart-layout {
         grid-template-columns: 1fr;
@@ -596,20 +452,7 @@ html {
 
 }
 
-
 @media (max-width: 650px) {
-    .navbar {
-        height: auto;
-        padding: 20px 5%;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .nav-left {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 15px;
-    }
 
     .cart-container {
         width: 92%;
@@ -617,7 +460,7 @@ html {
     }
 
     .cart-title h1 {
-        font-size: 28px;
+        font-size: 32px;
     }
 
     .cart-item {
@@ -652,117 +495,13 @@ html {
     }
 }
 
-.install-btn {
-    border: none;
-    background: var(--bg-card-hover);
-    color: var(--text-primary);
-    padding: 9px 14px;
-    border-radius: var(--radius-sm);
-    font-weight: var(--text-semibold);
-    font-size: calc(16px * var(--font-scale, 1));
-    cursor: pointer;
-    transition: transform var(--transition);
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
-    outline: 1px solid transparent;
-
-    transition: transform 0.2s ease-out;
-
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-.install-btn:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
-}
-
-.install-btn:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
-} 
-
 .cart-badge {
     background:  var(--accent);
     color: var(--text-primary);
     font-size: calc(14px * var(--font-scale, 1));
     padding: 2px 10px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     margin-left: var(--padding-sm);
-}
-
-/* =========================
-   USER DROPDOWN
-========================= */
-
-.user-dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-.user-dropdown-menu {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    right: auto;
-    background-color: var(--bg-secondary);
-    border: 2px solid var(--border);
-    box-shadow: 0px 8px 16px var(--shadow2);
-    border-radius: var(--radius-sm);
-    z-index: 1000;
-    min-width: 130px;
-    padding: 0px 0;
-    text-align: center;
-    white-space: nowrap;
-
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transform: translateX(-50%) translateY(-6px);
-    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
-}
-
-.user-dropdown-menu.show {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: translateX(-50%) translateY(6px);
-}
-
-.user-dropdown-menu .logout-item {
-    display: block;
-    padding: 12px 16px;
-    color: var(--text-secondary);
-    text-decoration: none !important;
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-normal);
-    border-radius: var(--radius-sm);
-    transition: background 0.2s, color 0.2s;
-}
-
-.user-dropdown-menu .logout-item:hover {
-    background-color: var(--danger);
-    color: var(--text-primary) !important;
-}
-
-.user-dropdown-menu .admin-item {
-    display: block;
-    padding: 12px 16px;
-    color: var(--text-secondary);
-    text-decoration: none !important;
-    border-radius: var(--radius-sm);
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-normal);
-    transition: background 0.2s, color 0.2s, filter 0.2s;
-}
-
-.user-dropdown-menu .admin-item:hover {
-    filter: brightness(1.10);
-    background-color: var(--bg-card-hover);
-    color: var(--text-primary) ;
-}
-
-.arrow-down {
-    display: inline-block;
-    transform: rotate(90deg);
 }
 
 .recommendations-section {
@@ -832,7 +571,7 @@ a.game-card::after {
 
 a.game-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
 }
 
 .rec-card {
@@ -848,17 +587,16 @@ a.game-card:hover {
     
     transition: transform 0.3s, 
                 box-shadow 0.3s,
-                background 0.3s,
-                filter 0.3s;
+                background 0.3s;
     
     will-change: transform;
 }
 
+/* без filter: он меняет сглаживание текста при наведении (см. .cart-item:hover) */
 .rec-card:hover {
     transform: translateY(-8px);
     background: var(--bg-card-hover);
-    filter: brightness(1.10);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
 }
 
 .rec-card::after {
@@ -921,9 +659,11 @@ a.game-card:hover {
     min-height: 30px;
 }
 
+/* как цена в карточках магазина */
 .rec-price {
-    font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
+    font-size: calc(18px * var(--font-scale, 1));
+    font-weight: var(--text-bold);
+    line-height: 1;
     color: var(--text-primary);
 }
 
@@ -1005,4 +745,37 @@ a.game-card:hover {
     border: none;
     font-size: calc(14px * var(--font-scale, 1));
     cursor: pointer;
+}
+
+/* Телефоны. Стоит в конце файла: базовые правила рекомендаций и пустой корзины объявлены выше
+   и иначе перебили бы эти */
+@media (max-width: 650px) {
+    /* Рекомендации: три карточки в ширину телефона не помещаются — листаются лентой, одна видна целиком */
+    .recommendations-grid {
+        display: flex;
+        gap: var(--space-3);
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding-bottom: var(--space-2);
+        scrollbar-width: none;
+    }
+
+    .recommendations-grid::-webkit-scrollbar {
+        display: none;
+    }
+
+    .rec-card {
+        flex: 0 0 78%;
+        scroll-snap-align: start;
+    }
+
+    .rec-card:hover {
+        transform: none;
+    }
+
+    /* пустая корзина не должна занимать полэкрана */
+    .empty-cart {
+        min-height: 0;
+        padding: var(--space-6) var(--space-4);
+    }
 }

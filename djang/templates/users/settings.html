@@ -5,7 +5,7 @@
 {% block title %}GameStore | Настройки{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/settings.css' %}?v=13">
+    <link rel="stylesheet" href="{% static 'css/settings.css' %}?v=16">
 
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>
@@ -13,7 +13,6 @@
             --accent: {{ user.profile.accent_color }};
             --accent-color: {{ user.profile.accent_color }};
             --accent-hover: {{ user.profile.accent_color }}cc;
-            --border-accent: color-mix(in srgb, var(--accent) 35%, black);
         }
 
         body.no-blur, body.no-blur * {
@@ -45,7 +44,7 @@
             font-weight: var(--text-normal);
             white-space: nowrap;
             line-height: 1;
-            font-family: "MyFont", Inter, sans-serif;
+            font-family: var(--font-display);
             background: rgba(0, 0, 0, 0.6);
             color: var(--text-primary);
             border-radius: var(--radius-sm);
@@ -150,7 +149,7 @@
                             <div class="avatar-wrapper" id="avatarWrapper">
                                 <div class="settings-avatar" id="avatarPreview">
                                     {% if user.profile.avatar %}
-                                        <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" id="avatarImg">
+                                        <img src="{{ user.profile.avatar.url }}" alt="" data-letter="{{ user.username|first|upper }}" id="avatarImg">
                                     {% else %}
                                         <span id="avatarLetter">{{ user.username|first|upper }}</span>
                                     {% endif %}
@@ -166,7 +165,7 @@
                                 <div class="settings-field">
                                     <div style="display: flex; justify-content: space-between; align-items: center;">
                                         <label for="username">Имя пользователя</label>
-                                        <small id="NameCounter" style="color: var(--text-muted); font-size: 13px;">0 / 24</small>
+                                        <small id="NameCounter" style="color: var(--text-muted); font-size: 12px;">0 / 24</small>
                                     </div>
                                     <input type="text" id="username" name="username" value="{{ user.username }}" maxlength="24">
                                 </div>
@@ -180,7 +179,7 @@
                             <div class="settings-field">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <label for="bio">О себе</label>
-                                    <small id="bioCounter" style="color: var(--text-muted); font-size: 13px;">0 / 150</small>
+                                    <small id="bioCounter" style="color: var(--text-muted); font-size: 12px;">0 / 150</small>
                                 </div>
                                 <textarea id="bio" name="bio" rows="2" maxlength="150" placeholder="Нет описания">{% if user.profile.bio and user.profile.bio != "None" %}{{ user.profile.bio }}{% endif %}</textarea>
                             </div>
@@ -586,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const max = Number(zoomSlider.max);
         const pct = (zoomSlider.value - min) / (max - min) * 100;
         zoomSlider.style.background =
-            `linear-gradient(to right, var(--accent, #6366f1) ${pct}%, rgba(255,255,255,.15) ${pct}%)`;
+            `linear-gradient(to right, var(--accent, #6c71fd) ${pct}%, rgba(255,255,255,.15) ${pct}%)`;
     }
  
     zoomSlider.addEventListener('input', () => setZoom(zoomSlider.value));

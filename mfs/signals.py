@@ -2,11 +2,19 @@ import os
 
 from django.conf import settings
 from django.contrib.auth.signals import user_logged_in, user_login_failed
+from django.core.cache import cache
 from django.db.models.signals import pre_save, post_delete, post_save
 from django.dispatch import receiver
 
-from .models import Profile
+from .models import News, Profile
 from .security import record_login_failure, reset_login_failures
+from .templatetags.store_extras import SITE_VERSION_CACHE_KEY
+
+
+@receiver([post_save, post_delete], sender=News)
+def forget_site_version(sender, **kwargs):
+    """Новая новость с номером версии должна сразу появиться в подвале."""
+    cache.delete(SITE_VERSION_CACHE_KEY)
 
 
 @receiver(user_login_failed)

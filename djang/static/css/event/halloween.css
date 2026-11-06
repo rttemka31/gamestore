@@ -19,12 +19,14 @@ html[data-season="halloween"] {
 
     --text-primary: #fff6ec;
     --text-secondary: #e0cbb3;
-    --text-muted: #9c8468;
+    --text-muted: #b39c80;      /* светлее не нужно, темнее — серый текст на карточках не читается */
 
     --accent: #ff7a1a;          /* тыквенный оранжевый */
+    --accent-text: var(--accent); /* оранжевый и так хорошо читается на тёмном, осветлять не нужно */
     --on-accent: #1a0d03;
     --success: #a6e22e;         /* токсично-зелёный для скидок — меняйте на свой вкус */
     --danger: #ff3b2f;
+    --danger-text: var(--danger);
 
     --font-scale: 1;
     --radius-scale: 1;
@@ -34,7 +36,7 @@ html[data-season="halloween"] {
     --radius-big: calc(50px * var(--radius-scale));
 
     --border: rgba(255, 160, 80, 0.26);
-    --border-accent: #6b3c17;
+    --border-accent: #8a5426;   /* рамки полей ввода: контраст с фоном не ниже 3:1 */
     --border-subtle: rgba(255, 160, 80, 0.12);
     --shadow: rgba(0, 0, 0, 0.5);
 
@@ -68,7 +70,7 @@ html[data-season="halloween"] {
         left: 0;
         top: 0;
         width: 130px;
-        height: 100%;
+        height: min(100%, 74px); /* только первая строка шапки: в открытом мобильном меню паутина не растягивается */
         opacity: 0.4;
         pointer-events: none;
         background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none' fill='none' stroke='%23ffb36b' stroke-width='1.2'%3E%3Cpath d='M0 0L100 0M0 0L92 38M0 0L72 72M0 0L38 92M0 0L0 100'/%3E%3Cpath d='M28 0Q22 22 0 28M52 0Q40 40 0 52M78 0Q58 58 0 78'/%3E%3C/svg%3E") no-repeat left top / 100% 100%;
@@ -139,11 +141,6 @@ html[data-season="halloween"] {
         border-color: rgba(199, 155, 255, 0.4);
     }
 
-    & .badge-exclusive,
-    & .not-on-steam-badge2 {
-        border-color: rgba(255, 122, 26, 0.5);
-    }
-
     /* ---------- Поля ввода и свечение при фокусе (были фиолетовые) ---------- */
     & .search-box:focus-within,
     & .form-group input:focus,
@@ -187,6 +184,10 @@ html[data-season="halloween"] {
     @media (max-width: 600px) {
         & .navbar::before { width: 80px; }
     }
+
+    @media (max-width: 768px) {
+        & .navbar::before { height: min(100%, 64px); } /* на телефоне строка шапки ниже */
+    }
 }
 
 /* ---------- Тумблер темы ---------- */
@@ -195,7 +196,7 @@ html[data-season="halloween"] {
     align-items: center;
     gap: 10px;
     height: 42px;
-    padding: 0 7.5px;
+    padding: 0 var(--space-2);
     border: 2px solid transparent;
     border-radius: var(--radius-sm);
     background: var(--bg-card);
@@ -216,7 +217,7 @@ html[data-season="halloween"] {
     position: relative;
     width: 50px;
     height: 25px;
-    border-radius: 99px;
+    border-radius: var(--radius-pill);
     background: var(--bg-card-hover);
     transition: background 0.2s;
 }

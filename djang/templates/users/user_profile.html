@@ -52,7 +52,7 @@
                             <div class="profile-avatar">
                                 {% if target.avatar %}
                                 <img src="{{ target.avatar.url }}"
-                                     alt="{{ target.user.username }}">
+                                     alt="" data-letter="{{ target.user.username|first|upper }}">
                                 {% else %}
                                 <span>{{ target.user.username|first|upper }}</span>
                                 {% endif %}
@@ -258,7 +258,7 @@
                                 <div class="activity-cover">
                                     {% if item.profile.avatar %}
                                     <img src="{{ item.profile.avatar.url }}"
-                                         alt="{{ item.profile.user.username }}">
+                                         alt="" data-letter="{{ item.profile.user.username|first|upper }}">
                                     {% else %}
                                     <span>
                                         {{ item.profile.user.username|first|upper }}

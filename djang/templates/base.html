@@ -7,8 +7,8 @@
     <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}GameStore{% endblock %}</title>
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=40">
-    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=50">
+    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=6">
     <script src="{% static 'js/event/halloween.js' %}"></script>
     <link id="siteIcon" rel="icon"
         href="{% static 'img/icons/gamestore.png' %}?v=2"
@@ -26,7 +26,6 @@
             --accent: {{ user.profile.accent_color }};
             --accent-color: {{ user.profile.accent_color }};
             --accent-hover: {{ user.profile.accent_color }}cc;
-            --border-accent: color-mix(in srgb, var(--accent) 40%, black);
         }
         body.no-blur, body.no-blur * {
             backdrop-filter: none !important;
@@ -45,14 +44,16 @@
     <header class="navbar">
         <div class="nav-left">
             <div class="logo">GAME<span>STORE</span></div>
-            <a href="{% url 'mfs:index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">МАГАЗИН</a>
-            <a href="{% url 'mfs:catalog' %}" class="nav-link {% if request.resolver_match.url_name == 'catalog' %}active{% endif %}">КАТАЛОГ</a>
-            <a href="{% url 'mfs:library' %}" class="nav-link {% if request.resolver_match.url_name == 'library' %}active{% endif %}">БИБЛИОТЕКА</a>
-            <a href="{% url 'mfs:news' %}" class="nav-link {% if request.resolver_match.url_name == 'news' %}active{% endif %}">НОВОСТИ</a>
+            <nav class="nav-links" id="siteNav" aria-label="Разделы сайта">
+                <a href="{% url 'mfs:index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">МАГАЗИН</a>
+                <a href="{% url 'mfs:catalog' %}" class="nav-link {% if request.resolver_match.url_name == 'catalog' %}active{% endif %}">КАТАЛОГ</a>
+                <a href="{% url 'mfs:library' %}" class="nav-link {% if request.resolver_match.url_name == 'library' %}active{% endif %}">БИБЛИОТЕКА</a>
+                <a href="{% url 'mfs:news' %}" class="nav-link {% if request.resolver_match.url_name == 'news' %}active{% endif %}">НОВОСТИ</a>
+            </nav>
         </div>
 
-        <div class="nav-right">
-            <a href="{% url 'mfs:cart_detail' %}" class="nav-link {% if request.resolver_match.url_name == 'cart_detail' %}active{% endif %}">
+        <div class="nav-right" id="navRight">
+            <a href="{% url 'mfs:cart_detail' %}" class="nav-link nav-cart-link {% if request.resolver_match.url_name == 'cart_detail' %}active{% endif %}">
                 КОРЗИНА
                 <span class="cart-badge" {% if not request.session.cart %}style="display: none;"{% endif %}>
                     {{ request.session.cart|length }}
@@ -82,10 +83,21 @@
                 <a href="{% url 'mfs:login' %}" class="nav-link">ВХОД</a>
             {% endif %}
         </div>
+
+        <a href="{% url 'mfs:cart_detail' %}" class="nav-cart-mobile" aria-label="Корзина">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.6 12.2a2 2 0 0 0 2 1.6h8.1a2 2 0 0 0 2-1.5L22 8H6.2"/></svg>
+            <span class="cart-badge" {% if not request.session.cart %}style="display: none;"{% endif %}>{{ request.session.cart|length }}</span>
+        </a>
+        <!-- Телефоны: кнопка меню; разделы и меню пользователя раскрываются по ней -->
+        <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="siteNav navRight" aria-label="Открыть меню">
+            <span></span><span></span><span></span>
+        </button>
     </header>
 
     <!-- Основное содержимое каждой страницы -->
     {% block content %}{% endblock %}
+
+    {% include '_footer.html' %}
 
     {% if messages %}
     <div class="messages-stack" role="status">
@@ -141,7 +153,8 @@
             }
         });
     </script>
-    <script src="{% static 'js/store.js' %}?v=1"></script>
+    <script src="{% static 'js/store.js' %}?v=5"></script>
+    <script src="{% static 'js/nav.js' %}?v=1"></script>
     {% block extra_js %}{% endblock %}
     <div id="installToast" class="toast-notification">
     Приложение пока недоступно для установки

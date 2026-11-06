@@ -1,0 +1,37 @@
+{% load store_extras %}
+{% site_version as version %}
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <div class="site-footer-brand">
+            <div class="logo">GAME<span>STORE</span></div>
+            <p>Цифровая платформа и интернет-магазин видеоигр с личным профилем и каталогом.</p>
+        </div>
+
+        <nav class="site-footer-col" aria-label="Магазин">
+            <h2>Магазин</h2>
+            <a href="{% url 'mfs:catalog' %}">Каталог</a>
+            <a href="{% url 'mfs:news' %}">Новости</a>
+            <a href="{% url 'mfs:catalog' %}?category=free">Бесплатные игры</a>
+            <a href="{% url 'mfs:catalog' %}?category=sale">Со скидкой</a>
+        </nav>
+
+        <nav class="site-footer-col" aria-label="Аккаунт">
+            <h2>Аккаунт</h2>
+            {% if user.is_authenticated %}
+                <a href="{% url 'mfs:profile' %}">Профиль</a>
+                <a href="{% url 'mfs:library' %}">Библиотека</a>
+                <a href="{% url 'mfs:profile' %}#wishlist">Желаемое</a>
+                <a href="{% url 'mfs:settings' %}">Настройки</a>
+            {% else %}
+                <a href="{% url 'mfs:login' %}">Вход</a>
+                <a href="{% url 'mfs:register' %}">Регистрация</a>
+            {% endif %}
+        </nav>
+    </div>
+
+    <div class="site-footer-bottom">
+        <span>© {% now "Y" %} GameStore</span>
+        <span>Создатели: rttemka31 и Claude</span>
+        {% if version %}<a href="{{ version.url }}">Версия {{ version.number }}</a>{% endif %}
+    </div>
+</footer>

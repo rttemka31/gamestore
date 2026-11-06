@@ -4,7 +4,7 @@
 {% block title %}GameStore | Библиотека{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/library.css' %}?v=24">
+    <link rel="stylesheet" href="{% static 'css/library.css' %}?v=29">
 {% endblock %}
 
 {% block content %}
@@ -12,12 +12,12 @@
 
     <!-- Левая панель -->
     <aside class="steam-sidebar">
-        <div class="sidebar-title">ИЗБРАННОЕ (<span data-fav-count>{{ favorites|length }}</span> из {{ max_favorites }})</div>
+        <div class="sidebar-title">Избранное (<span data-fav-count>{{ favorites|length }}</span> из {{ max_favorites }})</div>
         <ul class="sidebar-list favorites-list" data-favorites data-layout="library" data-url="{% url 'mfs:favorites_update' %}">
             {% include 'store/_library_favorites.html' %}
         </ul>
 
-        <div class="sidebar-title">ВСЕ ({{ games|length }})</div>
+        <div class="sidebar-title">Все ({{ games|length }})</div>
         <ul class="sidebar-list">
             {% for game in games %}
                 <li class="sidebar-item {% if active_id %}{% if game.id == active_id %}active{% endif %}{% else %}{% if forloop.first %}active{% endif %}{% endif %}"
@@ -67,11 +67,11 @@
                 </div>
 
                 <div class="action-bar">
-                    <a id="playBtn" href="#" class="play-button">▶ ИГРАТЬ</a>
+                    <a id="playBtn" href="#" class="play-button">▶ Играть</a>
 
                     <div class="status-running" id="runningStatus" hidden>
                         <span class="status-dot" aria-hidden="true"></span>
-                        В ИГРЕ
+                        В игре
                         <span class="running-timer" id="runningTimer" aria-label="Время сеанса">0:00:00</span>
                     </div>
                     <button type="button" class="stop-button" id="stopBtn" hidden>■ Выйти из игры</button>
