@@ -1,6 +1,6 @@
 @font-face {
     font-family: "MyFont";
-    src: url("fonts/unbounded.ttf") format("opentype"); /* Если файлы лежит в папке css/, замените на url("../fonts/reg.otf") */
+    src: url("../fonts/unbounded.ttf") format("opentype");
     font-weight: 100 900;
     font-style: normal;
 }
@@ -908,8 +908,9 @@ a.game-card:hover {
 
 .rec-card-genre .chip {
     flex-shrink: 0;
-    padding: 3px 9px;
-    font-size: calc(13px * var(--font-scale, 1));
+    gap: var(--padding-sm);
+    padding: 6px 7px;
+    font-size: calc(14px * var(--font-scale, 1));
 }
 
 .rec-card-footer {

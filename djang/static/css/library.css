@@ -1,6 +1,6 @@
 @font-face {
     font-family: "MyFont";
-    src: url("fonts/unbounded.ttf") format("opentype"); /* Если файлы лежит в папке css/, замените на url("../fonts/reg.otf") */
+    src: url("../fonts/unbounded.ttf") format("opentype");
     font-weight: 100 900;
     font-style: normal;
 }
@@ -501,12 +501,11 @@ body {
 
 
 
+/* Прокручивается сама страница, а список игр закреплён под шапкой (74px):
+   так у библиотеки один обычный скроллбар и прокрутка такая же плавная, как на остальных страницах */
 .steam-container {
     display: flex;
-    /* 74px — высота шапки: иначе страница длиннее окна и появляется второй скроллбар */
-    height: calc(100vh - 74px);
-    height: calc(100dvh - 74px);
-    overflow: hidden;
+    align-items: flex-start;
 }
 
 .steam-sidebar {
@@ -516,6 +515,9 @@ body {
     border-right: 2px solid var(--border-subtle);
     display: flex;
     flex-direction: column;
+    position: sticky;
+    top: 74px;
+    height: calc(100vh - 74px);
 }
 
 .sidebar-title {
@@ -584,8 +586,9 @@ body {
 /* --- ПРАВАЯ ЧАСТЬ (СТРАНИЦА ИГРЫ) --- */
 .steam-main {
     flex: 1;
+    min-width: 0;
+    min-height: calc(100vh - 74px);
     background-color: var(--bg-primary);
-    overflow-y: auto;
 }
 
 .game-detail-wrapper {
@@ -1057,11 +1060,12 @@ body {
 @media (max-width: 768px) {
     .steam-container {
         flex-direction: column;
-        height: auto;
-        overflow: visible;
+        align-items: stretch;
     }
 
     .steam-sidebar {
+        position: static;
+        height: auto;
         width: 100%;
         min-width: 0;
         border-right: none;
@@ -1069,7 +1073,7 @@ body {
     }
 
     .steam-main {
-        overflow: visible;
+        min-height: 0;
     }
 
     .sidebar-list:not(.favorites-list) {
@@ -1409,7 +1413,7 @@ body {
     padding: 2px 7px;
     color: var(--bg-primary);
     background: var(--success);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-verysm);
     font-size: calc(13px * var(--font-scale, 1));
     font-weight: var(--text-bold);
     white-space: nowrap;

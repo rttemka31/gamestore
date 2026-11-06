@@ -1,6 +1,6 @@
 @font-face {
     font-family: "MyFont";
-    src: url("fonts/unbounded.ttf") format("opentype"); /* Если файлы лежит в папке css/, замените на url("../fonts/reg.otf") */
+    src: url("../fonts/unbounded.ttf") format("opentype");
     font-weight: 100 900;
     font-style: normal;
 }
@@ -793,6 +793,17 @@ a.game-card:hover::after {
     background: var(--bg-card-hover);
 }
 
+/* Chrome на Windows иначе рисует у прокручиваемых блоков белые кнопки-стрелки сверху и снизу */
+::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
 /* =========================
    AUTORIZATION
 ========================= */
@@ -865,6 +876,113 @@ a.game-card:hover::after {
     font-size: calc(14px * var(--font-scale, 1));
     margin-bottom: 25px;
     text-align: center;
+}
+
+/* Вход и регистрация: слева медленно едет галерея скриншотов сайта, справа форма */
+.auth-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+    gap: 70px;
+    align-items: center;
+    max-width: 1240px;
+    min-height: calc(100vh - 74px);
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+.auth-layout .auth-container {
+    flex-direction: column;
+    min-height: 0;
+    padding: 40px 0;
+}
+
+.auth-tagline {
+    margin: 0 0 18px;
+    color: var(--text-secondary);
+    font-size: calc(15px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-align: center;
+}
+
+.auth-showcase {
+    display: flex;
+    gap: 20px;
+    height: calc(100vh - 74px);
+    max-height: 1200px;
+    overflow: hidden;
+    /* верх и низ галереи растворяются в фоне */
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 15%, #000 85%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 15%, #000 85%, transparent);
+}
+
+.auth-showcase-column {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Набор картинок повторён трижды, а padding-bottom равен gap: сдвиг на треть дорожки — ровно
+   один набор, поэтому круг замыкается без рывка, а двух оставшихся наборов хватает на всю высоту галереи */
+.auth-showcase-track {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-bottom: 20px;
+    animation: auth-showcase-scroll 60s linear infinite;
+    will-change: transform;
+}
+
+.auth-showcase-column:nth-child(2) .auth-showcase-track {
+    animation-duration: 70s;
+    animation-direction: reverse;
+    animation-delay: -12s; /* колонки начинают со сдвигом, а не ровными рядами */
+}
+
+.auth-showcase img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 2px solid transparent; /* рамка есть всегда, но видна только при наведении — как у карточек игр в магазине */
+    border-radius: var(--radius-md);
+    box-shadow: 0 15px 25px var(--shadow);
+    transition: border-color 0.3s, filter 0.3s;
+}
+
+.auth-showcase img:hover {
+    border-color: var(--border);
+    filter: brightness(1.10);
+}
+
+@keyframes auth-showcase-scroll {
+    from { transform: translateY(0); }
+    to { transform: translateY(calc(-100% / 3)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-showcase-track {
+        animation: none;
+    }
+}
+
+html[data-motion="reduced"] .auth-showcase-track {
+    animation: none !important;
+}
+
+/* На узких экранах галерея не помещается рядом с формой — остаётся только форма */
+@media (max-width: 900px) {
+    .auth-layout {
+        display: block;
+        min-height: 0;
+        padding: 0;
+    }
+
+    .auth-showcase {
+        display: none;
+    }
+
+    .auth-layout .auth-container {
+        min-height: 65vh;
+        padding: 30px 16px;
+    }
 }
 
 .logout-btn {
@@ -1841,12 +1959,14 @@ a.game-card:hover::after {
     transition: opacity 0.2s ease, background 0.2s ease;
 }
 
+/* Круглая зона наведения: иначе углы квадратной обёртки затемняли аватар без размытия */
+.profile-avatar-wrapper {
+    border-radius: 50%;
+}
+
 .profile-avatar-wrapper:hover .avatar-overlay {
     opacity: 1;
     pointer-events: auto; /* теперь можно кликнуть по лейблу и открыть file input */
-}
- 
-.avatar-overlay:hover {
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(1px);
 }
@@ -3639,7 +3759,20 @@ html[data-motion="reduced"] *::after {
     align-items: center;
 }
 
+/* ♡ и ♥ берутся из разных шрифтов с разной высотой: без фиксированной высоты строки
+   кнопка при нажатии становится ниже, и вся страница сдвигается */
+.purchase-actions .buy-button {
+    line-height: 1.25;
+}
+
+.wishlist-wide {
+    min-width: 10.5em;
+    text-align: center;
+}
+
 .wishlist-wide.active {
+    background: var(--bg-card-hover);
+    background: color-mix(in srgb, var(--accent) 22%, var(--bg-card-hover));
     box-shadow: inset 0 0 0 2px var(--accent);
 }
 

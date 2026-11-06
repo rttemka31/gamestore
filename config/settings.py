@@ -121,6 +121,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Пароли хешируются scrypt: он требует много памяти на каждую проверку, поэтому подбирать
+# украденные хеши на видеокартах намного дороже, чем PBKDF2. Старые хеши PBKDF2 продолжают
+# работать и сами переписываются в scrypt при следующем входе пользователя.
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.ScryptPasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+]
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -150,7 +159,7 @@ LOGIN_URL = '/login/'
 SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
+    'mfs.security.RateLimitedModelBackend',  # обычный вход + блокировка после серии неудачных попыток
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 

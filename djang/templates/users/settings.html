@@ -5,7 +5,7 @@
 {% block title %}GameStore | Настройки{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static '/css/settings.css' %}?v=12">
+    <link rel="stylesheet" href="{% static 'css/settings.css' %}?v=13">
 
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>
@@ -105,31 +105,31 @@
             <!-- Левая навигация по разделам -->
             <nav class="settings-nav">
                 <a href="#profile" class="settings-nav-link active">
-                    <img src="{% static 'css/icons/profile.png' %}" alt="" class="nav-icon">
+                    <img src="{% static 'img/icons/profile.png' %}" alt="" class="nav-icon">
                     Профиль
                 </a>
                 <a href="#security" class="settings-nav-link">
-                    <img src="{% static 'css/icons/savety.png' %}" alt="" class="nav-icon">
+                    <img src="{% static 'img/icons/savety.png' %}" alt="" class="nav-icon">
                     Безопасность
                 </a>
                 <a href="#appearance" class="settings-nav-link">
-                    <img src="{% static 'css/icons/appearance.png' %}" alt="" class="nav-icon">
+                    <img src="{% static 'img/icons/appearance.png' %}" alt="" class="nav-icon">
                     Внешний вид
                 </a>
                 <a href="#catalog" class="settings-nav-link">
-                    <img src="{% static 'css/icons/catalog.png' %}" alt="" class="nav-icon">
+                    <img src="{% static 'img/icons/catalog.png' %}" alt="" class="nav-icon">
                     Каталог
                 </a>
                 <a href="#privacy" class="settings-nav-link">
-                    <img src="{% static 'css/icons/privacy.png' %}" alt="" class="nav-icon">
+                    <img src="{% static 'img/icons/privacy.png' %}" alt="" class="nav-icon">
                     Приватность
                 </a>
                 <a href="#about" class="settings-nav-link">
-                    <img src="{% static 'css/icons/about.png' %}" alt="" class="nav-icon">
+                    <img src="{% static 'img/icons/about.png' %}" alt="" class="nav-icon">
                     О сайте
                 </a>
                 <a href="#danger" class="settings-nav-link settings-nav-danger">
-                    <img src="{% static 'css/icons/delete.png' %}" alt="" class="nav-icon">
+                    <img src="{% static 'img/icons/delete.png' %}" alt="" class="nav-icon">
                     Удалить аккаунт
                 </a>
             </nav>
@@ -462,6 +462,15 @@
                     <form method="post" action="{% url 'mfs:settings' %}" class="settings-form" onsubmit="return confirm('Удалить аккаунт без возможности восстановления?');">
                         {% csrf_token %}
                         <input type="hidden" name="form" value="delete_account">
+                        <div class="settings-field">
+                            {% if user.has_usable_password %}
+                                <label for="delete_confirmation">Введите пароль для подтверждения</label>
+                                <input type="password" id="delete_confirmation" name="confirmation" autocomplete="current-password" required>
+                            {% else %}
+                                <label for="delete_confirmation">Введите имя пользователя «{{ user.username }}» для подтверждения</label>
+                                <input type="text" id="delete_confirmation" name="confirmation" autocomplete="off" required>
+                            {% endif %}
+                        </div>
                         <button type="submit" class="btn-danger">Удалить аккаунт</button>
                     </form>
                 </section>

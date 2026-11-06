@@ -12,16 +12,16 @@
         <!-- ===== МЕНЮ СЛЕВА ===== -->
         <aside class="profile-sidebar">
             <a href="#profile" class="settings-nav-link active" data-tab="profile">
-                <img src="{% static 'css/icons/profile.png' %}" alt="" class="nav-icon">
+                <img src="{% static 'img/icons/profile.png' %}" alt="" class="nav-icon">
                 Профиль
             </a>
             <a href="#friends" class="settings-nav-link" data-tab="friends">
-                <img src="{% static 'css/icons/friends.png' %}" alt="" class="nav-icon">
+                <img src="{% static 'img/icons/friends.png' %}" alt="" class="nav-icon">
                 Друзья
                 {% if incoming_requests %}<span>({{ incoming_requests|length }})</span>{% endif %}
             </a>
             <a href="#wishlist" class="settings-nav-link" data-tab="wishlist">
-                <img src="{% static 'css/icons/wishlist.png' %}" alt="" class="nav-icon">
+                <img src="{% static 'img/icons/wishlist.png' %}" alt="" class="nav-icon">
                 Желаемое
                 {% if wishlist_games %}<span>({{ wishlist_games|length }})</span>{% endif %}
             </a>

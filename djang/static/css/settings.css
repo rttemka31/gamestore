@@ -442,12 +442,10 @@ h1 {
     transition: opacity 0.2s ease, background 0.2s ease;
 }
 
+/* Затемнение и размытие включаются вместе, как только курсор внутри круга */
 .avatar-wrapper:hover .avatar-overlay {
     opacity: 1;
     pointer-events: auto;
-}
- 
-.avatar-overlay:hover {
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(1px);
 }

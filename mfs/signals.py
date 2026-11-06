@@ -1,10 +1,25 @@
 import os
 
 from django.conf import settings
+from django.contrib.auth.signals import user_logged_in, user_login_failed
 from django.db.models.signals import pre_save, post_delete, post_save
 from django.dispatch import receiver
 
 from .models import Profile
+from .security import record_login_failure, reset_login_failures
+
+
+@receiver(user_login_failed)
+def count_failed_login(sender, credentials, request=None, **kwargs):
+    """Каждая неудачная попытка входа (на сайте и в админке) приближает блокировку."""
+    if request is not None:
+        record_login_failure(request, credentials.get('username'))
+
+
+@receiver(user_logged_in)
+def forget_failed_logins(sender, request, user, **kwargs):
+    if request is not None:
+        reset_login_failures(request, user.get_username())
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
