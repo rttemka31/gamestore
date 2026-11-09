@@ -26,11 +26,19 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 DEBUG = os.environ.get('DJANGO_DEBUG') == '1'
 
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,.trycloudflare.com').split(',')
-    if host.strip()
-]
+#ALLOWED_HOSTS = [
+    #host.strip()
+    #for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,.trycloudflare.com').split(',')
+    #if host.strip()
+#]
+#ALLOWED_HOSTS = [
+    #host.strip()
+    #for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,*.trycloudflare.com').split(',')
+    #if host.strip()
+#]
+
+ALLOWED_HOSTS = ['*']
+
 CSRF_TRUSTED_ORIGINS = ['https://*.trycloudflare.com']
 
 # Для сайта за HTTPS-прокси (например, Cloudflare Tunnel). При обычном http://localhost оставляйте выключенным
@@ -65,6 +73,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'mfs.sessions.DeviceTrackingMiddleware',  # устройства, на которых выполнен вход (список в настройках)
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 

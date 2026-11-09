@@ -176,6 +176,48 @@ class ProfileAndSettingsTests(StoreTestCase):
         self.assertEqual(self.client.get(reverse('mfs:profile')).status_code, 200)
         self.assertEqual(theirs.get(reverse('mfs:profile')).status_code, 200)
 
+    def test_settings_lists_devices_and_ends_one_session(self):
+        phone = Client(HTTP_USER_AGENT='Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130.0 Mobile Safari/537.36')
+        phone.post(reverse('mfs:login'), {'username': 'alice', 'password': 'Str0ng-pass-123'})
+        phone.get(reverse('mfs:profile'))
+
+        devices = self.client.get(reverse('mfs:settings')).context['devices']
+        self.assertEqual(len(devices), 2)
+        self.assertTrue(devices[0]['current'])
+        other = devices[1]
+        self.assertEqual((other['name'], other['is_mobile']), ('Chrome · Android', True))
+        self.assertIsNotNone(other['started'])
+        # Ключ сессии в страницу не попадает — только его хеш
+        self.assertNotIn(phone.session.session_key, self.client.get(reverse('mfs:settings')).content.decode())
+
+        self.assertEqual(self.post_settings(form='logout_device', device=other['id']).status_code, 200)
+        self.assertEqual(phone.get(reverse('mfs:profile')).status_code, 302)
+        self.assertEqual(self.post_settings(form='logout_device', device=other['id']).status_code, 404)
+        # Свой текущий сеанс так не завершить
+        self.post_settings(form='logout_device', device=devices[0]['id'])
+        self.assertEqual(self.client.get(reverse('mfs:profile')).status_code, 200)
+
+    def test_old_sessions_without_device_are_grouped(self):
+        from django.contrib.auth import BACKEND_SESSION_KEY, HASH_SESSION_KEY, SESSION_KEY
+        from django.contrib.sessions.backends.db import SessionStore
+        for _ in range(3):
+            old = SessionStore()
+            old.update({SESSION_KEY: str(self.user.pk), BACKEND_SESSION_KEY: 'mfs.security.RateLimitedModelBackend',
+                        HASH_SESSION_KEY: self.user.get_session_auth_hash()})
+            old.create()
+
+        devices = self.client.get(reverse('mfs:settings')).context['devices']
+        self.assertEqual([d.get('legacy_count') for d in devices], [None, 3])
+        self.assertEqual(self.post_settings(form='logout_device', device='legacy').status_code, 200)
+        self.assertEqual(len(self.client.get(reverse('mfs:settings')).context['devices']), 1)
+
+    def test_user_agent_names(self):
+        from ..sessions import describe_user_agent
+        self.assertEqual(describe_user_agent('Mozilla/5.0 (Windows NT 10.0) Chrome/130.0 Safari/537.36 Edg/130.0')[0], 'Edge · Windows')
+        self.assertEqual(describe_user_agent('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) Version/17.0 Mobile Safari/604.1'), ('Safari · iPhone', True))
+        self.assertEqual(describe_user_agent('Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Firefox/131.0')[0], 'Firefox · Linux')
+        self.assertEqual(describe_user_agent('')[0], 'Неизвестное устройство')
+
     def test_export_contains_my_data_and_downloads_as_file(self):
         Profile.objects.filter(user=self.user).update(bio='hi')
         self.game.owners.add(self.user)
@@ -222,7 +264,12 @@ class ProfileAndSettingsTests(StoreTestCase):
     def test_own_profile_shows_real_stats(self):
         UserLibrary.objects.create(user=self.user, game=self.game, playtime_seconds=7 * 3600 + 59 * 60)
         response = self.client.get(reverse('mfs:profile'))
-        self.assertEqual((response.context['games_count'], response.context['total_hours']), (1, 7))
+        self.assertEqual((response.context['games_count'], response.context['total_hours']), (1, 8.0))
+        self.assertContains(response, '<strong>8</strong>')
+
+    def test_profile_hours_have_tenths(self):
+        UserLibrary.objects.create(user=self.user, game=self.game, playtime_seconds=12 * 3600 + 36 * 60)
+        self.assertContains(self.client.get(reverse('mfs:profile')), '<strong>12,6</strong>')
 
 
 class PrivacyTests(StoreTestCase):

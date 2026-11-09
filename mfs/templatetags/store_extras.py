@@ -17,14 +17,25 @@ def _format_inline(text):
 
 
 @register.filter
+def thumb(field, spec):
+    """Превью картинки: {{ shot.image|thumb:"200x110" }} — обрезка, {{ game.cover_hd|thumb:"1280" }} — по ширине."""
+    from ..thumbnails import thumbnail_url
+    return thumbnail_url(field, spec)
+
+
+@register.filter
 def playtime(seconds):
-    """Время в игре: «45 мин», «3 ч 20 мин», «127 ч»."""
-    hours, minutes = divmod(int(seconds or 0) // 60, 60)
-    if not hours:
-        return f'{minutes} мин'
-    if hours >= 10 or not minutes:
-        return f'{hours} ч'
-    return f'{hours} ч {minutes} мин'
+    """Время в игре: до часа — минуты («45 мин»), дальше часы с десятыми («12,6 ч», «3 ч»)."""
+    seconds = int(seconds or 0)
+    if seconds < 3600:
+        return f'{seconds // 60} мин'
+    return f'{hours_display(seconds)} ч'
+
+
+def hours_display(seconds):
+    """Часы с одной цифрой после запятой, без лишнего нуля: 12,6 / 3 / 128."""
+    text = f'{round(seconds / 3600, 1):.1f}'.removesuffix('.0')
+    return text.replace('.', ',')
 
 
 @register.filter

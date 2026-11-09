@@ -495,7 +495,7 @@
 
 .hero-title {
     margin: 0;
-    font-size: calc(32px * var(--font-scale, 1));
+    font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     color: var(--text-primary);
     text-shadow: 0 6px 6px rgba(0, 0, 0, 1);
@@ -653,6 +653,8 @@
     align-items: center;
     gap: 15px;
 
+    /* Плашка не шире обложки: длинное название обрежется многоточием */
+    max-width: calc(100% - 80px);
     z-index: 3;
     background: rgba(0, 0, 0, 0.7);
     border-radius: var(--radius-md);
@@ -882,6 +884,7 @@
     .hero-title-container {
         left: var(--space-4);
         right: var(--space-4);
+        max-width: none;
         bottom: var(--space-4);
         gap: var(--space-3);
         padding: var(--space-3);
@@ -1339,4 +1342,8 @@ body.launch-open {
 
 @keyframes launch-fade {
     from { opacity: 0; }
+}
+
+.last-launch-wrapper {
+    min-width: 0;
 }

@@ -1,89 +1,122 @@
 {% extends 'base.html' %}
-{% load store_extras %}
+{% load static store_extras %}
 
 {% block title %}GameStore | Новости{% endblock %}
 
 {% block content %}
-<main class="container news-container">
+<main class="container news-container news-index">
     <div class="catalog-header">
         <h1 class="news-title">Новости</h1>
+        {% if has_filters %}
+            <a href="{% url 'mfs:news' %}" class="catalog-reset">Сбросить фильтры</a>
+        {% endif %}
     </div>
 
-    <!-- Панель фильтрации -->
-    <div class="news-filters">
-        <div class="filter-categories">
-            <a href="{% querystring category=None page=None %}" class="chip {% if not selected_category %}active{% endif %}">
-                Все <span class="chip-count">{{ total_count }}</span>
-            </a>
-            {% for code, label, count in categories %}
-                <a href="{% querystring category=code page=None %}" class="chip {% if selected_category == code %}active{% endif %}">
-                    {{ label }} <span class="chip-count">{{ count }}</span>
+    <div class="catalog-layout">
+        <!-- Боковая панель — как в каталоге: тип публикации и архив по месяцам -->
+        <details class="catalog-sidebar" id="newsSidebar" open data-has-filters="{{ has_filters|yesno:'1,' }}">
+            <summary class="catalog-sidebar-toggle">Тип и дата публикации</summary>
+
+            <nav class="filter-group" aria-labelledby="newsTypeTitle">
+                <h2 class="filter-group-title" id="newsTypeTitle">Тип публикации</h2>
+                <a href="{% querystring category=None page=None %}" class="filter-option filter-option-radio {% if not selected_category %}active{% endif %}"{% if not selected_category %} aria-current="page"{% endif %}>
+                    <span>Все</span>
+                    <span class="filter-count">{{ total_count }}</span>
                 </a>
-            {% endfor %}
-        </div>
+                {% for code, label, count in categories %}
+                    <a href="{% querystring category=code page=None %}" class="filter-option filter-option-radio {% if selected_category == code %}active{% endif %}"{% if selected_category == code %} aria-current="page"{% endif %}>
+                        <span>{{ label }}</span>
+                        <span class="filter-count">{{ count }}</span>
+                    </a>
+                {% endfor %}
+            </nav>
 
-        {% if user.is_staff %}
-            <!-- Действие над списком — в панели фильтров, справа, той же высоты, что фильтры -->
-            <a href="{% url 'admin:mfs_news_add' %}" class="chip news-create">+ Новая публикация</a>
-        {% endif %}
+            {% if archive_months %}
+                <nav class="filter-group" aria-labelledby="newsArchiveTitle">
+                    <h2 class="filter-group-title" id="newsArchiveTitle">Архив</h2>
+                    <a href="{% querystring month=None page=None %}" class="filter-option filter-option-radio {% if not selected_month %}active{% endif %}"{% if not selected_month %} aria-current="page"{% endif %}>
+                        <span>Все даты</span>
+                    </a>
+                    {% for date in archive_months %}
+                        {% with value=date|date:'Y-m' %}
+                            <a href="{% querystring month=value page=None %}" class="filter-option filter-option-radio {% if selected_month == value %}active{% endif %}"{% if selected_month == value %} aria-current="page"{% endif %}>
+                                <span>{{ date|date:"F Y" }}</span>
+                            </a>
+                        {% endwith %}
+                    {% endfor %}
+                </nav>
+            {% endif %}
+        </details>
 
-        <form method="get" class="news-search">
-            {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+        <div class="catalog-main">
+            <form method="get" class="catalog-toolbar">
+                {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+                {% if selected_month %}<input type="hidden" name="month" value="{{ selected_month }}">{% endif %}
 
-            <div class="search-box">
-                <input type="search" name="q" value="{{ query }}" placeholder="Поиск по новостям..." aria-label="Поиск по новостям">
+                <div class="search-box catalog-search">
+                    <input type="search" name="q" value="{{ query }}" placeholder="Поиск по новостям..." aria-label="Поиск по новостям">
+                    <button type="button" class="clear-search-btn" aria-label="Очистить поиск" hidden>&times;</button>
+                    <button type="submit" aria-label="Найти">
+                        <img src="{% static 'img/icons/search.png' %}" width="22" height="22" alt="">
+                    </button>
+                </div>
+
+                {% if user.is_staff %}
+                    <a href="{% url 'admin:mfs_news_add' %}" class="chip news-create">+ Новая публикация</a>
+                {% endif %}
+            </form>
+
+            {% if has_filters %}
+                <p class="news-results">Найдено: {{ page.paginator.count }}</p>
+            {% endif %}
+
+            <!-- Список новостей -->
+            <div class="news-list">
+                {% if pinned_news %}
+                    <h2 class="news-group-title">Закреплено</h2>
+                    {% for item in pinned_news %}
+                        {% include 'store/_news_card.html' %}
+                    {% endfor %}
+                {% endif %}
+
+                {% regroup regular_news by created_at|date:"F Y" as months %}
+                {% for month in months %}
+                    <h2 class="news-group-title">{{ month.grouper }}</h2>
+                    {% for item in month.list %}
+                        {% include 'store/_news_card.html' %}
+                    {% endfor %}
+                {% endfor %}
+
+                {% if not pinned_news and not regular_news %}
+                    <div class="empty-news">Новостей по выбранным фильтрам не найдено.</div>
+                {% endif %}
             </div>
 
-            <select name="month" class="filter-select" aria-label="Месяц" onchange="this.form.submit()">
-                <option value="">Все даты</option>
-                {% for date in archive_months %}
-                    <option value="{{ date|date:'Y-m' }}" {% if selected_month == date|date:'Y-m' %}selected{% endif %}>
-                        {{ date|date:"F Y" }}
-                    </option>
-                {% endfor %}
-            </select>
-        </form>
+            {% if page.paginator.num_pages > 1 %}
+            <nav class="pagination" aria-label="Страницы новостей">
+                {% if page.has_previous %}
+                    <a href="{% querystring page=page.previous_page_number %}" class="chip"><span class="arrow-left" aria-hidden="true">➜</span> Назад</a>
+                {% endif %}
+                <span class="pagination-current">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+                {% if page.has_next %}
+                    <a href="{% querystring page=page.next_page_number %}" class="chip">Вперёд ➜</a>
+                {% endif %}
+            </nav>
+            {% endif %}
+        </div>
     </div>
-
-    {% if has_filters %}
-        <p class="news-results">
-            Найдено: {{ page.paginator.count }}
-            <a href="{% url 'mfs:news' %}" class="catalog-reset">Сбросить фильтры</a>
-        </p>
-    {% endif %}
-
-    <!-- Список новостей -->
-    <div class="news-list">
-        {% if pinned_news %}
-            <h2 class="news-group-title">Закреплено</h2>
-            {% for item in pinned_news %}
-                {% include 'store/_news_card.html' %}
-            {% endfor %}
-        {% endif %}
-
-        {% regroup regular_news by created_at|date:"F Y" as months %}
-        {% for month in months %}
-            <h2 class="news-group-title">{{ month.grouper }}</h2>
-            {% for item in month.list %}
-                {% include 'store/_news_card.html' %}
-            {% endfor %}
-        {% endfor %}
-
-        {% if not pinned_news and not regular_news %}
-            <div class="empty-news">Новостей по выбранным фильтрам не найдено.</div>
-        {% endif %}
-    </div>
-
-    {% if page.paginator.num_pages > 1 %}
-    <nav class="pagination" aria-label="Страницы новостей">
-        {% if page.has_previous %}
-            <a href="{% querystring page=page.previous_page_number %}" class="chip"><span class="arrow-left" aria-hidden="true">➜</span> Назад</a>
-        {% endif %}
-        <span class="pagination-current">{{ page.number }} / {{ page.paginator.num_pages }}</span>
-        {% if page.has_next %}
-            <a href="{% querystring page=page.next_page_number %}" class="chip">Вперёд ➜</a>
-        {% endif %}
-    </nav>
-    {% endif %}
 </main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// На телефоне панель свёрнута, пока фильтры не выбраны; на компьютере открыта всегда
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.getElementById('newsSidebar');
+    const desktop = window.matchMedia('(min-width: 901px)');
+    const sync = () => { sidebar.open = desktop.matches || Boolean(sidebar.dataset.hasFilters); };
+    sync();
+    desktop.addEventListener('change', sync);
+});
+</script>
 {% endblock %}

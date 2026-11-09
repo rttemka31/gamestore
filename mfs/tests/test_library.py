@@ -23,7 +23,7 @@ class LibraryPanelTests(StoreTestCase):
 
     def test_shows_playtime_size_and_missing_size(self):
         UserLibrary.objects.create(user=self.user, game=self.game, playtime_seconds=2 * 3600 + 5 * 60)
-        self.assertContains(self.client.get(self.url), '2 ч 5 мин')
+        self.assertContains(self.client.get(self.url), '2,1 ч')
         self.assertContains(self.client.get(self.url), 'Не указан')
 
         Game.objects.filter(pk=self.game.pk).update(size_gb=Decimal('85.5'))
@@ -252,7 +252,7 @@ class PlaySessionTests(StoreTestCase):
 
     def test_profiles_show_playtime_and_who_is_playing_now(self):
         UserLibrary.objects.create(user=self.user, game=self.game, playtime_seconds=95 * 60, last_played=timezone.now())
-        self.assertContains(self.client.get(reverse('mfs:profile')), '1 ч 35 мин в игре')
+        self.assertContains(self.client.get(reverse('mfs:profile')), '1,6 ч в игре')
 
         self.post('mfs:launch_game', self.game)
         self.assertContains(self.client.get(reverse('mfs:profile')), 'Сейчас в игре')
@@ -266,6 +266,7 @@ class PlaySessionTests(StoreTestCase):
         self.assertEqual(self.post('mfs:stop_game', self.game).status_code, 404)
 
     def test_playtime_format(self):
-        cases = {0: '0 мин', 59: '0 мин', 45 * 60: '45 мин', 3600: '1 ч', 3 * 3600 + 20 * 60: '3 ч 20 мин', 127 * 3600 + 59 * 60: '127 ч'}
+        cases = {0: '0 мин', 59: '0 мин', 45 * 60: '45 мин', 3600: '1 ч', 3 * 3600 + 20 * 60: '3,3 ч',
+                 12 * 3600 + 36 * 60: '12,6 ч', 127 * 3600 + 59 * 60: '128 ч'}
         for seconds, expected in cases.items():
             self.assertEqual(playtime(seconds), expected, seconds)

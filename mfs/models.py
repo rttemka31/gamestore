@@ -33,9 +33,15 @@ class Collection(models.Model):
 # 2. ИГРЫ И МЕДИА
 class BaseMediaProduct(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    title = models.CharField(max_length=200, verbose_name="Название")
-    description = models.TextField(verbose_name="Описание", blank=True)
-    long_description = models.TextField(verbose_name="Детальное описание", blank=True)
+    # Длины ограничены, чтобы название и описание помещались в карточки и страницы игры
+    title = models.CharField(max_length=60, verbose_name="Название", help_text="До 60 символов.")
+    description = models.TextField(
+        max_length=300, verbose_name="Описание", blank=True,
+        help_text="Короткое описание для страницы игры и игры недели, до 300 символов.",
+    )
+    long_description = models.TextField(
+        max_length=5000, verbose_name="Детальное описание", blank=True, help_text="До 5000 символов.",
+    )
     icon = models.ImageField(upload_to='icons/', verbose_name="Иконка", blank=True, null=True)
     cover = models.ImageField(upload_to='covers/', verbose_name="Обложка", blank=True, null=True)
     cover_hd = models.ImageField(upload_to='covers_hd/', verbose_name="HD Обложка", blank=True, null=True)
@@ -225,9 +231,9 @@ class Message(models.Model):
 # 5. НОВОСТИ И БИБЛИОТЕКА
 class News(models.Model):
     CATEGORY_CHOICES = [
-        ('update', '↻ Обновление'),
-        ('announcement', '⮂ Фикс'),
-        ('tech', '⮃ Тех. работы'),
+        ('update', 'Обновление'),
+        ('announcement', 'Фикс'),
+        ('tech', 'Тех. работы'),
     ]
 
     title = models.CharField(max_length=200, verbose_name="Заголовок")

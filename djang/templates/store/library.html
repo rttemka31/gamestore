@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static store_extras %}
 
 {% block title %}GameStore | Библиотека{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/library.css' %}?v=29">
+    <link rel="stylesheet" href="{% static 'css/library.css' %}?v=30">
 {% endblock %}
 
 {% block content %}
@@ -24,15 +24,15 @@
                     draggable="true" data-fav-source="{{ game.id }}"
                     data-game-id="{{ game.id }}"
                     data-title="{{ game.title }}"
-                    data-cover="{% if game.cover_hd %}{{ game.cover_hd.url }}{% elif game.cover %}{{ game.cover.url }}{% endif %}"
+                    data-cover="{{ game.cover_hd|default:game.cover|thumb:'1600' }}"
                     data-icon="{{ game.get_icon_url }}"
                     data-remove-url="{% url 'mfs:remove_from_library' game.id %}"
                     data-launch-url="{% url 'mfs:launch_game' game.id %}"
                     data-stop-url="{% url 'mfs:stop_game' game.id %}"
                     data-last-played="{% if game.user_last_played %}{{ game.user_last_played|date:'d.m.Y в H:i' }}{% endif %}">
 
-                    <img src="{{ game.get_icon_url }}" alt="" class="sidebar-game-icon">
-                    <span class="game-name">{{ game.title }}</span>
+                    <img src="{{ game.get_icon_url }}" alt="" class="sidebar-game-icon" loading="lazy" decoding="async">
+                    <span class="game-name" title="{{ game.title }}">{{ game.title }}</span>
                     <span class="sidebar-running" title="Сейчас в игре">В игре</span>
                 </li>
             {% empty %}

@@ -48,6 +48,7 @@
             <div class="catalog-toolbar">
                 <div class="search-box catalog-search">
                     <input type="search" name="q" value="{{ query }}" placeholder="Название игры..." aria-label="Название игры">
+                    <button type="button" class="clear-search-btn" aria-label="Очистить поиск" hidden>&times;</button>
                     <button type="submit" aria-label="Найти">
                         <img src="{% static 'img/icons/search.png' %}" width="22" height="22" alt="">
                     </button>

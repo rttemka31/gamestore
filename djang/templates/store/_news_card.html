@@ -1,12 +1,12 @@
 {% load store_extras %}
 <article class="news-card {% if item.is_pinned %}news-card-pinned{% endif %}">
     {% if item.image %}
-        <img src="{{ item.image.url }}" alt="" class="news-card-image" loading="lazy">
+        <img src="{{ item.image.url }}" alt="" class="news-card-image" loading="lazy" decoding="async">
     {% endif %}
     <div class="news-card-body">
         <div class="news-card-meta">
-            <span class="badge news-badge news-badge-{{ item.category }}">{{ item.get_category_display }}</span>
-            {% if item.is_pinned %}<span class="news-pin">Закреплено</span>{% endif %}
+            <span class="badge news-badge news-badge-{{ item.category }}">{% include 'store/_news_category_icon.html' with code=item.category %}{{ item.get_category_display }}</span>
+            {% if item.is_pinned %}<span class="news-pin" title="Закреплено" aria-label="Закреплено"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M15.5 2.5a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4l-1.3 1.3a1 1 0 0 1-1.1.2l-1.4-.6-3.5 3.5.5 3.3a1 1 0 0 1-.3.9l-1.1 1.1a1 1 0 0 1-1.4 0l-3.2-3.2-4.6 4.6a1 1 0 0 1-1.4-1.4l4.6-4.6-3.2-3.2a1 1 0 0 1 0-1.4l1.1-1.1a1 1 0 0 1 .9-.3l3.3.5 3.5-3.5-.6-1.4a1 1 0 0 1 .2-1.1z"/></svg></span>{% endif %}
             <span class="news-date">{{ item.created_at|date:"d E Y" }}</span>
         </div>
         <h3 class="news-card-title">

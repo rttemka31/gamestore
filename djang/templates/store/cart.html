@@ -5,7 +5,7 @@
 {% block title %}GameStore | Корзина{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/cart.css' %}?v=24">
+    <link rel="stylesheet" href="{% static 'css/cart.css' %}?v=25">
 {% endblock %}
 
 {% block content %}
@@ -27,7 +27,7 @@
                     <!-- Обложка -->
                     <div class="cart-cover">
                         {% if game.cover %}
-                            <img src="{{ game.cover.url }}" alt="{{ game.title }}">
+                            <img src="{{ game.cover.url }}" alt="{{ game.title }}" loading="lazy" decoding="async">
                         {% else %}
                             <div class="no-cover">Нет обложки</div>
                         {% endif %}
@@ -36,7 +36,7 @@
                     <!-- Информация -->
                     <div class="cart-game-info">
                         <div class="title-row">
-                            <h2>{{ game.title }}</h2>
+                            <h2 title="{{ game.title }}">{{ game.title }}</h2>
                         </div>
                         <div class="cart-genres">
                             {% for genre in game.genres.all %}
@@ -130,7 +130,7 @@
                 <div class="rec-card">
                     <a href="{% url 'mfs:game_detail' game.id %}" class="rec-card-link">
                         {% if game.cover %}
-                            <img src="{{ game.cover.url }}" alt="{{ game.title }}" class="rec-card-img" loading="lazy">
+                            <img src="{{ game.cover.url }}" alt="{{ game.title }}" class="rec-card-img" loading="lazy" decoding="async">
                         {% else %}
                             <div class="rec-card-img" style="background: #1e293b; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 14px;">Нет обложки</div>
                         {% endif %}
@@ -138,7 +138,7 @@
                     <div class="rec-card-content">
                         <div>
                             <a href="{% url 'mfs:game_detail' game.id %}" class="title-link">
-                                <h3 class="rec-card-title">{{ game.title }}</h3>
+                                <h3 class="rec-card-title" title="{{ game.title }}">{{ game.title }}</h3>
                             </a>
                             <div class="rec-card-genre">
                                 {% for genre in game.genres.all|slice:":2" %}

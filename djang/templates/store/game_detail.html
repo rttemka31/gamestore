@@ -9,7 +9,7 @@
 
     <!-- НАЗВАНИЕ -->
     <div class="game-detail-title">
-        <h1>{{ game.title }}</h1>
+        <h1 title="{{ game.title }}">{{ game.title }}</h1>
         {% if game.is_not_on_steam %}
             <span class="badge badge-exclusive">Эксклюзив</span>
         {% endif %}
@@ -22,14 +22,14 @@
         <div class="game-detail-cover">
             <div class="main-image-box">
                 {% if game.trailer_file %}
-                    <video id="mainVideo" controls style="width: 100%; height: 100%; object-fit: cover;">
+                    <video id="mainVideo" preload="metadata"{% if game.get_cover_url %} poster="{{ game.cover_hd|default:game.cover|thumb:'1280' }}"{% endif %} style="width: 100%; height: 100%; object-fit: cover;">
                         <source src="{{ game.trailer_file.url }}" type="video/mp4">
                     </video>
                 {% endif %}
                 
                 <img id="currentImage" 
-                    src="{% if game.cover %}{{ game.cover.url }}{% elif game.screenshots.all %}{{ game.screenshots.all.0.image.url }}{% endif %}" 
-                    alt="{{ game.title }}" 
+                    src="{% if game.cover %}{{ game.cover|thumb:'1280' }}{% elif game.screenshots.all %}{{ game.screenshots.all.0.image|thumb:'1280' }}{% endif %}" 
+                    alt="{{ game.title }}" fetchpriority="high" decoding="async"
                     {% if game.trailer_file or not game.cover and not game.screenshots.all %}style="display: none;"{% endif %}>
                 </div>
 
@@ -38,22 +38,22 @@
                 {% if game.trailer_file %}
                     <div class="thumb video-thumb active" onclick="showVideo(this)">
                         {% if game.cover %}
-                            <img src="{{ game.cover.url }}" alt="Трейлер">
+                            <img src="{{ game.cover|thumb:'200x110' }}" alt="Трейлер" decoding="async">
                         {% endif %}
                         <div class="play-badge">▶</div>
                     </div>
                 {% endif %}
                 
                 {% if game.cover %}
-                    <img src="{{ game.cover.url }}" 
+                    <img src="{{ game.cover|thumb:'200x110' }}" data-full="{{ game.cover|thumb:'1280' }}" alt="" decoding="async"
                          class="thumb {% if not game.trailer_file %}active{% endif %}" 
-                         onclick="showImage(this.src, this)">
+                         onclick="showImage(this.dataset.full, this)">
                 {% endif %}
                 
                 {% for s in game.screenshots.all %}
-                    <img src="{{ s.image.url }}" 
+                    <img src="{{ s.image|thumb:'200x110' }}" data-full="{{ s.image|thumb:'1280' }}" alt="" loading="lazy" decoding="async"
                          class="thumb {% if not game.trailer_file and not game.cover and forloop.first %}active{% endif %}" 
-                         onclick="showImage(this.src, this)">
+                         onclick="showImage(this.dataset.full, this)">
                 {% endfor %}
             </div>
         </div>
@@ -229,6 +229,20 @@
 {% block extra_js %}
 
 <script>
+    // Кнопки плеера показываем, когда видео подгрузило данные: иначе поверх нашего индикатора
+    // загрузки крутится ещё и встроенный спиннер браузера
+    (() => {
+        const video = document.getElementById('mainVideo');
+        if (!video) return;
+        const showControls = () => { video.controls = true; };
+        if (video.readyState >= 1) showControls();
+        else {
+            video.addEventListener('loadedmetadata', showControls, {once: true});
+            // Ошибка загрузки приходит на <source>, а не на само видео
+            video.querySelector('source')?.addEventListener('error', showControls, {once: true});
+        }
+    })();
+
     function showImage(src, element) {
         const video = document.getElementById('mainVideo');
         const img = document.getElementById('currentImage');

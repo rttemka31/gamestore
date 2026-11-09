@@ -525,7 +525,7 @@ a.game-card:hover::after {
 .badge {
     display: inline-flex;
     align-items: center;
-    height: calc(26px * var(--font-scale, 1));
+    height: calc(30px * var(--font-scale, 1));
     padding: 0 var(--space-2);
     border: 2px solid transparent;
     border-radius: var(--radius-sm);
@@ -1295,30 +1295,39 @@ html[data-motion="reduced"] .auth-showcase-track {
     font-weight: var(--text-semibold);
 }
 
-/* Позиционирование крестика внутри search-box */
+/* Крестик очистки: стоит в ряду между полем и кнопкой лупы, появляется, когда в поле есть текст */
 .search-box {
     position: relative;
-    display: flex;
     align-items: center;
 }
 
-.search-box input {
-    padding-right: 40px; /* Делаем отступ справа, чтобы текст не залезал на крестик */
-}
-
-.clear-search-btn {
-    position: absolute;
-    right: 55px; /* Размещаем перед кнопкой лупы */
-    font-size: calc(28px * var(--font-scale, 1));
+.search-box .clear-search-btn {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 100%;
+    padding: 0;
     color: var(--text-secondary);
-    cursor: pointer;
+    background: transparent;
+    font-size: calc(26px * var(--font-scale, 1));
+    line-height: 1;
     user-select: none;
     transition: color var(--transition);
-    padding: 0 0px;
 }
 
-.clear-search-btn:hover {
-    color: var(--text-primary); /* Подсветка белым при наведении */
+.search-box .clear-search-btn:hover {
+    color: var(--text-primary);
+    filter: none;
+}
+
+.search-box .clear-search-btn[hidden] {
+    display: none;
+}
+
+/* Свой крестик браузера у type="search" не нужен — есть общий */
+.search-box input::-webkit-search-cancel-button,
+.search-box input::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 /* Обложка */
@@ -1712,37 +1721,6 @@ html[data-motion="reduced"] .auth-showcase-track {
     background: var(--bg-secondary);
     border: 2px solid var(--border);
     border-radius: var(--radius-md);
-}
-
-.news-filters {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--padding-sm2);
-    margin-top: var(--padding-sm2);
-    margin-bottom: var(--padding-big);
-    flex-wrap: wrap;
-}
-
-.filter-categories {
-    display: flex;
-    gap: var(--padding-sm);
-    flex-wrap: wrap;
-}
-
-.filter-chip {
-    margin-left: var(--padding-sm);
-    outline: none;
-
-    color: var(--accent-text);
-    text-decoration: none;
-    font-weight: var(--text-semibold);
-    font-size: calc(16px * var(--font-scale, 1));
-    transition: 0.2s;
-}
-
-.filter-chip:hover, .filter-chip.active {
-    color: var(--text-primary);
 }
 
 .filter-select {
@@ -2311,7 +2289,8 @@ body.no-blur * {
     margin-top: 15px;
 }
  
-#bannerZoom {
+#bannerZoom,
+.crop-zoom {
     flex: 1;
     -webkit-appearance: none;
     appearance: none;
@@ -2321,7 +2300,8 @@ body.no-blur * {
     outline: none;
 }
  
-#bannerZoom::-webkit-slider-thumb {
+#bannerZoom::-webkit-slider-thumb,
+.crop-zoom::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 22.5px;
     height: 22.5px;
@@ -2331,7 +2311,8 @@ body.no-blur * {
     cursor: pointer;
 }
  
-#bannerZoom::-moz-range-thumb {
+#bannerZoom::-moz-range-thumb,
+.crop-zoom::-moz-range-thumb {
     width: 22.5px;
     height: 22.5px;
     border-radius: 50%;
@@ -2340,7 +2321,8 @@ body.no-blur * {
     cursor: pointer;
 }
  
-#bannerZoom::-moz-range-track {
+#bannerZoom::-moz-range-track,
+.crop-zoom::-moz-range-track {
     height: 5px;
     border-radius: var(--radius-pill);
     background: transparent;
@@ -2522,23 +2504,9 @@ body.no-blur * {
     z-index: 20;
 }
 
-.friends-search input {
+/* Само поле — общий .search-box, как в магазине, только на всю ширину */
+.friends-search .search-box {
     width: 100%;
-    min-width: 0;
-    height: 42px;
-    padding: 0 14px;
-    box-sizing: border-box;
-    color: var(--text-primary);
-    background: var(--bg-secondary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-md);
-    outline: none;
-    transition: border-color .2s, box-shadow .2s;
-}
-
-.friends-search input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent);
 }
 
 #friendSearchResults {
@@ -2593,9 +2561,9 @@ body.no-blur * {
 
 #friendSearchResults .search-avatar-ph,
 #friendSearchResults .search-result-item img {
-    flex: 0 0 50px;
-    width: 50px;
-    height: 50px;
+    flex: 0 0 75px;
+    width: 75px;
+    height: 75px;
     border-radius: 50%;
     object-fit: cover;
 }
@@ -2662,41 +2630,6 @@ body.no-blur * {
 }
 
 /* ===== FRIEND SEARCH: FIXED ===== */
-
-.search-box.friends-search {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-    min-width: 0;
-    height: auto;
-    overflow: visible;
-
-    /* убираем рамку и подсветку от общего .search-box */
-    padding: 0;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-}
-
-.friends-search input {
-    flex: 0 0 auto;
-    display: block;
-    width: 100%;
-    height: 42px;
-    padding: 9px 14px;
-    color: var(--text-primary);
-    background: var(--bg-secondary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    outline: none;
-    transition: border-color .2s, box-shadow .2s;
-}
-
-.friends-search input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 10%, transparent);
-}
 
 /* Результаты: обычный блок под полем */
 #friendSearchResults.search-results {
@@ -3358,6 +3291,7 @@ body.no-blur * {
     margin: 0;
     color: var(--text-primary);
     font-size: calc(32px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
 }
 
 .catalog-count {
@@ -3422,12 +3356,22 @@ body.no-blur * {
     margin-bottom: 0;
 }
 
-.filter-group legend {
+.filter-group legend,
+.filter-group-title {
     padding: var(--padding-sm);
     color: var(--text-muted);
     font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     letter-spacing: 0.3px;
+}
+
+.filter-group-title {
+    margin: 0;
+}
+
+/* Пункт-ссылка (в новостях) выглядит так же, как пункт-радиокнопка каталога */
+a.filter-option {
+    text-decoration: none;
 }
 
 .filter-option {
@@ -3517,7 +3461,8 @@ body.no-blur * {
     pointer-events: none;
 }
 
-.filter-option-radio:has(input:checked) {
+.filter-option-radio:has(input:checked),
+.filter-option-radio.active {
     color: var(--text-primary);
     background-color: var(--bg-card-hover);
     border-left-color: var(--accent);
@@ -3643,7 +3588,6 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
 /* У этих полей фокус уже показывает собственная рамка: вторая обводка не нужна */
 .search-box input:focus-visible,
 .form-group input:focus-visible,
-.friends-search input:focus-visible,
 .filter-select:focus-visible {
     outline: none;
 }
@@ -4222,27 +4166,20 @@ html[data-motion="reduced"] *::after {
     background: var(--accent);
 }
 
-.news-filters {
-    margin-top: 0;
-    margin-bottom: var(--padding-md);
+/* Список новостей с боковой панелью занимает всю ширину контейнера, как каталог */
+.news-index {
+    max-width: none;
+    padding: 20px 0 100px;
 }
 
-.news-search {
-    display: flex;
-    flex: 1 1 100%;
-    flex-wrap: wrap;
-    gap: var(--padding-sm);
-    margin: 0;
+.news-badge {
+    gap: 6px;
 }
 
-.news-search .search-box {
-    flex: 1 1 240px;
-    width: auto;
-    min-width: 0;
-}
-
-.news-search .filter-select {
-    height: 42px;
+.news-badge .news-icon {
+    flex: none;
+    width: 1.15em;
+    height: 1.15em;
 }
 
 .news-results {
@@ -4311,10 +4248,11 @@ html[data-motion="reduced"] *::after {
     margin-left: 0;
 }
 
+/* Закреплённая новость: вместо второй надписи — значок булавки */
 .news-pin {
+    display: inline-grid;
+    place-items: center;
     color: var(--accent-text);
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
 }
 
 .news-card-title {
@@ -4628,3 +4566,80 @@ html[data-motion="reduced"] *::after {
         margin-left: 0;
     }
 }
+
+/* =========================
+   ЗАГРУЗКА КАРТИНОК И ВИДЕО
+========================= */
+
+/* Пока картинка или видео грузятся, вместо пустого места крутится белый индикатор размером
+   с play-badge. Он нарисован фоном самого элемента: загруженный кадр просто закрывает его.
+   Класс is-loaded ставит store.js, чтобы фон не просвечивал сквозь прозрачные PNG */
+:root {
+    --media-loader: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Ccircle cx='15' cy='15' r='12' fill='none' stroke='white' stroke-opacity='.25' stroke-width='3'/%3E%3Cpath d='M15 3a12 12 0 0 1 12 12' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 15 15' to='360 15 15' dur='.8s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E");
+}
+
+:is(.game-image img, .featured > img, .main-image-box img, .main-image-box video, .thumbnails-list img,
+    .news-card-image, .news-article-image, .cart-cover img, .rec-card-img, .hero-image, .fav-card img,
+    .activity-cover img, .library-screenshots img, .owned-game img, .search-result-cover):not(.is-loaded) {
+    background: var(--media-loader) center / 30px 30px no-repeat, var(--bg-secondary);
+}
+
+/* Видео встало на подгрузку во время просмотра — тот же индикатор поверх кадра */
+.main-image-box {
+    position: relative;
+}
+
+.main-image-box.is-buffering::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--media-loader) center / 30px 30px no-repeat;
+    pointer-events: none;
+}
+
+/* =========================
+   ДЛИННЫЕ НАЗВАНИЯ ИГР
+========================= */
+
+/* Название игры всегда в одну строку: если не помещается — обрезается многоточием
+   («Название игры...»). Полное название видно в подсказке (title) и на странице игры */
+:is(.game-card h3, .game-detail-title h1, .featured-info h2, .cart-game-info h2, .rec-card-title,
+    .game-name, .fav-card-title, .search-title, .activity-info-game h3, .hero-title, .launch-title) {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.game-detail-title h1 {
+    flex: 0 1 auto;
+}
+
+.game-detail-title .badge {
+    flex: none;
+}
+
+/* =========================
+   КРОП АВАТАРКИ (js/avatar-crop.js)
+========================= */
+
+/* Окно и кнопки — как у кропа баннера, только сцена квадратная, а рамка круглая.
+   Селекторы двойные, чтобы перебить правила баннера из settings.css, который грузится позже */
+.avatar-crop-modal .avatar-crop-box {
+    width: min(440px, 100%);
+}
+
+.avatar-crop-modal .avatar-crop-stage {
+    aspect-ratio: 1 / 1;
+}
+
+.avatar-crop-stage .avatar-crop-frame {
+    top: 50%;
+    left: 50%;
+    width: 80%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+

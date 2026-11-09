@@ -120,6 +120,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ---------- Поля поиска: крестик очистки и кнопка лупы ----------
+    // Крестик виден, пока в поле есть текст. Если страница уже отфильтрована по запросу
+    // (каталог, новости), очистка сразу отправляет форму, чтобы сбросить результаты.
+    document.querySelectorAll('.search-box').forEach(box => {
+        const input = box.querySelector('input[type="search"]');
+        const clear = box.querySelector('.clear-search-btn');
+        if (!input || !clear) return;
+
+        const sync = () => { clear.hidden = !input.value; };
+        sync();
+        input.addEventListener('input', sync);
+
+        clear.addEventListener('click', () => {
+            const hadQuery = input.defaultValue !== '';
+            input.value = '';
+            input.dispatchEvent(new Event('input', {bubbles: true}));
+            input.focus();
+            if (hadQuery && input.form) input.form.requestSubmit();
+        });
+
+        // Лупа у живого поиска (без формы) просто повторяет поиск
+        const trigger = box.querySelector('[data-search-trigger]');
+        if (trigger) {
+            trigger.addEventListener('click', () => {
+                input.dispatchEvent(new Event('input', {bubbles: true}));
+                input.focus();
+            });
+        }
+    });
+
     // ---------- Живой поиск ----------
     const searchInput = document.getElementById('game-search-input');
     const resultsDropdown = document.getElementById('search-results-dropdown');
@@ -177,7 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     searchInput.addEventListener('input', () => {
         const query = searchInput.value.trim();
-        clearBtn.style.display = query ? 'block' : 'none';
 
         // Отменяем ожидание и прошлый запрос, чтобы старый ответ не перезаписал новый
         clearTimeout(timer);
@@ -190,19 +219,44 @@ document.addEventListener('DOMContentLoaded', () => {
         timer = setTimeout(() => runSearch(query), 200);
     });
 
-    clearBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        clearBtn.style.display = 'none';
-        hideResults();
-        searchInput.focus();
-    });
-
     document.addEventListener('click', e => {
         if (!searchInput.contains(e.target) && !resultsDropdown.contains(e.target) && !clearBtn.contains(e.target)) {
             resultsDropdown.style.display = 'none';
         }
     });
 });
+
+// ---------- Индикатор загрузки картинок и видео ----------
+// Пока картинка не загрузилась, CSS рисует под ней белый индикатор. Здесь отмечаем загруженные
+// (класс is-loaded), чтобы индикатор не просвечивал сквозь прозрачные PNG, и показываем его
+// поверх видео, когда оно останавливается на подгрузку.
+(() => {
+    const done = el => el.classList.add('is-loaded');
+    const isVideo = el => el.tagName === 'VIDEO';
+
+    // load и error не всплывают, поэтому слушаем на фазе перехвата
+    document.addEventListener('load', e => { if (e.target.tagName === 'IMG') done(e.target); }, true);
+    document.addEventListener('error', e => {
+        if (e.target.tagName === 'IMG') done(e.target);
+        if (e.target.tagName === 'SOURCE') done(e.target.parentElement);  // видео не загрузилось
+    }, true);
+    document.addEventListener('loadedmetadata', e => { if (isVideo(e.target)) done(e.target); }, true);
+
+    // Что успело загрузиться до запуска скрипта (в том числе из кэша)
+    document.querySelectorAll('img').forEach(img => { if (img.complete && img.getAttribute('src')) done(img); });
+    document.querySelectorAll('video').forEach(video => { if (video.readyState >= 1) done(video); });
+
+    // Скрипт сменил картинку (обложка в библиотеке, галерея игры) — снова ждём загрузки
+    new MutationObserver(changes => changes.forEach(c => c.target.classList.remove('is-loaded')))
+        .observe(document.body, {subtree: true, attributes: true, attributeFilter: ['src']});
+
+    document.addEventListener('waiting', e => {
+        if (isVideo(e.target)) e.target.parentElement.classList.add('is-buffering');
+    }, true);
+    ['playing', 'pause', 'canplay', 'ended'].forEach(type => document.addEventListener(type, e => {
+        if (isVideo(e.target)) e.target.parentElement.classList.remove('is-buffering');
+    }, true));
+})();
 
 // ---------- Аватары ----------
 // Если файл аватара пропал с сервера, вместо пустого кружка или подписи картинки показываем первую букву имени

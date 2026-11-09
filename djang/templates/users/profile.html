@@ -106,7 +106,7 @@
                                 <span>Игр</span>
                             </div>
                             <div class="profile-stat">
-                                <strong>{{ total_hours }}</strong>
+                                <strong>{{ total_hours|floatformat:"-1" }}</strong>
                                 <span>Часов</span>
                             </div>
                             <div class="profile-stat">
@@ -154,7 +154,7 @@
                                 <div class="activity-item">
                                     <div class="activity-cover">
                                         {% if item.game.cover %}
-                                            <img src="{{ item.game.cover.url }}" alt="{{ item.game.title }}">
+                                            <img src="{{ item.game.cover.url }}" alt="{{ item.game.title }}" loading="lazy" decoding="async">
                                         {% else %}
                                             <span>🎮</span>
                                         {% endif %}
@@ -199,7 +199,7 @@
                         <div class="owned-games">
                             {% for game in owned_games %}
                                 <a href="{% url 'mfs:game_detail' game.id %}" class="owned-game" draggable="true" data-fav-source="{{ game.id }}">
-                                    <img src="{{ game.get_icon_url }}" alt="" draggable="false" loading="lazy">
+                                    <img src="{{ game.get_icon_url }}" alt="" draggable="false" loading="lazy" decoding="async">
                                     <span class="game-name">{{ game.title }}</span>
                                     <button type="button" class="fav-star" data-fav-toggle="{{ game.id }}" data-on="★" data-off="☆" aria-label="Избранное" title="Избранное">☆</button>
                                 </a>
@@ -243,8 +243,14 @@
  
                 <section class="profile-section">
                     <div class="section-header"><h2>Добавить друга</h2></div>
-                    <div class="search-box friends-search">
-                        <input type="text" id="friendSearch" placeholder="Введите имя пользователя" autocomplete="off">
+                    <div class="friends-search">
+                        <div class="search-box">
+                            <input type="search" id="friendSearch" placeholder="Введите имя пользователя" aria-label="Имя пользователя" autocomplete="off">
+                            <button type="button" class="clear-search-btn" aria-label="Очистить поиск" hidden>&times;</button>
+                            <button type="button" data-search-trigger aria-label="Найти">
+                                <img src="{% static 'img/icons/search.png' %}" width="22" height="22" alt="">
+                            </button>
+                        </div>
                         <div id="friendSearchResults" class="search-results" style="display: none;"></div>
                     </div>
                 </section>
@@ -363,6 +369,7 @@
 </main>
 {% endblock %}
 {% block extra_js %}
+<script src="{% static 'js/avatar-crop.js' %}?v=1"></script>
 <script src="{% static 'js/favorites.js' %}?v=1"></script>
 <script>
 (function () {
@@ -592,16 +599,25 @@ document.addEventListener("DOMContentLoaded", () => {
         bannerInput.value = "";
     });
 
-    // Мгновенный предпросмотр новой аватарки при выборе файла
-    avatarInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                avatarPreview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
-            };
-            reader.readAsDataURL(file);
-        }
+    // Выбранную аватарку сначала кадрируем в круглой рамке, в форму уходит уже вырезанный квадрат
+    avatarInput.addEventListener('change', () => {
+        const file = avatarInput.files && avatarInput.files[0];
+        if (!file) return;
+        window.gsAvatarCrop.open(file, {
+            onDone: (cropped, url) => {
+                const files = new DataTransfer();
+                files.items.add(cropped);
+                avatarInput.files = files.files;
+
+                const img = new Image();
+                img.id = 'avatarImg';
+                img.alt = '';
+                img.onload = () => window.__setAvatarBorder?.(img);
+                img.src = url;
+                avatarPreview.replaceChildren(img);
+            },
+            onCancel: () => { avatarInput.value = ''; },
+        });
     });
 });
 </script>
@@ -647,30 +663,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 2. При предпросмотре нового аватара пересчитываем цвет динамически без мигания
-    if (avatarInput) {
-        avatarInput.addEventListener("change", (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    // Создаем временную картинку в памяти для фонового расчета
-                    const tempImg = new Image();
-                    tempImg.src = event.target.result;
-
-                    tempImg.onload = () => {
-                        // 1. Сначала рассчитываем и задаем цвет границы
-                        setBorderFromImage(tempImg);
-
-                        // 2. И только после этого вставляем саму картинку в DOM
-                        avatarPreview.innerHTML = `<img src="${event.target.result}" id="avatarImg" alt="Preview">`;
-                    };
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-}); // <-- Не хватало этой закрывающей скобки для DOMContentLoaded
+    // 2. Для новой аватарки цвет рамки пересчитывает обработчик кропа
+    window.__setAvatarBorder = setBorderFromImage;
+});
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {

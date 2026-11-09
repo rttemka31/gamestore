@@ -1,7 +1,7 @@
 <a href="{% url 'mfs:game_detail' game.id %}" class="game-card">
     <div class="game-image">
         {% if game.cover %}
-            <img src="{{ game.cover.url }}" alt="{{ game.title }}" loading="lazy">
+            <img src="{{ game.cover.url }}" alt="{{ game.title }}" loading="lazy" decoding="async">
         {% else %}
             <div class="no-cover">Нет обложки</div>
         {% endif %}
@@ -23,7 +23,7 @@
     </div>
 
     <div class="game-info">
-        <h3>{{ game.title }}</h3>
+        <h3 title="{{ game.title }}">{{ game.title }}</h3>
     
         <p class="game-genres">
             {% for genre in game.genres.all %}
@@ -35,7 +35,7 @@
         
         {% if game.release_date %}
             <span class="release-date">
-                {{ game.release_date|date:"j b. Y" }}
+                {{ game.release_date|date:"d b. Yг."  }}
             </span>
         {% endif %}
         

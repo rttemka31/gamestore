@@ -1,5 +1,5 @@
 """Витрина: главная, каталог, страница игры, новости, поиск и 404."""
-from datetime import datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
 import random
 
 from django.core.paginator import Paginator
@@ -20,19 +20,30 @@ def custom_page_not_found(request, exception):
     return render(request, '404.html', status=404)
 
 
-def _pick_featured_game():
-    """Игра недели: выбор из отмеченных в админке, а если таких нет — из всех игр."""
-    ids = list(Game.objects.filter(is_game_of_the_week=True).order_by('pk').values_list('pk', flat=True))
-    if not ids:
-        ids = list(Game.objects.order_by('pk').values_list('pk', flat=True))
+# Отсчёт недель для игры недели ведём от понедельника, чтобы смена была ровно в пн 0:00
+FEATURED_EPOCH = date(2024, 1, 1)
+
+
+def _pick_featured_game(now=None):
+    """Игра недели. Меняется каждый понедельник в 0:00 по времени сайта на следующую игру.
+
+    Игры идут по кругу в перемешанном (но постоянном) порядке, поэтому подряд одна и та же
+    игра не повторяется, а за полный круг покажутся все. Если в админке отмечено «Игра недели»
+    хотя бы у двух игр, круг идёт только по ним; одна отметка ни на что не влияет, иначе
+    игра недели застрянет на одной игре навсегда.
+    """
+    games = list(Game.objects.order_by('pk').values_list('pk', 'is_game_of_the_week'))
+    flagged = [pk for pk, is_flagged in games if is_flagged]
+    ids = flagged if len(flagged) >= 2 else [pk for pk, _ in games]
     if not ids:
         return None, ''
 
-    now = timezone.localtime(timezone.now())
-    year, week, _ = now.isocalendar()
-    game_id = random.Random(f"{year}-{week}-featured").choice(ids)
+    random.Random('featured-order').shuffle(ids)
+    today = timezone.localtime(now or timezone.now()).date()
+    week_number = (today - FEATURED_EPOCH).days // 7
+    game_id = ids[week_number % len(ids)]
 
-    monday_date = now.date() + timedelta(days=7 - now.weekday())
+    monday_date = today + timedelta(days=7 - today.weekday())
     next_monday = timezone.make_aware(datetime.combine(monday_date, time.min))
     return Game.objects.get(pk=game_id), next_monday.isoformat()
 

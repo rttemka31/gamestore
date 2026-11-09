@@ -24,7 +24,7 @@
             <div class="library-screenshots">
                 {% for shot in game.screenshots.all|slice:":4" %}
                     <a href="{% url 'mfs:game_detail' game.id %}">
-                        <img src="{{ shot.image.url }}" alt="Скриншот {{ game.title }}" loading="lazy">
+                        <img src="{{ shot.image|thumb:'480x270' }}" alt="Скриншот {{ game.title }}" loading="lazy" decoding="async">
                     </a>
                 {% endfor %}
             </div>
@@ -60,12 +60,12 @@
                 {% if game.user_purchased_at %}
                 <div>
                     <dt>В библиотеке с</dt>
-                    <dd>{{ game.user_purchased_at|date:"d E Y" }}</dd>
+                    <dd>{{ game.user_purchased_at|date:"d b. Yг." }}</dd>
                 </div>
                 {% endif %}
                 <div>
                     <dt>Дата выхода</dt>
-                    <dd>{{ game.release_date|date:"d E Y" }}</dd>
+                    <dd>{{ game.release_date|date:"d b. Yг."  }}</dd>
                 </div>
             </dl>
             {% if game.genres.all %}

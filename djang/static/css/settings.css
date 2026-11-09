@@ -296,8 +296,9 @@ h1 {
     border-top: 1px solid var(--border-subtle);
 }
 
-.settings-extra-action .settings-hint {
-    margin: 0 0 5px;
+/* Подсказка прижата к заголовку, как у переключателей: 12px отступа формы минус 9 = 3px */
+.settings-extra-action .settings-toggle-title + .settings-hint {
+    margin: -9px 0 0;
 }
 
 .settings-extra-action .btn-secondary {
@@ -638,7 +639,7 @@ h1 {
 
 .about-version-text {
     color: var(--text-secondary);
-    font-size: calc(16px * var(--font-scale, 1));
+    font-size: calc(14px * var(--font-scale, 1));
 }
 
 .about-version-text a,
@@ -648,6 +649,7 @@ h1 {
     font-weight: var(--text-semibold);
     text-decoration: none;
     transition: color 0.2s;
+    font-size: calc(16px * var(--font-scale, 1));
 }
 
 .about-version-text a:hover,
@@ -741,5 +743,104 @@ h1 {
 @media (max-width: 600px) {
     .settings-profile-top {
         grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* --- Устройства, на которых выполнен вход --- */
+.device-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.device-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.device-item-current {
+    border-color: var(--border-accent);
+}
+
+.device-icon {
+    display: grid;
+    flex: 0 0 40px;
+    place-items: center;
+    height: 40px;
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+}
+
+.device-icon-legacy {
+    font-size: calc(18px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.device-item-current .device-icon {
+    color: var(--accent-text);
+}
+
+.device-info {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.device-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-primary);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.device-current {
+    padding: 1px var(--space-2);
+    color: var(--accent-text);
+    border: 2px solid var(--border-accent);
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.device-meta {
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+    overflow-wrap: anywhere;
+}
+
+.settings-extra-action .device-logout {
+    flex: 0 0 auto;
+    padding: var(--space-2) var(--space-3);
+}
+
+#sessionsForm[hidden],
+.device-empty[hidden] {
+    display: none;
+}
+
+.settings-extra-action .device-empty {
+    margin: 0;
+}
+
+@media (max-width: 480px) {
+    .device-item {
+        flex-wrap: wrap;
+    }
+
+    .settings-extra-action .device-logout {
+        width: 100%;
     }
 }

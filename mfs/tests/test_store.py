@@ -1,9 +1,19 @@
 """Витрина: каталог, новости, страницы и ссылки жанров."""
+import io
+import os
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
+from PIL import Image
+from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
-from ..models import Collection, Game, Genre, News, Profile, Review
+from ..models import Collection, Game, Genre, News, Profile, Review, Screenshot
 from ..templatetags.store_extras import news_format, news_plain
+from ..thumbnails import thumbnail_url
+from ..views.store import _pick_featured_game
 from .base import StoreTestCase
 
 
@@ -94,8 +104,8 @@ class CatalogTests(StoreTestCase):
         self.game.collections.add(collection)
         self.game.genres.add(genre)
 
-        # 7-й запрос — версия сайта для подвала; дальше она берётся из кэша
-        with self.assertNumQueries(7):
+        # Последний запрос — версия сайта для подвала; дальше она берётся из кэша
+        with self.assertNumQueries(6):
             self.client.get(reverse('mfs:index'))
 
         for i in range(5):
@@ -103,12 +113,45 @@ class CatalogTests(StoreTestCase):
             game.collections.add(collection)
             game.genres.add(genre)
 
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(5):
             self.client.get(reverse('mfs:index'))
 
-    def test_admin_flag_chooses_game_of_the_week(self):
+    def test_game_title_and_description_are_limited(self):
+        # Описание — TextField: его длину проверяют формы (в том числе админка), как здесь
+        from django.forms import modelform_factory
+        GameForm = modelform_factory(Game, fields=['title', 'description', 'long_description'])
+        form = GameForm({'title': 'x' * 61, 'description': 'y' * 301, 'long_description': 'z' * 5001})
+        self.assertEqual(set(form.errors), {'title', 'description', 'long_description'})
+        form = GameForm({'title': 'x' * 60, 'description': 'y' * 300, 'long_description': 'z' * 5000})
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_game_of_the_week_changes_every_monday(self):
+        for i in range(3):
+            Game.objects.create(author=self.other, title=f'G{i}', price=1)
+        kyiv = ZoneInfo('Europe/Kyiv')
+        sunday_night = datetime(2026, 11, 15, 23, 59, tzinfo=kyiv)
+        monday = datetime(2026, 11, 16, 0, 0, tzinfo=kyiv)
+
+        this_week, next_rotation = _pick_featured_game(sunday_night)
+        self.assertEqual(next_rotation, '2026-11-16T00:00:00+02:00')
+        self.assertEqual(_pick_featured_game(datetime(2026, 11, 10, 12, 0, tzinfo=kyiv))[0], this_week)
+        self.assertNotEqual(_pick_featured_game(monday)[0], this_week)
+
+        # За полный круг из 5 недель показывается каждая игра
+        weeks = [_pick_featured_game(monday + timedelta(weeks=n))[0] for n in range(5)]
+        self.assertEqual(len(set(weeks)), 5)
+
+    def test_admin_flags_limit_rotation_only_from_two_games(self):
         Game.objects.filter(pk=self.game2.pk).update(is_game_of_the_week=True)
-        self.assertEqual(self.client.get(reverse('mfs:index')).context['featured_game'], self.game2)
+        Game.objects.create(author=self.other, title='Gamma', price=1)
+        start = datetime(2026, 11, 16, tzinfo=ZoneInfo('Europe/Kyiv'))
+        # Одна отметка не держит игру навсегда
+        weeks = {_pick_featured_game(start + timedelta(weeks=n))[0] for n in range(3)}
+        self.assertEqual(len(weeks), 3)
+
+        Game.objects.filter(pk=self.game.pk).update(is_game_of_the_week=True)
+        weeks = {_pick_featured_game(start + timedelta(weeks=n))[0] for n in range(4)}
+        self.assertEqual(weeks, {self.game, self.game2})
 
     def test_search_returns_discounted_price(self):
         game = self.client.get(reverse('mfs:game_search_ajax') + '?q=alp').json()['games'][0]
@@ -144,6 +187,16 @@ class NewsTests(StoreTestCase):
         self.assertEqual(len(titles('')), 8)
         self.assertEqual(len(titles('?page=2')), 2)
         self.assertEqual(len(titles('?category=unknown')), 8)
+
+    def test_category_sidebar_and_search_clear_button(self):
+        News.objects.create(title='Патч', description='x', category='announcement')
+        response = self.client.get(reverse('mfs:news') + '?category=announcement&q=патч')
+        # Категории — боковая панель, как в каталоге; выбранная отмечена
+        self.assertContains(response, 'class="filter-option filter-option-radio active" aria-current="page"')
+        self.assertContains(response, 'id="newsSidebar"')
+        # Поиск устроен как в магазине: крестик очистки и кнопка лупы
+        self.assertContains(response, 'class="clear-search-btn"')
+        self.assertContains(response, 'img/icons/search.png')
 
     def test_format_escapes_html_and_keeps_markup(self):
         html = news_format('**Важно** <script>alert(1)</script>\n\n- пункт\n\nhttps://example.com/a')
@@ -257,3 +310,41 @@ class BadgeAndMenuTests(StoreTestCase):
             response = self.client.get(url)
             self.assertContains(response, 'class="nav-toggle"')
             self.assertContains(response, 'aria-controls="siteNav navRight"')
+
+
+class ThumbnailTests(StoreTestCase):
+    def make_screenshot(self, size):
+        buffer = io.BytesIO()
+        Image.new('RGB', size, 'red').save(buffer, 'PNG')
+        return Screenshot.objects.create(
+            game=self.game, image=SimpleUploadedFile('shot.png', buffer.getvalue(), content_type='image/png'),
+        )
+
+    def thumb_file(self, url):
+        return os.path.join(settings.MEDIA_ROOT, *url.removeprefix(settings.MEDIA_URL).split('/'))
+
+    def test_crop_and_width_previews(self):
+        shot = self.make_screenshot((1600, 1000))
+        cropped = thumbnail_url(shot.image, '200x110')
+        self.assertTrue(cropped.startswith('/media/thumbs/200x110/screenshots/') and cropped.endswith('.webp'))
+        with Image.open(self.thumb_file(cropped)) as image:
+            self.assertEqual((image.format, image.size), ('WEBP', (200, 110)))
+
+        with Image.open(self.thumb_file(thumbnail_url(shot.image, '1280'))) as image:
+            self.assertEqual(image.size, (1280, 800))
+
+    def test_small_image_is_not_upscaled_and_errors_fall_back(self):
+        shot = self.make_screenshot((300, 200))
+        with Image.open(self.thumb_file(thumbnail_url(shot.image, '1280'))) as image:
+            self.assertEqual(image.size, (300, 200))
+
+        self.assertEqual(thumbnail_url(shot.image, 'huge'), shot.image.url)
+        os.remove(shot.image.path)
+        # Исходник пропал — отдаём его адрес, страница не падает
+        self.assertEqual(thumbnail_url(shot.image, '640'), shot.image.url)
+
+    def test_game_page_uses_previews(self):
+        self.make_screenshot((1600, 900))
+        response = self.client.get(reverse('mfs:game_detail', args=[self.game.pk]))
+        self.assertContains(response, 'src="/media/thumbs/200x110/screenshots/')
+        self.assertContains(response, 'data-full="/media/thumbs/1280/screenshots/')

@@ -140,7 +140,7 @@
                             </div>
 
                             <div class="profile-stat">
-                                <strong>{{ total_hours|floatformat:0 }}</strong>
+                                <strong>{{ total_hours|floatformat:"-1" }}</strong>
                                 <span>Часов</span>
                             </div>
                             {% endif %}
@@ -183,7 +183,7 @@
                                         <div class="activity-cover">
                                             {% if item.game.cover %}
                                             <img src="{{ item.game.cover.url }}"
-                                                 alt="{{ item.game.title }}">
+                                                 alt="{{ item.game.title }}" loading="lazy" decoding="async">
                                             {% else %}
                                             <span>🎮</span>
                                             {% endif %}

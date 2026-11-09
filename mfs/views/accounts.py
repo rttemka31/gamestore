@@ -9,20 +9,19 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.contrib.sessions.models import Session
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.utils import timezone
 
 from ..models import Friendship, Game, News, Profile, Review, UserLibrary
 from ..security import (
     LOCK_SECONDS, login_locked, password_check_locked, record_password_check_failure,
     record_registration, registration_limited,
 )
+from ..sessions import end_device_session, end_other_sessions, list_devices
 from .common import MAX_FAVORITES, _favorites, _library_stats, _safe_url, _user_game_state, _wishlist_games
 from .store import CATALOG_SORTS
 
@@ -172,9 +171,14 @@ def settings_view(request):
 
         # 5. ВЫХОД НА ДРУГИХ УСТРОЙСТВАХ
         elif form_type == 'logout_others':
-            ended = _end_other_sessions(request)
+            ended = end_other_sessions(user, request.session.session_key)
             message = f'Завершено сеансов: {ended}.' if ended else 'Других активных сеансов нет.'
             return JsonResponse({'status': 'success', 'message': message})
+
+        elif form_type == 'logout_device':
+            if end_device_session(user, request.POST.get('device', ''), request.session.session_key):
+                return JsonResponse({'status': 'success', 'message': 'Сеанс на устройстве завершён.'})
+            return JsonResponse({'status': 'error', 'message': 'Сеанс уже завершён.'}, status=404)
 
         # 6. ПРИВАТНОСТЬ
         elif form_type == 'privacy':
@@ -215,6 +219,7 @@ def settings_view(request):
     return render(request, 'users/settings.html', {
         'profile': profile,
         'sort_options': [(key, value[0]) for key, value in CATALOG_SORTS.items()],
+        'devices': list_devices(user, request.session.session_key),
         'site_version': _site_version(),
         'site_stats': {
             'games': Game.objects.count(),
@@ -237,17 +242,6 @@ def _site_version():
         'date': item.created_at,
         'url': item.get_absolute_url(),
     }
-
-
-def _end_other_sessions(request):
-    """Завершает все сеансы пользователя, кроме текущего, и возвращает их количество."""
-    ended = 0
-    active = Session.objects.filter(expire_date__gte=timezone.now()).exclude(session_key=request.session.session_key)
-    for session in active.iterator():
-        if session.get_decoded().get('_auth_user_id') == str(request.user.pk):
-            session.delete()
-            ended += 1
-    return ended
 
 
 @login_required

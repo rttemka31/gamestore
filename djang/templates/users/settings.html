@@ -5,7 +5,7 @@
 {% block title %}GameStore | Настройки{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/settings.css' %}?v=16">
+    <link rel="stylesheet" href="{% static 'css/settings.css' %}?v=18">
 
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>
@@ -247,13 +247,51 @@
                         <button type="submit" class="btn-primary">Сменить пароль</button>
                     </form>
 
-                    <form method="post" action="{% url 'mfs:settings' %}" class="settings-form settings-extra-action" id="sessionsForm">
-                        {% csrf_token %}
-                        <input type="hidden" name="form" value="logout_others">
-                        <span class="settings-toggle-title">Другие устройства</span>
-                        <span class="settings-hint">Завершает все сеансы, кроме этого. Пригодится, если вы входили с чужого компьютера.</span>
-                        <button type="submit" class="btn-secondary">Выйти на других устройствах</button>
-                    </form>
+                    <div class="settings-form settings-extra-action" id="devicesBlock">
+                        <span class="settings-toggle-title">Устройства</span>
+                        <span class="settings-hint">Где сейчас выполнен вход в аккаунт. Если устройство незнакомое — завершите его сеанс и смените пароль.</span>
+
+                        <ul class="device-list">
+                            {% for device in devices %}
+                                {% if device.legacy_count %}
+                                <li class="device-item" data-device="{{ device.id }}">
+                                    <span class="device-icon device-icon-legacy" aria-hidden="true">?</span>
+                                    <div class="device-info">
+                                        <span class="device-name">Старые сеансы: {{ device.legacy_count }}</span>
+                                        <span class="device-meta">Вход был до появления списка устройств, поэтому подробностей нет. Если не уверены — завершите их.</span>
+                                    </div>
+                                    <button type="button" class="btn-secondary device-logout" data-device-logout>Выйти</button>
+                                </li>
+                                {% else %}
+                                <li class="device-item{% if device.current %} device-item-current{% endif %}" data-device="{{ device.id }}">
+                                    <span class="device-icon">{% if device.is_mobile %}<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>{% else %}<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>{% endif %}</span>
+                                    <div class="device-info">
+                                        <span class="device-name">
+                                            {{ device.name }}
+                                            {% if device.current %}<span class="device-current">Это устройство</span>{% endif %}
+                                        </span>
+                                        <span class="device-meta">
+                                            {% if device.ip %}IP {{ device.ip }} · {% endif %}
+                                            {% if device.current or device.active_now %}активен сейчас{% elif device.seen %}был активен {{ device.seen|timesince }} назад{% else %}активность неизвестна{% endif %}
+                                            {% if device.started %} · вход {{ device.started|date:"j E, H:i" }}{% endif %}
+                                        </span>
+                                    </div>
+                                    {% if not device.current %}
+                                        <button type="button" class="btn-secondary device-logout" data-device-logout>Выйти</button>
+                                    {% endif %}
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+
+                        <p class="settings-hint device-empty"{% if devices|length > 1 %} hidden{% endif %}>Других устройств нет — вход выполнен только здесь.</p>
+
+                        <form method="post" action="{% url 'mfs:settings' %}" id="sessionsForm"{% if devices|length < 2 %} hidden{% endif %}>
+                            {% csrf_token %}
+                            <input type="hidden" name="form" value="logout_others">
+                            <button type="submit" class="btn-secondary">Выйти на всех, кроме этого</button>
+                        </form>
+                    </div>
                 </section>
 
                 <!-- Внешний вид -->
@@ -496,6 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
+<script src="{% static 'js/avatar-crop.js' %}?v=1"></script>
 <!-- Индикатор автосохранения -->
 <div id="saveStatus" class="save-status"></div>
 <script>
@@ -726,30 +765,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 2. При предпросмотре нового аватара пересчитываем цвет динамически без мигания
-    if (avatarInput) {
-        avatarInput.addEventListener("change", (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    // Создаем временную картинку в памяти для фонового расчета
-                    const tempImg = new Image();
-                    tempImg.src = event.target.result;
-
-                    tempImg.onload = () => {
-                        // 1. Сначала рассчитываем и задаем цвет границы
-                        setBorderFromImage(tempImg);
-
-                        // 2. И только после этого вставляем саму картинку в DOM
-                        avatarPreview.innerHTML = `<img src="${event.target.result}" id="avatarImg" alt="Preview">`;
-                    };
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-}); // <-- Не хватало этой закрывающей скобки для DOMContentLoaded
+    // 2. Для новой аватарки цвет рамки пересчитывает обработчик кропа
+    window.__setAvatarBorder = setBorderFromImage;
+});
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -799,7 +817,9 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             form.addEventListener('input', (e) => {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                // Файлы (аватар, баннер) отправляются после кропа, а не сразу при выборе
+                const isText = (e.target.tagName === 'INPUT' && e.target.type !== 'file') || e.target.tagName === 'TEXTAREA';
+                if (isText) {
                     clearTimeout(debounceTimer);
                     debounceTimer = setTimeout(() => submitAutoSaveForm(form), 800);
                 }
@@ -813,25 +833,28 @@ document.addEventListener("DOMContentLoaded", () => {
         window.__submitAutoSaveForm = submitAutoSaveForm;
         window.__profileForm = profileForm;
 
+        const avatarPreview = document.getElementById('avatarPreview');
         if (avatarInput) {
+            // Выбранную аватарку сначала кадрируем в круглой рамке, в форму уходит уже вырезанный квадрат
             avatarInput.addEventListener('change', () => {
-                if (avatarInput.files && avatarInput.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        let img = document.getElementById('avatarImg');
-                        if (!img) {
-                            const preview = document.getElementById('avatarPreview');
-                            const letter = document.getElementById('avatarLetter');
-                            if (letter) letter.remove();
-                            img = document.createElement('img');
-                            img.id = 'avatarImg';
-                            preview.insertBefore(img, preview.firstChild);
-                        }
-                        img.src = e.target.result;
-                    };
-                    reader.readAsDataURL(avatarInput.files[0]);
-                    submitAutoSaveForm(profileForm);
-                }
+                const file = avatarInput.files && avatarInput.files[0];
+                if (!file) return;
+                window.gsAvatarCrop.open(file, {
+                    onDone: (cropped, url) => {
+                        const files = new DataTransfer();
+                        files.items.add(cropped);
+                        avatarInput.files = files.files;
+
+                        const img = new Image();
+                        img.id = 'avatarImg';
+                        img.alt = '';
+                        img.onload = () => window.__setAvatarBorder?.(img);
+                        img.src = url;
+                        avatarPreview.replaceChildren(img);
+                        submitAutoSaveForm(profileForm);
+                    },
+                    onCancel: () => { avatarInput.value = ''; },
+                });
             });
         }
 
@@ -961,10 +984,50 @@ document.addEventListener("DOMContentLoaded", () => {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 })
                 .then(res => res.json())
-                .then(data => showStatus(data.message || 'Ошибка', data.status !== 'success'))
+                .then(data => {
+                    showStatus(data.message || 'Ошибка', data.status !== 'success');
+                    if (data.status === 'success') {
+                        document.querySelectorAll('.device-item:not(.device-item-current)').forEach(item => item.remove());
+                        syncDevices();
+                    }
+                })
                 .catch(() => showStatus('Ошибка сети', true));
             });
         }
+
+        // Выход на одном устройстве
+        function syncDevices() {
+            const others = document.querySelectorAll('.device-item:not(.device-item-current)').length;
+            if (sessionsForm) sessionsForm.hidden = others === 0;
+            const empty = document.querySelector('.device-empty');
+            if (empty) empty.hidden = others > 0;
+        }
+
+        document.querySelectorAll('[data-device-logout]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const item = btn.closest('.device-item');
+                const body = new FormData(sessionsForm);
+                body.set('form', 'logout_device');
+                body.set('device', item.dataset.device);
+                btn.disabled = true;
+                fetch(sessionsForm.action, {
+                    method: 'POST',
+                    body,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    showStatus(data.message || 'Ошибка', data.status !== 'success');
+                    // «Уже завершён» — тоже повод убрать строку
+                    item.remove();
+                    syncDevices();
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    showStatus('Ошибка сети', true);
+                });
+            });
+        });
     });
 </script>
 <script>

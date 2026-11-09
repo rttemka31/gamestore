@@ -56,7 +56,8 @@ def _library_stats(user):
     stats = UserLibrary.objects.filter(user=user).aggregate(
         games_count=Count('id'), total_seconds=Sum('playtime_seconds')
     )
-    stats['total_hours'] = (stats.pop('total_seconds') or 0) // 3600
+    # Часы с десятыми, как и время в отдельных играх: 12,6 ч, а не 12
+    stats['total_hours'] = round((stats.pop('total_seconds') or 0) / 3600, 1)
     return stats
 
 

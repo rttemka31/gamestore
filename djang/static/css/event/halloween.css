@@ -143,8 +143,7 @@ html[data-season="halloween"] {
 
     /* ---------- Поля ввода и свечение при фокусе (были фиолетовые) ---------- */
     & .search-box:focus-within,
-    & .form-group input:focus,
-    & .friends-search input:focus {
+    & .form-group input:focus {
         border-color: var(--accent);
         box-shadow: 0 0 14px var(--glow);
     }
