@@ -55,6 +55,17 @@ class ProfileAndSettingsTests(StoreTestCase):
         Friendship.objects.create(sender=self.user.profile, receiver=admin.profile, status=Friendship.Status.ACCEPTED)
         self.assertContains(self.client.get(reverse('mfs:profile')), '#role-creator"></use></svg>Создатель</p>')
 
+    def test_own_profile_shows_incoming_and_outgoing_requests(self):
+        admin = User.objects.create_superuser('root', password='Str0ng-pass-123')
+        Friendship.objects.create(sender=admin.profile, receiver=self.user.profile)
+        Friendship.objects.create(sender=self.user.profile, receiver=self.other.profile)
+        response = self.client.get(reverse('mfs:profile'))
+        # Входящая заявка ведёт в профиль отправителя и показывает его роль
+        self.assertContains(response, f'href="{reverse("mfs:user_profile", args=["root"])}" class="activity-item-link"')
+        self.assertContains(response, '#role-creator"></use></svg>Создатель</p>')
+        # Исходящая — роль получателя
+        self.assertContains(response, '#role-user"></use></svg>Пользователь</p>')
+
     def test_profile_page_edits_nickname_and_bio(self):
         response = self.client.post(reverse('mfs:profile'), {'username': 'alice2', 'bio': '  Люблю инди  '})
         self.assertRedirects(response, reverse('mfs:profile'))

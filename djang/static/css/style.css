@@ -4954,7 +4954,7 @@ html[data-hints="off"] .hint {
     bottom: 16px;
     left: 50%;
     color: var(--text-secondary);
-    font-size: calc(14px * var(--font-scale, 1));
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     transform: translateX(-50%);
 }

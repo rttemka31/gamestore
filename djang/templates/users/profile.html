@@ -260,7 +260,7 @@
                     <div class="section-header"><h2>Заявки в друзья</h2></div>
                     <div class="activity-list">
                         {% for f in incoming_requests %}
-                        <a href="{% url 'mfs:user_profile' f.receiver.user.username %}" class="activity-item-link">
+                        <a href="{% url 'mfs:user_profile' f.sender.user.username %}" class="activity-item-link">
                             <div class="activity-item">
                                 <div class="activity-cover-2">
                                     {% if f.sender.avatar %}<img src="{{ f.sender.avatar.url }}" alt="" data-letter="{{ f.sender.user.username|first|upper }}">
@@ -268,7 +268,7 @@
                                 </div>
                                 <div class="activity-info">
                                     <h3><a href="{% url 'mfs:user_profile' f.sender.user.username %}" style="color:inherit;text-decoration:none;">{{ f.sender.user.username }}</a></h3>
-                                    <p class="profile-status">{{ item.profile.user|user_status }}</p>
+                                    <p class="profile-status">{{ f.sender.user|user_status }}</p>
                                 </div>
                                 <div class="activity-time">
                                     <button type="button" class="buy-button" style="background:#28a745;color:#fff;"
@@ -317,14 +317,14 @@
                         <a href="{% url 'mfs:user_profile' f.receiver.user.username %}" class="activity-item-link">
                             <div class="activity-item" href="{% url 'mfs:user_profile' f.receiver.user.username %}">
                                 <div class="activity-cover-2">
-                                    {% if f.receiver.banner %}<img src="{{ f.receiver.banner.url }}" alt="">
+                                    {% if f.receiver.avatar %}<img src="{{ f.receiver.avatar.url }}" alt="" data-letter="{{ f.receiver.user.username|first|upper }}">
                                     {% else %}
                                         <span>{{ f.receiver.user.username|first|upper }}</span>
                                     {% endif %}
                                 </div>
                                 <div class="activity-info">
                                     <h3><a style="color:inherit;text-decoration:none;">{{ f.receiver.user.username }}</a></h3>
-                                    <p class="profile-status">{{ item.profile.user|user_status }}</p>
+                                    <p class="profile-status">{{ f.receiver.user|user_status }}</p>
                                 </div>
                                 <div class="activity-time">
                                     <button type="button" class="buy-button" style="background: var(--bg-card-hover);"
