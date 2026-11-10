@@ -1,17 +1,15 @@
-<!DOCTYPE html>
 {% extends 'base_mini.html' %}
 {% load static %}
 {% load socialaccount %}
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    {% block title %}GameStore | Регистрация{% endblock %}
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="{% static 'library.css' %}?v=3">
-</head>
-<body>
+
+{% block title %}GameStore | Регистрация{% endblock %}
+
 {% block content %}
+<div class="auth-layout">
+    {% include 'users/_auth_gallery.html' %}
+
     <div class="auth-container">
+        <p class="auth-tagline">Игры, библиотека и друзья — в одном месте</p>
         <div class="auth-box">
             <h2>Регистрация</h2>
             
@@ -41,7 +39,7 @@
 
         <div class="form-group">
             <label for="id_username">Имя пользователя</label>
-            <input type="text" name="username" id="id_username" required placeholder="Придумайте логин" value="{{ request.POST.username }}">
+            <input type="text" name="username" id="id_username" required maxlength="24" autocomplete="username" placeholder="Придумайте логин" value="{{ request.POST.username }}">
         </div>
 
         <div class="form-group">
@@ -56,12 +54,16 @@
 
         <button type="submit" class="buy-button auth-submit">Зарегистрироваться</button>
         <div class="social-login">
+{% if 'google' in social_providers %}
             <a href="{% provider_login_url 'google' %}" class="nav-icon-wrapper" title="Зарегистрироваться через Google">
-                <img src="{% static 'css/icons/google.png' %}" alt="Google" class="nav-icon">
+                <img src="{% static 'img/icons/google.png' %}" alt="Google" class="nav-icon">
             </a>
+{% endif %}
+{% if 'discord' in social_providers %}
             <a href="{% provider_login_url 'discord' %}" class="nav-icon-wrapper" title="Зарегистрироваться через Discord" style="text-decoration: none; display: inline-block;">
-                <img src="{% static 'css/icons/discord.png' %}" alt="" class="nav-icon">
+                <img src="{% static 'img/icons/discord.png' %}" alt="" class="nav-icon">
             </a>
+{% endif %}
         </div>
     </form>
 
@@ -70,6 +72,5 @@
             </div>
         </div>
     </div>
-</body>
+</div>
 {% endblock %}
-</html>

@@ -1,29 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load store_extras %}
 
 {% block title %}GameStore | Профиль{% endblock %}
 
-{% block extra_head %}
-<head>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=19">
-
-    {% if user.is_authenticated and user.profile.accent_color %}
-    <style>
-        :root {
-            --accent: {{ user.profile.accent_color }};
-            --accent-color: {{ user.profile.accent_color }};
-            --accent-hover: {{ user.profile.accent_color }}cc;
-        }
-        body.no-blur, body.no-blur * {
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-        }
-    </style>
-    {% endif %}
-</head>
-{% endblock %}
-
-<body>
 {% block content %}
 
 <main class="container profile-container">
@@ -32,13 +12,18 @@
         <!-- ===== МЕНЮ СЛЕВА ===== -->
         <aside class="profile-sidebar">
             <a href="#profile" class="settings-nav-link active" data-tab="profile">
-                <img src="{% static 'css/icons/profile.png' %}" alt="" class="nav-icon">
+                <img src="{% static 'img/icons/profile.png' %}" alt="" class="nav-icon">
                 Профиль
             </a>
             <a href="#friends" class="settings-nav-link" data-tab="friends">
-                <img src="{% static 'css/icons/friends.png' %}" alt="" class="nav-icon">
+                <img src="{% static 'img/icons/friends.png' %}" alt="" class="nav-icon">
                 Друзья
                 {% if incoming_requests %}<span>({{ incoming_requests|length }})</span>{% endif %}
+            </a>
+            <a href="#wishlist" class="settings-nav-link" data-tab="wishlist">
+                <img src="{% static 'img/icons/wishlist.png' %}" alt="" class="nav-icon">
+                Желаемое
+                {% if wishlist_games %}<span>({{ wishlist_games|length }})</span>{% endif %}
             </a>
         </aside>
  
@@ -51,7 +36,7 @@
                     {% csrf_token %}
  
                     <section class="profile-card" id="profileCard">
-                        <div class="profile-banner" id="bannerPreview" style="background-image: url('{% if user.profile.banner %}{{ user.profile.banner.url }}{% else %}/static/images/default-banner.jpg{% endif %}');">
+                        <div class="profile-banner" id="bannerPreview"{% if user.profile.banner %} style="background-image: url('{{ user.profile.banner.url }}');"{% endif %}>
                             <label for="bannerInput" class="banner-overlay" id="bannerOverlay" style="display: none;">📷</label>
                         </div>
                         <input type="file" name="banner" id="bannerInput" accept="image/*" style="display: none;">
@@ -62,7 +47,7 @@
                             <div class="profile-avatar-wrapper">
                                 <div class="profile-avatar" id="avatarPreview">
                                     {% if user.profile.avatar %}
-                                        <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" id="avatarImg" crossorigin="anonymous">
+                                        <img src="{{ user.profile.avatar.url }}" alt="" data-letter="{{ user.username|first|upper }}" id="avatarImg" crossorigin="anonymous">
                                     {% else %}
                                         <span id="avatarLetter">{{ user.username|first|upper }}</span>
                                     {% endif %}
@@ -75,25 +60,25 @@
                             </div>
  
                             <div class="profile-info">
-                                <h1 class="profile-title">
+                                <h1 class="profile-title" data-profile-view>
                                     {{ user.username }}
                                 </h1>
+                                <!-- В режиме редактирования вместо ника и описания — поля ввода -->
+                                <input type="text" name="username" class="profile-edit-input profile-edit-name" value="{{ user.username }}"
+                                       maxlength="{{ max_username_length }}" autocomplete="username" aria-label="Имя пользователя" required hidden data-profile-edit>
                                 <p class="profile-status">
-                                    {% if user.is_superuser %}
-                                        👑 Создатель
-                                    {% elif user.is_staff %}
-                                        🛡️ Админ
-                                    {% else %}
-                                        🎮 Пользователь
-                                    {% endif %}
+                                    {{ user|user_status }}
+                                    {% include 'store/_hint.html' with title="Роли на сайте" text="Роль показывает, кто человек на сайте.||{creator}Создатель — автор и владелец GameStore||{admin}Админ — добавляет игры и новости, следит за порядком||{user}Пользователь — игрок с библиотекой, друзьями и отзывами" %}
                                 </p>
-                                <p class="profile-status">
+                                <p class="profile-status" data-profile-view>
                                     {% if user.profile.bio and user.profile.bio != "None" %}
                                         {{ user.profile.bio }}
                                     {% else %}
                                         <span style="color: var(--text-muted);">Нет описания</span>
                                     {% endif %}
                                 </p>
+                                <textarea name="bio" class="profile-edit-input profile-edit-bio" maxlength="150" rows="2"
+                                          placeholder="Пара слов о себе (до 150 символов)" aria-label="Описание профиля" hidden data-profile-edit>{% if user.profile.bio != "None" %}{{ user.profile.bio|default:'' }}{% endif %}</textarea>
                             </div>
  
                             <!-- Блок с кнопками -->
@@ -121,7 +106,7 @@
                                 <span>Игр</span>
                             </div>
                             <div class="profile-stat">
-                                <strong>{{ total_hours }}</strong>
+                                <strong>{{ total_hours|floatformat:"-1" }}</strong>
                                 <span>Часов</span>
                             </div>
                             <div class="profile-stat">
@@ -169,7 +154,7 @@
                                 <div class="activity-item">
                                     <div class="activity-cover">
                                         {% if item.game.cover %}
-                                            <img src="{{ item.game.cover.url }}" alt="{{ item.game.title }}">
+                                            <img src="{{ item.game.cover.url }}" alt="{{ item.game.title }}" loading="lazy" decoding="async">
                                         {% else %}
                                             <span>🎮</span>
                                         {% endif %}
@@ -178,7 +163,7 @@
                                     <div class="activity-info-game">
                                         <h3>{{ item.game.title }}</h3>
                                         <div class="activity-info-t">
-                                            {{ item.hours_played|default:"0" }} ч. в игре
+                                            {% if item.session_started_at %}<span class="activity-playing">● Сейчас в игре</span>{% else %}{{ item.playtime_seconds|playtime }} в игре{% endif %}
                                         </div>
                                     </div>
                                     <div class="activity-time">
@@ -196,25 +181,76 @@
                 <section class="profile-section">
                     <div class="section-header">
                         <h2>Избранное</h2>
-                        <span class="profile-placeholder">Пока пусто</span>
+                        <span class="profile-placeholder"><span data-fav-count>{{ favorites|length }}</span> из {{ max_favorites }}</span>
                     </div>
-                    <div class="profile-empty">
-                        <div class="profile-empty-icon">❤</div>
-                        <h3>Здесь появятся любимые игры</h3>
-                        <p>Добавляй игры в избранное, чтобы быстро находить их.</p>
+                    <div class="favorites-zone" data-favorites data-layout="profile" data-url="{% url 'mfs:favorites_update' %}">
+                        {% include 'users/_favorites.html' %}
                     </div>
+                </section>
+
+                <!-- Мои игры: источник для перетаскивания -->
+                <section class="profile-section">
+                    <div class="section-header">
+                        <h2>Мои игры</h2>
+                        <a href="{% url 'mfs:library' %}">Библиотека ➜</a>
+                    </div>
+                    {% if owned_games %}
+                        <p class="profile-hint">Перетащите игру в «Избранное» или нажмите на звёздочку.</p>
+                        <div class="owned-games">
+                            {% for game in owned_games %}
+                                <a href="{% url 'mfs:game_detail' game.id %}" class="owned-game" draggable="true" data-fav-source="{{ game.id }}">
+                                    <img src="{{ game.get_icon_url }}" alt="" draggable="false" loading="lazy" decoding="async">
+                                    <span class="game-name">{{ game.title }}</span>
+                                    <button type="button" class="fav-star" data-fav-toggle="{{ game.id }}" data-on="★" data-off="☆" aria-label="Избранное" title="Избранное">☆</button>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="empty-activity">В вашей библиотеке пока нет игр.</p>
+                    {% endif %}
                 </section>
             </div>
             <!-- ================= /ПРОФИЛЬ ================= -->
  
  
+            <!-- ===================== ЖЕЛАЕМОЕ ===================== -->
+            <div class="profile-tab" id="tab-wishlist" hidden>
+                <section class="profile-section">
+                    <div class="section-header">
+                        <h2>Желаемое</h2>
+                        <a href="{% url 'mfs:catalog' %}">В каталог ➜</a>
+                    </div>
+                    {% if wishlist_games %}
+                        <div class="games-grid profile-games-grid">
+                            {% for game in wishlist_games %}
+                                {% include 'store/_game_card.html' with show_wishlist=True reload_on_wishlist_remove=True %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="profile-empty">
+                            <div class="profile-empty-icon">{% include 'store/_heart_icon.html' with heart_class='heart-icon-filled' %}</div>
+                            <h3>Список желаемого пуст</h3>
+                            <p>Нажмите на сердечко на карточке игры, чтобы сохранить её здесь.</p>
+                        </div>
+                    {% endif %}
+                </section>
+            </div>
+            <!-- ================= /ЖЕЛАЕМОЕ ================= -->
+
+
             <!-- ===================== ДРУЗЬЯ ===================== -->
             <div class="profile-tab" id="tab-friends" hidden>
  
                 <section class="profile-section">
                     <div class="section-header"><h2>Добавить друга</h2></div>
-                    <div class="search-box friends-search">
-                        <input type="text" id="friendSearch" placeholder="Введите имя пользователя" autocomplete="off">
+                    <div class="friends-search">
+                        <div class="search-box">
+                            <input type="search" id="friendSearch" placeholder="Введите имя пользователя" aria-label="Имя пользователя" autocomplete="off">
+                            <button type="button" class="clear-search-btn" aria-label="Очистить поиск" hidden>&times;</button>
+                            <button type="button" data-search-trigger aria-label="Найти">
+                                <img src="{% static 'img/icons/search.png' %}" width="22" height="22" alt="">
+                            </button>
+                        </div>
                         <div id="friendSearchResults" class="search-results" style="display: none;"></div>
                     </div>
                 </section>
@@ -224,23 +260,15 @@
                     <div class="section-header"><h2>Заявки в друзья</h2></div>
                     <div class="activity-list">
                         {% for f in incoming_requests %}
-                        <a href="{% url 'mfs:user_profile' f.receiver.user.username %}" class="activity-item-link">
+                        <a href="{% url 'mfs:user_profile' f.sender.user.username %}" class="activity-item-link">
                             <div class="activity-item">
                                 <div class="activity-cover-2">
-                                    {% if f.sender.avatar %}<img src="{{ f.sender.avatar.url }}" alt="">
+                                    {% if f.sender.avatar %}<img src="{{ f.sender.avatar.url }}" alt="" data-letter="{{ f.sender.user.username|first|upper }}">
                                     {% else %}<span>{{ f.sender.user.username|first|upper }}</span>{% endif %}
                                 </div>
                                 <div class="activity-info">
                                     <h3><a href="{% url 'mfs:user_profile' f.sender.user.username %}" style="color:inherit;text-decoration:none;">{{ f.sender.user.username }}</a></h3>
-                                    <p class="profile-status">
-                                        {% if target.user.is_superuser %}
-                                            👑 Создатель
-                                        {% elif target.user.is_staff %}
-                                            🛡️ Админ
-                                        {% else %}
-                                            🎮 Пользователь
-                                        {% endif %}
-                                    </p>
+                                    <p class="profile-status">{{ f.sender.user|user_status }}</p>
                                 </div>
                                 <div class="activity-time">
                                     <button type="button" class="buy-button" style="background:#28a745;color:#fff;"
@@ -262,20 +290,12 @@
                         <a href="{% url 'mfs:user_profile' item.profile.user.username %}" class="activity-item-link">
                             <div class="activity-item">
                                 <div class="activity-cover-2">
-                                    {% if item.profile.avatar %}<img src="{{ item.profile.avatar.url }}" alt="">
+                                    {% if item.profile.avatar %}<img src="{{ item.profile.avatar.url }}" alt="" data-letter="{{ item.profile.user.username|first|upper }}">
                                     {% else %}<span>{{ item.profile.user.username|first|upper }}</span>{% endif %}
                                 </div>
                                 <div class="activity-info">
                                     <h3><a href="{% url 'mfs:user_profile' item.profile.user.username %}" style="color:inherit;text-decoration:none;">{{ item.profile.user.username }}</a></h3>
-                                    <p class="profile-status">
-                                        {% if target.user.is_superuser %}
-                                            👑 Создатель
-                                        {% elif target.user.is_staff %}
-                                            🛡️ Админ
-                                        {% else %}
-                                            🎮 Пользователь
-                                        {% endif %}
-                                    </p>
+                                    <p class="profile-status">{{ item.profile.user|user_status }}</p>
                                 </div>
                                 <div class="activity-time">
                                     <button type="button" class="buy-button" style="background: var(--bg-card-hover);"
@@ -297,22 +317,14 @@
                         <a href="{% url 'mfs:user_profile' f.receiver.user.username %}" class="activity-item-link">
                             <div class="activity-item" href="{% url 'mfs:user_profile' f.receiver.user.username %}">
                                 <div class="activity-cover-2">
-                                    {% if f.receiver.banner %}<img src="{{ f.receiver.banner.url }}" alt="">
+                                    {% if f.receiver.avatar %}<img src="{{ f.receiver.avatar.url }}" alt="" data-letter="{{ f.receiver.user.username|first|upper }}">
                                     {% else %}
                                         <span>{{ f.receiver.user.username|first|upper }}</span>
                                     {% endif %}
                                 </div>
                                 <div class="activity-info">
                                     <h3><a style="color:inherit;text-decoration:none;">{{ f.receiver.user.username }}</a></h3>
-                                    <p class="profile-status">
-                                        {% if target.user.is_superuser %}
-                                            👑 Создатель
-                                        {% elif target.user.is_staff %}
-                                            🛡️ Админ
-                                        {% else %}
-                                            🎮 Пользователь
-                                        {% endif %}
-                                    </p>
+                                    <p class="profile-status">{{ f.receiver.user|user_status }}</p>
                                 </div>
                                 <div class="activity-time">
                                     <button type="button" class="buy-button" style="background: var(--bg-card-hover);"
@@ -333,6 +345,8 @@
 </main>
 {% endblock %}
 {% block extra_js %}
+<script src="{% static 'js/avatar-crop.js' %}?v=1"></script>
+<script src="{% static 'js/favorites.js' %}?v=1"></script>
 <script>
 (function () {
     const EXPORT_WIDTH = 1200; // ширина готовой обложки в пикселях
@@ -420,7 +434,7 @@
         const max = Number(zoomSlider.max);
         const pct = (zoomSlider.value - min) / (max - min) * 100;
         zoomSlider.style.background =
-            `linear-gradient(to right, var(--accent, #6366f1) ${pct}%, rgba(255,255,255,.15) ${pct}%)`;
+            `linear-gradient(to right, var(--accent, #6c71fd) ${pct}%, rgba(255,255,255,.15) ${pct}%)`;
     }
  
     zoomSlider.addEventListener('input', () => setZoom(zoomSlider.value));
@@ -538,16 +552,30 @@ document.addEventListener("DOMContentLoaded", () => {
     // ДОБАВИТЬ: исходный фон баннера
     let originalBannerBg = bannerPreview.style.backgroundImage;
 
+    // Ник и описание: в режиме редактирования показываем поля вместо текста
+    const viewEls = document.querySelectorAll("[data-profile-view]");
+    const editEls = document.querySelectorAll("[data-profile-edit]");
+    function toggleTextEditing(editing) {
+        viewEls.forEach(el => { el.hidden = editing; });
+        editEls.forEach(el => {
+            el.hidden = !editing;
+            if (!editing) el.value = el.defaultValue;  // отмена возвращает прежний текст
+        });
+    }
+
     // Включение режима редактирования
     editBtn.addEventListener("click", () => {
         editBtn.style.display = "none";
         editActions.style.display = "flex";
         avatarOverlay.style.display = "flex";
         bannerOverlay.style.display = "flex"; // ДОБАВИТЬ
+        toggleTextEditing(true);
+        document.querySelector(".profile-edit-name")?.focus();
     });
 
     // Отмена редактирования
     cancelBtn.addEventListener("click", () => {
+        toggleTextEditing(false);
         editBtn.style.display = "block";
         editActions.style.display = "none";
         avatarOverlay.style.display = "none";
@@ -561,16 +589,25 @@ document.addEventListener("DOMContentLoaded", () => {
         bannerInput.value = "";
     });
 
-    // Мгновенный предпросмотр новой аватарки при выборе файла
-    avatarInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                avatarPreview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
-            };
-            reader.readAsDataURL(file);
-        }
+    // Выбранную аватарку сначала кадрируем в круглой рамке, в форму уходит уже вырезанный квадрат
+    avatarInput.addEventListener('change', () => {
+        const file = avatarInput.files && avatarInput.files[0];
+        if (!file) return;
+        window.gsAvatarCrop.open(file, {
+            onDone: (cropped, url) => {
+                const files = new DataTransfer();
+                files.items.add(cropped);
+                avatarInput.files = files.files;
+
+                const img = new Image();
+                img.id = 'avatarImg';
+                img.alt = '';
+                img.onload = () => window.__setAvatarBorder?.(img);
+                img.src = url;
+                avatarPreview.replaceChildren(img);
+            },
+            onCancel: () => { avatarInput.value = ''; },
+        });
     });
 });
 </script>
@@ -616,30 +653,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 2. При предпросмотре нового аватара пересчитываем цвет динамически без мигания
-    if (avatarInput) {
-        avatarInput.addEventListener("change", (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    // Создаем временную картинку в памяти для фонового расчета
-                    const tempImg = new Image();
-                    tempImg.src = event.target.result;
-
-                    tempImg.onload = () => {
-                        // 1. Сначала рассчитываем и задаем цвет границы
-                        setBorderFromImage(tempImg);
-
-                        // 2. И только после этого вставляем саму картинку в DOM
-                        avatarPreview.innerHTML = `<img src="${event.target.result}" id="avatarImg" alt="Preview">`;
-                    };
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-}); // <-- Не хватало этой закрывающей скобки для DOMContentLoaded
+    // 2. Для новой аватарки цвет рамки пересчитывает обработчик кропа
+    window.__setAvatarBorder = setBorderFromImage;
+});
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -682,6 +698,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Обработка прямого перехода по URL с хэшем
     const initialHash = window.location.hash || '#profile';
     switchTab(initialHash);
+
+    // Переход из меню пользователя, когда профиль уже открыт
+    window.addEventListener('hashchange', () => switchTab(window.location.hash || '#profile'));
 });
 </script>
 
@@ -721,6 +740,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sent:     '<span class="search-badge-muted">Заявка отправлена</span>',
         received: '<span class="search-badge-muted">Хочет дружить</span>',
         friends:  '<span class="search-badge-muted">Уже друзья</span>',
+        closed:   '<span class="search-badge-muted">Не принимает заявки</span>',
     };
 
     input.addEventListener('input', () => {

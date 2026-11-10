@@ -1,28 +1,31 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="ru"{% if user.is_authenticated %} data-font="{{ user.profile.font_size }}" data-radius="{{ user.profile.radius_size }}"{% endif %}>
+<html lang="ru"{% if user.is_authenticated %} data-font="{{ user.profile.font_size }}" data-radius="{{ user.profile.radius_size }}"{% if user.profile.reduce_motion %} data-motion="reduced"{% endif %}{% if not user.profile.show_hints %} data-hints="off"{% endif %}{% if user.profile.accent_color %} data-accent="custom"{% endif %}{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}GameStore{% endblock %}</title>
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=19">
-    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=1">
-    <script src="{% static 'js/event/halloween.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=66">
+    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=9">
+    <script src="{% static 'js/event/halloween.js' %}?v=2"></script>
     <link id="siteIcon" rel="icon"
-        href="{% static 'css/icons/gamestore.png' %}?v=2"
-        data-default="{% static 'css/icons/gamestore.png' %}?v=2"
-        data-halloween="{% static 'css/icons/gamestore_halloween.png' %}?v=2">
+        href="{% static 'img/icons/gamestore.png' %}?v=2"
+        data-default="{% static 'img/icons/gamestore.png' %}?v=2"
+        data-halloween="{% static 'img/icons/gamestore_halloween.png' %}?v=2">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
-    <!-- Применение динамической темы на ВСЕХ страницах -->
+    {% block extra_head %}{% endblock %}
+    <!-- Цвет пользователя подключается после стилей страницы: иначе cart.css и library.css перебивают его своими цветами -->
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>
         :root {
             --accent: {{ user.profile.accent_color }};
             --accent-color: {{ user.profile.accent_color }};
             --accent-hover: {{ user.profile.accent_color }}cc;
-            --border-accent: color-mix(in srgb, var(--accent) 40%, black);
         }
         body.no-blur, body.no-blur * {
             backdrop-filter: none !important;
@@ -30,22 +33,28 @@
         }
     </style>
     {% endif %}
-    {% block extra_head %}{% endblock %}
 </head>
 
-<body class="{% if request.user.is_authenticated and request.user.profile.disable_blur %}no-blur{% endif %}">
+<body class="{% if request.user.is_authenticated and request.user.profile.disable_blur %}no-blur{% endif %}"
+      data-cart-url="{% url 'mfs:cart_detail' %}"
+      data-library-url="{% url 'mfs:library' %}"
+      data-login-url="{% url 'mfs:login' %}">
+    {% include '_role_icons.html' %}
 
     <!-- Общий Navbar для всего сайта -->
     <header class="navbar">
         <div class="nav-left">
             <div class="logo">GAME<span>STORE</span></div>
-            <a href="{% url 'mfs:index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">МАГАЗИН</a>
-            <a href="{% url 'mfs:library' %}" class="nav-link {% if request.resolver_match.url_name == 'library' %}active{% endif %}">БИБЛИОТЕКА</a>
-            <a href="{% url 'mfs:news' %}" class="nav-link {% if request.resolver_match.url_name == 'news' %}active{% endif %}">НОВОСТИ</a>
+            <nav class="nav-links" id="siteNav" aria-label="Разделы сайта">
+                <a href="{% url 'mfs:index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">МАГАЗИН</a>
+                <a href="{% url 'mfs:catalog' %}" class="nav-link {% if request.resolver_match.url_name == 'catalog' %}active{% endif %}">КАТАЛОГ</a>
+                <a href="{% url 'mfs:library' %}" class="nav-link {% if request.resolver_match.url_name == 'library' %}active{% endif %}">БИБЛИОТЕКА</a>
+                <a href="{% url 'mfs:news' %}" class="nav-link {% if request.resolver_match.url_name == 'news' %}active{% endif %}">НОВОСТИ</a>
+            </nav>
         </div>
 
-        <div class="nav-right">
-            <a href="{% url 'mfs:cart_detail' %}" class="nav-link {% if request.resolver_match.url_name == 'cart_detail' %}active{% endif %}">
+        <div class="nav-right" id="navRight">
+            <a href="{% url 'mfs:cart_detail' %}" class="nav-link nav-cart-link {% if request.resolver_match.url_name == 'cart_detail' %}active{% endif %}">
                 КОРЗИНА
                 <span class="cart-badge" {% if not request.session.cart %}style="display: none;"{% endif %}>
                     {{ request.session.cart|length }}
@@ -60,21 +69,44 @@
                     </a>
                     <div class="user-dropdown-menu" id="userDropdownMenu">
                         <a href="{% url 'mfs:profile' %}" class="admin-item">Профиль</a>
+                        <a href="{% url 'mfs:profile' %}#wishlist" class="admin-item">Желаемое</a>
                         {% if request.user.is_staff %}
                             <a href="{% url 'admin:index' %}" class="admin-item" target="_blank">Админ-панель</a>
                         {% endif %}
                         <a href="{% url 'mfs:settings' %}" class="admin-item">Настройки</a>
-                        <a href="{% url 'mfs:logout' %}" class="logout-item">Выйти</a>
+                        <form method="post" action="{% url 'mfs:logout' %}" class="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-item">Выйти</button>
+                        </form>
                     </div>
                 </div>
             {% else %}
                 <a href="{% url 'mfs:login' %}" class="nav-link">ВХОД</a>
             {% endif %}
         </div>
+
+        <a href="{% url 'mfs:cart_detail' %}" class="nav-cart-mobile" aria-label="Корзина">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.6 12.2a2 2 0 0 0 2 1.6h8.1a2 2 0 0 0 2-1.5L22 8H6.2"/></svg>
+            <span class="cart-badge" {% if not request.session.cart %}style="display: none;"{% endif %}>{{ request.session.cart|length }}</span>
+        </a>
+        <!-- Телефоны: кнопка меню; разделы и меню пользователя раскрываются по ней -->
+        <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="siteNav navRight" aria-label="Открыть меню">
+            <span></span><span></span><span></span>
+        </button>
     </header>
 
     <!-- Основное содержимое каждой страницы -->
     {% block content %}{% endblock %}
+
+    {% include '_footer.html' %}
+
+    {% if messages %}
+    <div class="messages-stack" role="status">
+        {% for message in messages %}
+            <div class="message-toast {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -122,6 +154,8 @@
             }
         });
     </script>
+    <script src="{% static 'js/store.js' %}?v=13"></script>
+    <script src="{% static 'js/nav.js' %}?v=1"></script>
     {% block extra_js %}{% endblock %}
     <div id="installToast" class="toast-notification">
     Приложение пока недоступно для установки

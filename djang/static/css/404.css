@@ -1,6 +1,6 @@
 @font-face {
-    font-family: "MyFont";
-    src: url("fonts/unbounded.ttf") format("opentype"); /* Если файлы лежит в папке css/, замените на url("../fonts/reg.otf") */
+    font-family: "Unbounded";
+    src: url("../fonts/unbounded.ttf") format("truetype");
     font-weight: 100 900;
     font-style: normal;
 }
@@ -14,23 +14,39 @@
     --bg-secondary: #17181f;
     --bg-card: #252833;
 
-    --font-display: "MyFont", Inter, sans-serif;
+    --font-display: "Unbounded", Inter, sans-serif;
     --text-primary: #ffffff;
     --text-secondary: #bcc9d6;
-    --text-muted: #7f8b96;
+    --text-muted: #949fab;
 
-    --accent: #6366f1;
+    --accent: #6c71fd;
     --border: rgba(255, 255, 255, 0.2);
     --border-subtle: rgba(255, 255, 255, 0.1);
+
     --shadow: rgba(0, 0, 0, 0.2);
+    --font-scale: 1;
+    --radius-scale: 1;
+    --radius-verysm: calc(2.5px * var(--radius-scale));
+    --radius-sm: calc(5px * var(--radius-scale));
+    --radius-md: calc(10px * var(--radius-scale));
+    --radius-big: calc(50px * var(--radius-scale));
 
-    --radius-sm: 5px;
-    --radius-md: 10px;
+    --padding-sm: 8px;
+    --padding-sm2: 15px;
+    --padding-md: 20px;
+    --padding-big: 30px;
 
+    --text-normal: 500;
     --text-semibold: 600;
     --text-bold: 700;
     --transition: 0.2s ease;
 }
+
+html[data-font="0"]   { --font-scale: 0.9; }
+html[data-font="2"]   { --font-scale: 1.1; }
+html[data-radius="0"] { --radius-scale: 0.5; }
+html[data-radius="2"] { --radius-scale: 1.5; }
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -54,12 +70,12 @@ body {
     max-width: 600px;
     width: 100%;
     text-align: center;
-    margin: auto; /* Занимает всё свободное место и идеально центрирует контент по вертикали */
+    margin: auto;
     padding: 20px;
 }
 
 .error-badge {
-    font-size: 84px;
+    font-size: calc(72px * var(--font-scale, 1));
     font-weight: var(--text-bold);
     color: var(--accent);
     line-height: 1;
@@ -68,14 +84,14 @@ body {
 }
 
 .error-title {
-    font-size: 24px;
+    font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     color: var(--text-primary);
     margin-bottom: 30px;
 }
 .error-subtitle {
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     margin-bottom: 20px;
     line-height: 1.5;
 }
@@ -90,7 +106,7 @@ body {
 }
 
 .error-reasons h3 {
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     color: var(--text-primary);
     margin-bottom: 15px;
     font-weight: var(--text-semibold);
@@ -102,7 +118,7 @@ body {
 }
 
 .error-reasons li {
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale, 1));
     margin-bottom: 5px;
     line-height: 1.5;
 }
@@ -123,89 +139,20 @@ body {
     color: white;
     padding: 11px 27px;
     border-radius: var(--radius-sm);
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     cursor: pointer;
     transition: transform var(--transition);
     text-decoration: none;
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
-    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани *
-    /* 2. Анимируем строго свойство transform */
+    outline: 1px solid transparent;
+
     transition: transform 0.175s ease-out;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
 .buy-button:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
-}
-
-.navbar {
-    width: 100%;
-    height: 74px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 7%;
-    background: rgba(11, 18, 26, 0.96);
-    border-bottom: 1px solid var(--border-subtle);
-    box-shadow: 0 15px 25px var(--shadow);
-    backdrop-filter: blur(5px);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.nav-left {
-    display: flex;
-    align-items: center;
-    gap: 25px;
-}
-
-.logo {
-    font-family: var(--font-display);
-    font-size: 24px;
-    font-weight: var(--text-bold);
-    letter-spacing: 1px;
-    color: white;
-    margin-right: 25px;
-}
-
-.logo span {
-    color: var(--accent);
-}
-
-.nav-link {
-    font-family: var(--font-display);
-    position: relative;
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-size: 16px;
-    font-weight: var(--text-semibold);
-    transition: 0.2s;
-}
-
-.nav-link:hover,
-.nav-link.active {
-    color: var(--accent);
-}
-
-.nav-link.active::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -8px;
-    height: 2px;
-    background-color: var(--accent);
-    border-radius: var(--radius-sm);
-}
-
-.nav-right {
-    display: flex;
-    align-items: center;
-    gap: 25px;
+    transform: scale(1.1);
 }
 
 @media (max-width: 900px) {

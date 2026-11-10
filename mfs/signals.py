@@ -1,9 +1,48 @@
 import os
 
-from django.db.models.signals import pre_save, post_delete
+from django.conf import settings
+from django.contrib.auth.signals import user_logged_in, user_login_failed
+from django.core.cache import cache
+from django.db.models.signals import pre_save, post_delete, post_save
 from django.dispatch import receiver
 
-from .models import Profile
+from .models import News, Profile
+from .security import record_login_failure, reset_login_failures
+from .sessions import DEVICE_KEY, device_info
+from .templatetags.store_extras import SITE_VERSION_CACHE_KEY
+
+
+@receiver([post_save, post_delete], sender=News)
+def forget_site_version(sender, **kwargs):
+    """Новая новость с номером версии должна сразу появиться в подвале."""
+    cache.delete(SITE_VERSION_CACHE_KEY)
+
+
+@receiver(user_login_failed)
+def count_failed_login(sender, credentials, request=None, **kwargs):
+    """Каждая неудачная попытка входа (на сайте и в админке) приближает блокировку."""
+    if request is not None:
+        record_login_failure(request, credentials.get('username'))
+
+
+@receiver(user_logged_in)
+def forget_failed_logins(sender, request, user, **kwargs):
+    if request is not None:
+        reset_login_failures(request, user.get_username())
+
+
+@receiver(user_logged_in)
+def remember_device(sender, request, user, **kwargs):
+    """Запоминаем устройство и время входа — для списка устройств в настройках."""
+    if request is not None and hasattr(request, 'session'):
+        request.session[DEVICE_KEY] = device_info(request)
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_profile_for_new_user(sender, instance, created, raw=False, **kwargs):
+    """Профиль нужен сразу: иначе нового пользователя нельзя найти в поиске друзей."""
+    if created and not raw:
+        Profile.objects.get_or_create(user=instance)
 
 
 def _delete_file(field_file):

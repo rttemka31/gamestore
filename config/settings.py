@@ -23,9 +23,32 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '*', '.trycloudflare.com']
+SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
+DEBUG = os.environ.get('DJANGO_DEBUG') == '1'
+
+#ALLOWED_HOSTS = [
+    #host.strip()
+    #for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,.trycloudflare.com').split(',')
+    #if host.strip()
+#]
+#ALLOWED_HOSTS = [
+    #host.strip()
+    #for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,*.trycloudflare.com').split(',')
+    #if host.strip()
+#]
+
+ALLOWED_HOSTS = ['*']
+
 CSRF_TRUSTED_ORIGINS = ['https://*.trycloudflare.com']
+
+# Для сайта за HTTPS-прокси (например, Cloudflare Tunnel). При обычном http://localhost оставляйте выключенным
+if os.environ.get('DJANGO_HTTPS') == '1':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # HSTS включайте только на постоянном домене: браузеры запоминают его надолго
+    SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_HSTS_SECONDS', '0'))
 
 # Application definition
 INSTALLED_APPS = [
@@ -50,6 +73,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'mfs.sessions.DeviceTrackingMiddleware',  # устройства, на которых выполнен вход (список в настройках)
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
@@ -106,6 +130,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Пароли хешируются scrypt: он требует много памяти на каждую проверку, поэтому подбирать
+# украденные хеши на видеокартах намного дороже, чем PBKDF2. Старые хеши PBKDF2 продолжают
+# работать и сами переписываются в scrypt при следующем входе пользователя.
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.ScryptPasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+]
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -135,7 +168,7 @@ LOGIN_URL = '/login/'
 SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
+    'mfs.security.RateLimitedModelBackend',  # обычный вход + блокировка после серии неудачных попыток
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
@@ -169,12 +202,6 @@ SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 
 # Не требовать подтверждения почты при входе через соцсети
 SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
-
-# Указываем редирект после успешного входа (например, на главную страницу)
-LOGIN_REDIRECT_URL = '/'
-
-SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
-DEBUG = os.environ.get('DJANGO_DEBUG') == '1'
 
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')

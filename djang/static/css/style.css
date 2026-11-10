@@ -1,6 +1,6 @@
 @font-face {
-    font-family: "MyFont";
-    src: url("fonts/unbounded.ttf") format("opentype"); /* Если файлы лежит в папке css/, замените на url("../fonts/reg.otf") */
+    font-family: "Unbounded";
+    src: url("../fonts/unbounded.ttf") format("truetype");
     font-weight: 100 900;
     font-style: normal;
 }
@@ -10,34 +10,60 @@
 ========================= */
 
 :root {
+    --bg-navbar: rgba(11, 18, 26, 0.96);  /* шапка и подвал */
+    --role-admin: #4ea8ff;               /* значок роли «Админ» */
     --bg-primary: #111216;
     --bg-secondary: #17181f;
     --bg-surface: #20222b;
     --bg-card: #252833;
     --bg-card-hover: #313442;
 
-    --font-display: "MyFont", Inter, sans-serif;
+    --font-display: "Unbounded", Inter, sans-serif;
     --text-primary: #ffffff;
     --text-secondary: #bcc9d6;
-    --text-muted: #7f8b96;
+    --text-muted: #949fab; /* не темнее: иначе мелкий серый текст на карточках не проходит контраст 4.5:1 */
 
-    --accent: #6366f1;
+    /* Один фиолетовый на весь сайт — для логотипа, кнопок, ссылок и меток.
+       Подобран посередине: белый текст на кнопках и фиолетовый текст на карточках читаются одинаково (~3.8:1) */
+    --accent: #6c71fd;
+    /* Цвет надписей акцентом. По умолчанию это тот же --accent; поднимается только яркость
+       слишком тёмных акцентов, которые пользователь выбрал сам, — оттенок при этом не меняется.
+       Первая строка — для старых браузеров без относительного синтаксиса цвета */
+    --accent-text: var(--accent);
+    --accent-text: oklch(from var(--accent) max(l, 0.62) c h);
     --success: #22c55e;
     --danger: #c7312a;
+    --rating: #f5b301;   /* звёзды оценок */
+    --warning: #ffab00;  /* объявления и черновики */
+    --danger-text: #ef5d55; /* красный для надписей: сам --danger на тёмном фоне читается плохо */
 
     --border: rgba(255, 255, 255, 0.2);
-    --border-accent: #3e3e70;
+    /* Рамки полей ввода с оттенком акцента и контрастом не ниже 3:1, чтобы поле было видно */
+    --border-accent: color-mix(in srgb, var(--accent) 35%, #6e7186);
     --border-subtle: rgba(255, 255, 255, 0.1);
 
     --shadow: rgba(0, 0, 0, 0.2);
+    /* Тени: sm — мелкие элементы, md — карточки и панели, lg — меню и всплывающие окна */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 15px 25px var(--shadow);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
     --font-scale: 1;
     --radius-scale: 1;
     --radius-verysm: calc(2.5px * var(--radius-scale));
     --radius-sm: calc(5px * var(--radius-scale));
     --radius-md: calc(10px * var(--radius-scale));
     --radius-big: calc(50px * var(--radius-scale));
+    --radius-pill: 999px; /* таблетки и переключатели: всегда полностью скруглены */
 
-    --padding-sm: 7.5px;
+    /* Шкала отступов: новые отступы берите из неё */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+
+    --padding-sm: var(--space-2);
     --padding-sm2: 15px;
     --padding-md: 20px;
     --padding-big: 30px;
@@ -64,9 +90,16 @@ html[data-radius="2"] { --radius-scale: 1.5; }
 
 html {
     scroll-behavior: smooth;
+    /* Полоса прокрутки (тёмная) есть всегда: страница не прыгает вбок, а пустой
+       «желоб» от scrollbar-gutter не светится белой полосой */
+    overflow-y: scroll;
 }
 
 body {
+    /* Колонка на всю высоту окна: на короткой странице подвал прижат к низу, а не висит посередине */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     margin: 0;
     background: radial-gradient(
         circle at 50% 0%,
@@ -77,6 +110,14 @@ body {
     background-attachment: fixed;
     color: var(--text-primary);
     font-family: Inter, Helvetica, sans-serif;
+}
+
+/* Поля и кнопки по умолчанию берут системный шрифт (Arial) — пусть наследуют шрифт сайта */
+input,
+button,
+select,
+textarea {
+    font-family: inherit;
 }
 
 /* =========================
@@ -90,9 +131,9 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 0 7%;
-    background: rgba(11, 18, 26, 0.96);
+    background: var(--bg-navbar);
     border-bottom: 1px solid var(--border-subtle);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
     backdrop-filter: blur(5px);
     position: sticky;
     top: 0;
@@ -105,13 +146,25 @@ body {
     gap: 25px;
 }
 
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: inherit;
+}
+
+/* Видны только на телефонах */
+.nav-toggle,
+.nav-cart-mobile {
+    display: none;
+}
+
 .logo {
     font-family: var(--font-display);
     font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-bold);
     letter-spacing: 1px;
-    color: white;
-    margin-right: 25px;
+    color: var(--text-primary);
+    margin-right: 30px;
 }
 
 .logo span {
@@ -130,7 +183,7 @@ body {
 
 .nav-link:hover,
 .nav-link.active {
-    color: var(--accent);
+    color: var(--accent-text);
 }
 
 .nav-link.active::after {
@@ -168,7 +221,7 @@ body {
     overflow: hidden;
     border-radius: var(--radius-md);
     background: var(--bg-card);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
     margin-bottom: 50px;
     border: none; 
     transition: 0.2s;
@@ -212,10 +265,10 @@ body {
 
 .featured-label {
     font-family: var(--font-display);
-    color: var(--accent);
+    color: var(--accent-text);
     font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-bold);
-    letter-spacing: 1px;
+    letter-spacing: 0.3px;
     margin-bottom: 0;
     flex-wrap: nowrap;
 }
@@ -230,7 +283,7 @@ body {
 .featured-info p {
     margin: 0;
     color: var(--text-secondary);
-    line-height: 1.75;
+    line-height: 1.5;
     font-size: calc(16px * var(--font-scale, 1));
     max-width: 390px;
 }
@@ -252,17 +305,13 @@ body {
     margin-top: var(--padding-big);
 }
 
-.featured-price {
-    font-size: calc(22px * var(--font-scale, 1));
-    color: white;
-    font-weight: var(--text-semibold);
+/* Крупная цена — игра недели и страница игры: та же цена, что в карточках, только больше */
+.price-block-lg .price {
+    font-size: calc(24px * var(--font-scale, 1));
 }
 
-.old-featured-price {
-    color: var(--text-muted);
+.price-block-lg .old-price {
     font-size: calc(16px * var(--font-scale, 1));
-    line-height: 1;
-    text-decoration: line-through;
 }
 
 /* =========================
@@ -290,7 +339,7 @@ body {
 }
 
 .section-header a {
-    color: var(--accent);
+    color: var(--accent-text);
     text-decoration: none;
     font-weight: var(--text-semibold);
     font-size: calc(16px * var(--font-scale, 1));
@@ -307,7 +356,7 @@ body {
 }
 
 .section-header-2 a {
-    color: var(--accent);
+    color: var(--accent-text);
     text-decoration: none;
     font-size: calc(16px * var(--font-scale, 1));
     transition: 0.2s;
@@ -365,7 +414,7 @@ a.game-card:hover {
     transform: translateY(-8px);
     background: var(--bg-card-hover);
     filter: brightness(1.10);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
 }
 
 /* При ховере меняем цвет рамки у псевдоэлемента */
@@ -436,30 +485,39 @@ a.game-card:hover::after {
 
 .game-bottom {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-2);
     margin-top: auto;
     min-height: 30px;
 }
 
+/* «Эксклюзив» в углу обложки, напротив сердечка: нижняя строка карточки остаётся только для цены */
+.game-card-label {
+    position: absolute;
+    top: var(--space-3);  /* по центру сердечка «В желаемое» (36px) */
+    left: var(--space-2);
+    z-index: 3;
+}
+
+/* Цена — главное в карточке: старая зачёркнутая стоит в той же строке, а не мелко над новой */
 .price-block {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 5px;
+    align-items: baseline;
+    gap: var(--space-2);
 }
 
 .old-price {
     color: var(--text-muted);
-    font-size: calc(13px * var(--font-scale, 1));
+    font-size: calc(14px * var(--font-scale, 1));
     line-height: 1;
     text-decoration: line-through;
 }
 
 .price {
     color: var(--text-primary);
-    font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
+    font-size: calc(18px * var(--font-scale, 1));
+    font-weight: var(--text-bold);
     line-height: 1;
 }
 
@@ -471,35 +529,32 @@ a.game-card:hover::after {
     line-height: 1.75;
 }
 
-.discount {
-    font-family: var(--font-display);
+/* ---------- Значки ----------
+   Одна система для всех плашек: одинаковые высота, шрифт и скругление, различается только цвет */
+.badge {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    background: var(--success);
-    color: var(--bg-primary);
-    padding: 7px 6px;
-    font-size: calc(16px * var(--font-scale, 1));
+    height: calc(30px * var(--font-scale, 1));
+    padding: 0 var(--space-2);
+    border: 2px solid transparent;
     border-radius: var(--radius-sm);
+    font-family: var(--font-display);
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     line-height: 1;
     letter-spacing: 0.3px;
+    white-space: nowrap;
 }
 
-.not-on-steam-badge2 {
-    display: inline-block;
-    font-family: var(--font-display);
-    background: var(--bg-primary);
+.badge-discount {
+    background: var(--success);
+    color: var(--bg-primary);
+}
+
+.badge-exclusive {
+    background: color-mix(in srgb, var(--accent) 15%, var(--bg-primary));
+    border-color: color-mix(in srgb, var(--accent) 60%, transparent);
     color: var(--text-primary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 7px 6px;
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    backdrop-filter: blur(5px);
-    line-height: 1;
 }
 
 /* =========================
@@ -577,6 +632,19 @@ a.game-card:hover::after {
     min-width: 130px;
 }
 
+/* Жанры на странице игры ведут в каталог с похожими играми */
+.detail-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.detail-genres .chip {
+    padding: 6px 7px;
+    font-size: calc(14px * var(--font-scale, 1));
+    gap: var(--padding-sm);
+}
+
 .purchase-box {
     display: flex;
     align-items: center;
@@ -632,7 +700,7 @@ a.game-card:hover::after {
     }
 
     .nav-link {
-        font-size: 15px;
+        font-size: 16px;
     }
 
     .featured {
@@ -661,28 +729,12 @@ a.game-card:hover::after {
         grid-template-columns: 1fr;
     }
 
-    .game-detail-cover img {
+    .main-image-box img {
         min-height: 300px;
     }
 }
 
 @media (max-width: 600px) {
-    .navbar {
-        height: auto;
-        padding: 20px 5%;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .nav-left {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .nav-right {
-        display: none;
-    }
-
     .container {
         width: 92%;
         padding-top: 30px;
@@ -735,7 +787,7 @@ a.game-card:hover::after {
     padding: 11px 27px;
     border-radius: var(--radius-md);
     font-size: calc(16px * var(--font-scale, 1));
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
     transition: top 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s;
     opacity: 0;
     z-index: 1000;
@@ -750,6 +802,12 @@ a.game-card:hover::after {
 .arrow-down {
     display: inline-block;
     transform: rotate(90deg);
+}
+
+/* Левой версии этой стрелки в шрифте нет, поэтому поворачиваем правую */
+.arrow-left {
+    display: inline-block;
+    transform: rotate(180deg);
 }
 
 ::-webkit-scrollbar {
@@ -774,6 +832,17 @@ a.game-card:hover::after {
     background: var(--bg-card-hover);
 }
 
+/* Chrome на Windows иначе рисует у прокручиваемых блоков белые кнопки-стрелки сверху и снизу */
+::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
 /* =========================
    AUTORIZATION
 ========================= */
@@ -792,7 +861,7 @@ a.game-card:hover::after {
     padding: var(--padding-md);
     width: 100%;
     max-width: 400px;
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
 }
 
 .auth-box h2 {
@@ -829,7 +898,7 @@ a.game-card:hover::after {
 
 .form-group input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .auth-submit {
@@ -846,6 +915,113 @@ a.game-card:hover::after {
     font-size: calc(14px * var(--font-scale, 1));
     margin-bottom: 25px;
     text-align: center;
+}
+
+/* Вход и регистрация: слева медленно едет галерея скриншотов сайта, справа форма */
+.auth-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+    gap: 70px;
+    align-items: center;
+    max-width: 1240px;
+    min-height: calc(100vh - 74px);
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+.auth-layout .auth-container {
+    flex-direction: column;
+    min-height: 0;
+    padding: 40px 0;
+}
+
+.auth-tagline {
+    margin: 0 0 18px;
+    color: var(--text-secondary);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-align: center;
+}
+
+.auth-showcase {
+    display: flex;
+    gap: 20px;
+    height: calc(100vh - 74px);
+    max-height: 1200px;
+    overflow: hidden;
+    /* верх и низ галереи растворяются в фоне */
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 15%, #000 85%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 15%, #000 85%, transparent);
+}
+
+.auth-showcase-column {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Набор картинок повторён трижды, а padding-bottom равен gap: сдвиг на треть дорожки — ровно
+   один набор, поэтому круг замыкается без рывка, а двух оставшихся наборов хватает на всю высоту галереи */
+.auth-showcase-track {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-bottom: 20px;
+    animation: auth-showcase-scroll 60s linear infinite;
+    will-change: transform;
+}
+
+.auth-showcase-column:nth-child(2) .auth-showcase-track {
+    animation-duration: 70s;
+    animation-direction: reverse;
+    animation-delay: -12s; /* колонки начинают со сдвигом, а не ровными рядами */
+}
+
+.auth-showcase img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 2px solid transparent; /* рамка есть всегда, но видна только при наведении — как у карточек игр в магазине */
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    transition: border-color 0.3s, filter 0.3s;
+}
+
+.auth-showcase img:hover {
+    border-color: var(--border);
+    filter: brightness(1.10);
+}
+
+@keyframes auth-showcase-scroll {
+    from { transform: translateY(0); }
+    to { transform: translateY(calc(-100% / 3)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-showcase-track {
+        animation: none;
+    }
+}
+
+html[data-motion="reduced"] .auth-showcase-track {
+    animation: none !important;
+}
+
+/* На узких экранах галерея не помещается рядом с формой — остаётся только форма */
+@media (max-width: 900px) {
+    .auth-layout {
+        display: block;
+        min-height: 0;
+        padding: 0;
+    }
+
+    .auth-showcase {
+        display: none;
+    }
+
+    .auth-layout .auth-container {
+        min-height: 65vh;
+        padding: 30px 16px;
+    }
 }
 
 .logout-btn {
@@ -894,6 +1070,7 @@ a.game-card:hover::after {
     overflow-x: auto;
     align-items: center;
     justify-content: center;
+    justify-content: safe center; /* Если миниатюры не помещаются, первая не обрезается слева */
     padding: 5px;
 }
 
@@ -916,7 +1093,7 @@ a.game-card:hover::after {
 .thumbnails-list img.thumb.active {
     opacity: 1;
     border-color: var(--accent);
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 .thumb {
@@ -953,7 +1130,7 @@ a.game-card:hover::after {
 .thumb.active {
     border-color: var(--accent);
     border-width: 2px;
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 .video-thumb.active img {
@@ -991,7 +1168,7 @@ a.game-card:hover::after {
     right: auto;
     background-color: var(--bg-secondary);
     border: 2px solid var(--border);
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.6);
+    box-shadow: var(--shadow-lg);
     border-radius: var(--radius-sm);
     z-index: 1000;
     min-width: 130px;
@@ -1066,7 +1243,7 @@ a.game-card:hover::after {
     border: 2px solid var(--border);
     border-radius: var(--radius-md);
     z-index: 3;
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
     overflow: hidden;
     box-sizing: border-box;
 }
@@ -1127,30 +1304,39 @@ a.game-card:hover::after {
     font-weight: var(--text-semibold);
 }
 
-/* Позиционирование крестика внутри search-box */
+/* Крестик очистки: стоит в ряду между полем и кнопкой лупы, появляется, когда в поле есть текст */
 .search-box {
     position: relative;
-    display: flex;
     align-items: center;
 }
 
-.search-box input {
-    padding-right: 40px; /* Делаем отступ справа, чтобы текст не залезал на крестик */
-}
-
-.clear-search-btn {
-    position: absolute;
-    right: 55px; /* Размещаем перед кнопкой лупы */
-    font-size: calc(28px * var(--font-scale, 1));
+.search-box .clear-search-btn {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 100%;
+    padding: 0;
     color: var(--text-secondary);
-    cursor: pointer;
+    background: transparent;
+    font-size: calc(26px * var(--font-scale, 1));
+    line-height: 1;
     user-select: none;
     transition: color var(--transition);
-    padding: 0 0px;
 }
 
-.clear-search-btn:hover {
-    color: var(--text-primary); /* Подсветка белым при наведении */
+.search-box .clear-search-btn:hover {
+    color: var(--text-primary);
+    filter: none;
+}
+
+.search-box .clear-search-btn[hidden] {
+    display: none;
+}
+
+/* Свой крестик браузера у type="search" не нужен — есть общий */
+.search-box input::-webkit-search-cancel-button,
+.search-box input::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 /* Обложка */
@@ -1164,7 +1350,7 @@ a.game-card:hover::after {
 }
 
 .search-price-block .old-price {
-    font-size: calc(13px * var(--font-scale, 1));
+    font-size: calc(12px * var(--font-scale, 1));
     color: var(--text-muted);
     text-decoration: line-through;
     line-height: 1;
@@ -1224,7 +1410,7 @@ a.game-card:hover::after {
     height: 42px;
     background: var(--bg-secondary);
     border: 2px solid var(--border-accent);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
     border-radius: var(--radius-sm);
     overflow: hidden; /* Аккуратно срезает углы у инпута и кнопки */
     transition: 0.2s;
@@ -1233,7 +1419,7 @@ a.game-card:hover::after {
 /* Красивая подсветка ВСЕГО блока при клике на поиск */
 .search-box:focus-within {
     border-color: var(--accent);
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 .search-box input {
@@ -1254,56 +1440,34 @@ a.game-card:hover::after {
    BUTTONS & BADGES
 ========================= */
 
-.badge-exclusive {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    border: 2px solid var(--border);
-    padding: 4px 8px;
-    border-radius: var(--radius-sm);
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-}
-
 .cart-badge {
     background: var(--accent);
     color: white;
     font-size: calc(14px * var(--font-scale, 1));
     padding: 2px 10px;
-    border-radius: var(--radius-big);
-    margin-left: 5px;
+    border-radius: var(--radius-pill);
+    margin-left: var(--padding-sm);
 }
 
+/* Размеры даёт .badge, здесь только цвета категорий */
 .news-badge {
-    font-size: calc(14px * var(--font-scale, 1));
-    font-family: var(--font-display);
-    font-weight: var(--text-semibold);
-    padding: 7px 6px;
-    border-radius: var(--radius-sm);
-    line-height: 1;
-    white-space: nowrap;
-    height: fit-content;
     width: fit-content;
     background: rgba(3, 0, 26, 0.6);
-    color: #6366f1;
-    border: 2px solid var(--border);
-    border-color: rgba(99, 102, 241, 0.4);
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+    color: var(--accent-text);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
     backdrop-filter: blur(5px);
 }
 
 /* (Опционально) Кастомные цвета под разные типы */
 .news-badge-announcement {
     background: rgba(26, 12, 0, 0.6);
-    color: #ffab00;
+    color: var(--warning);
     border-color: rgba(255, 171, 0, 0.3);
 }
 
 .news-badge-tech {
     background-color: rgba(19, 1, 0, 0.6);
-    color: var(--danger);
+    color: var(--danger-text);
     border-color: rgba(233, 56, 47, 0.3);
 }
 
@@ -1385,8 +1549,6 @@ a.game-card:hover::after {
     text-decoration: none;
     margin: 5px;
     
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
     outline: 1px solid transparent;
     transition: transform 0.175s ease-out;
     -webkit-font-smoothing: antialiased;
@@ -1410,9 +1572,9 @@ a.game-card:hover::after {
     height: 42px;
     flex-shrink: 0;
     border-radius: 50%;
-    border: 1px solid var(--card-border, rgba(255, 255, 255, .12));
+    border: 2px solid var(--card-border, rgba(255, 255, 255, .12));
     background: rgba(255, 255, 255, .06);
-    color: #fff;
+    color: var(--text-primary);
     font-size: calc(18px * var(--font-scale, 1));
     line-height: 1;
     cursor: pointer;
@@ -1431,7 +1593,7 @@ a.game-card:hover::after {
 .install-btn:hover,
 .btn-primary:hover,
 .btn-secondary:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+    transform: scale(1.1);
 }
 
 .nav-left.button:active,
@@ -1439,7 +1601,7 @@ a.game-card:hover::after {
 .install-btn:active,
 .btn-primary:active,
 .btn-secondary:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+    transform: scale(0.9);
 }
 
 /* =========================
@@ -1489,11 +1651,11 @@ a.game-card:hover::after {
 
 .news-card:hover {
     background: var(--bg-surface);
-    box-shadow: 0 15px 25px var(--shadow);
+    box-shadow: var(--shadow-md);
 }
 
 .news-card:hover::after {
-    border-color: var(--border-accent, #4a90e2); /* Укажите ваш акцентный цвет ховера */
+    border-color: var(--border-accent); /* Укажите ваш акцентный цвет ховера */
 }
 
 .news-card-header {
@@ -1511,7 +1673,7 @@ a.game-card:hover::after {
 }
 
 .news-card h2 {
-    font-size: calc(22px * var(--font-scale, 1));
+    font-size: calc(24px * var(--font-scale, 1));
     line-height: 1.25;
     font-family: var(--font-display);
     margin-bottom: var(--padding-sm);
@@ -1527,7 +1689,7 @@ a.game-card:hover::after {
 
 .news-date {
     color: var(--text-primary);
-    font-size: calc(16px * var(--font-scale, 1));
+    font-size: calc(14px * var(--font-scale, 1));
     margin-top: 0px;
     line-height: 1;
 }
@@ -1552,7 +1714,7 @@ a.game-card:hover::after {
 
 .news-description strong,
 .news-description b {
-    color: var(--text-primary, #ffffff);
+    color: var(--text-primary);
     display: inline-block;
     margin-top: 10px;
     margin-bottom: 5px;
@@ -1566,37 +1728,6 @@ a.game-card:hover::after {
     background: var(--bg-secondary);
     border: 2px solid var(--border);
     border-radius: var(--radius-md);
-}
-
-.news-filters {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--padding-sm2);
-    margin-top: var(--padding-sm2);
-    margin-bottom: var(--padding-big);
-    flex-wrap: wrap;
-}
-
-.filter-categories {
-    display: flex;
-    gap: var(--padding-sm);
-    flex-wrap: wrap;
-}
-
-.filter-chip {
-    margin-left: var(--padding-sm);
-    outline: none;
-
-    color: var(--accent);
-    text-decoration: none;
-    font-weight: var(--text-semibold);
-    font-size: calc(16px * var(--font-scale, 1));
-    transition: 0.2s;
-}
-
-.filter-chip:hover, .filter-chip.active {
-    color: var(--text-primary);
 }
 
 .filter-select {
@@ -1620,17 +1751,17 @@ a.game-card:hover::after {
 }
 
 .filter-select:hover, .filter-select:focus {
-    border-color: var(--accent, #6865f2);
+    border-color: var(--accent);
 }
 
 .filter-select option {
-    background: var(--bg-secondary, #1a1b26);
-    color: var(--text-primary, #ffffff);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .timer-label {
     font-size: calc(14px * var(--font-scale, 1));
-    color: #8f98a0;
+    color: var(--text-muted);
     text-transform: uppercase;
     white-space: nowrap;
 }
@@ -1638,7 +1769,7 @@ a.game-card:hover::after {
 .timer-box {
     font-size: calc(18px * var(--font-scale, 1));
     font-weight: var(--text-normal);
-    color: var(--accent);
+    color: var(--accent-text);
     font-family: var(--font-display);
     white-space: nowrap;
     line-height: 1;
@@ -1682,7 +1813,7 @@ a.game-card:hover::after {
 
 .news-date {
     color: var(--text-muted);
-    font-size: calc(16px * var(--font-scale, 1));
+    font-size: calc(14px * var(--font-scale, 1));
     line-height: 1;
     height: fit-content;
     white-space: nowrap; /* Не даёт дате разрываться */
@@ -1717,7 +1848,7 @@ a.game-card:hover::after {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    border-radius: 10px 10px 0 0;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
  
     /* нужно для позиционирования градиента */
     position: relative;
@@ -1731,7 +1862,7 @@ a.game-card:hover::after {
     right: 0;
     bottom: 0;
     height: 30px; /* высота зоны перехода — чем больше, тем мягче и заметнее */
-    background: linear-gradient(to bottom, transparent, var(--bg-surface, #1a1c25));
+    background: linear-gradient(to bottom, transparent, var(--bg-surface));
     pointer-events: none; /* чтобы не мешал кликам по баннеру, если они есть */
 }
 .banner-overlay {
@@ -1741,14 +1872,14 @@ a.game-card:hover::after {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.55);
-    color: #fff;
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: calc(24px * var(--font-scale, 1));
     cursor: pointer;
-    z-index: 999;
-    
+    z-index: 3; /* Только над баннером: шапка сайта (z-index: 100) должна оставаться выше */
+
     /* Делаем плавание/появление при ховере: */
     opacity: 0;
     transition: opacity 0.2s ease, background 0.2s ease;
@@ -1781,9 +1912,9 @@ a.game-card:hover::after {
     font-size: 64px;
     font-weight: var(--text-semibold);
     color: var(--text-primary);
-    background: #2a2a2a;
+    background: var(--bg-surface);
 
-    border: 4px solid var(--border, #444); 
+    border: 4px solid var(--border); 
     transition: border-color 0.3s ease;
     box-sizing: border-box;
 }
@@ -1809,7 +1940,7 @@ a.game-card:hover::after {
     height: 100%;
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.55);
-    color: #fff;
+    color: var(--text-primary);
     display: flex; /* больше не display:none по умолчанию — видимость решает opacity */
     align-items: center;
     justify-content: center;
@@ -1821,12 +1952,14 @@ a.game-card:hover::after {
     transition: opacity 0.2s ease, background 0.2s ease;
 }
 
+/* Круглая зона наведения: иначе углы квадратной обёртки затемняли аватар без размытия */
+.profile-avatar-wrapper {
+    border-radius: 50%;
+}
+
 .profile-avatar-wrapper:hover .avatar-overlay {
     opacity: 1;
     pointer-events: auto; /* теперь можно кликнуть по лейблу и открыть file input */
-}
- 
-.avatar-overlay:hover {
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(1px);
 }
@@ -1843,13 +1976,13 @@ a.game-card:hover::after {
     flex: 1;
 }
 .profile-info h1 {
-    margin: 0 0 7.5px;
+    margin: 0 0 var(--space-2);
     font-size: calc(24px * var(--font-scale, 1));
     font-family: var(--font-display);
     font-weight: var(--text-semibold);
 }
 .profile-status {
-    margin: 0 0 7.5px;
+    margin: 0 0 var(--space-2);
     color: var(--text-secondary);
     font-size: calc(16px * var(--font-scale, 1));
     white-space: normal;
@@ -1882,7 +2015,7 @@ a.game-card:hover::after {
     margin-right: -5px;  /* Отступ от линии до следующего элемента */
 }
 .profile-stat strong {
-    font-size: calc(22px * var(--font-scale, 1));
+    font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 .profile-stat span {
@@ -1942,7 +2075,7 @@ a.game-card:hover::after {
     flex-shrink: 0;
     border-radius: var(--radius-sm);
     overflow: hidden;
-    background-color: #0f1622;
+    background-color: var(--bg-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1961,7 +2094,7 @@ a.game-card:hover::after {
     border-radius: 50%;
     flex-shrink: 0;
     overflow: hidden;
-    background-color: #0f1622;
+    background-color: var(--bg-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1976,6 +2109,8 @@ a.game-card:hover::after {
 
 .activity-info,
 .activity-info-game {
+    flex: 1 1 auto;
+    min-width: 0; /* длинное название игры обрезается многоточием, а не растягивает карточку */
     margin-left: var(--padding-sm2);
     display: flex;
     flex-direction: column;
@@ -1989,13 +2124,13 @@ a.game-card:hover::after {
     font-weight: var(--text-normal);
 }
 .activity-info-game h3 {
-    margin: 0 0 7.5px;
+    margin: 0 0 var(--space-2);
     font-size: calc(18px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 .activity-info h3 {
     font-family: var(--font-display);
-    margin: 0 0 7.5px;
+    margin: 0 0 var(--space-2);
     font-size: calc(18px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
@@ -2021,7 +2156,7 @@ a.game-card:hover::after {
 .profile-empty-icon {
     font-size: calc(32px * var(--font-scale, 1));
     margin-bottom: 10px;
-    color: #f5b301;
+    color: var(--rating);
 }
 .profile-empty h3 {
     margin: 0 0 15px;
@@ -2106,7 +2241,7 @@ body.no-blur * {
 }
  
 .banner-crop-box {
-    background: var(--card-bg, #1a1c25);
+    background: var(--bg-secondary);
     border: 2px solid var(--card-border, rgba(255, 255, 255, .08));
     border-radius: var(--radius-md);
     padding: 20px;
@@ -2163,17 +2298,19 @@ body.no-blur * {
     margin-top: 15px;
 }
  
-#bannerZoom {
+#bannerZoom,
+.crop-zoom {
     flex: 1;
     -webkit-appearance: none;
     appearance: none;
     height: 5px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: rgba(255, 255, 255, .15); /* перезаписывается JS-ом для заливки по значению */
     outline: none;
 }
  
-#bannerZoom::-webkit-slider-thumb {
+#bannerZoom::-webkit-slider-thumb,
+.crop-zoom::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 22.5px;
     height: 22.5px;
@@ -2183,7 +2320,8 @@ body.no-blur * {
     cursor: pointer;
 }
  
-#bannerZoom::-moz-range-thumb {
+#bannerZoom::-moz-range-thumb,
+.crop-zoom::-moz-range-thumb {
     width: 22.5px;
     height: 22.5px;
     border-radius: 50%;
@@ -2192,9 +2330,10 @@ body.no-blur * {
     cursor: pointer;
 }
  
-#bannerZoom::-moz-range-track {
+#bannerZoom::-moz-range-track,
+.crop-zoom::-moz-range-track {
     height: 5px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: transparent;
 }
  
@@ -2251,7 +2390,8 @@ body.no-blur * {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 10px;
+    padding: 10px;
+    margin-bottom: var(--padding-sm);
     cursor: pointer;
     color: var(--text-muted);
     border-radius: var(--radius-verysm);
@@ -2269,13 +2409,14 @@ body.no-blur * {
     width: 22.5px;
     height: 22.5px;
     flex-shrink: 0; /* Не дает иконке сжиматься */
+    border-radius: 0; /* Круглая маска от .nav-icon обрезает значки без полей, например лупу */
     transition: transform 0.2s ease;
 }
 
 .nav-icon {
-    width: 42px;
-    height: 42px;
-    flex-shrink: 0; /* Не дает иконке сжиматься */
+    width: 50px;
+    height: 50px;
+    flex-shrink: 0;
     transition: transform 0.2s ease;
     border-radius: 50%;
 }
@@ -2286,11 +2427,11 @@ body.no-blur * {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    padding: 0px; /* Задаёт отступ от картинки до рамки */
+    padding: 0px;
     text-decoration: none;
-    line-height: 0; /* Исключаем влияния шрифтовых отступов */
-    width: 42px;  /* Фиксируем размеры точно по картинке */
-    height: 42px;
+    line-height: 0;
+    width: 50px;
+    height: 50px;
 }
 
 .nav-icon-wrapper::after {
@@ -2311,13 +2452,13 @@ body.no-blur * {
 .settings-nav-link:hover {
     transform: translateX(5px);
     background-color: var(--bg-card);
-    color: #ffffff;
+    color: var(--text-primary);
     border-left: 3px solid var(--accent);
 }
 
 .settings-nav-link.active {
     background-color: var(--bg-card-hover);
-    color: #ffffff;
+    color: var(--text-primary);
 }
 
 .settings-nav-link span {
@@ -2356,7 +2497,7 @@ body.no-blur * {
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    color: #fff;
+    color: var(--text-primary);
     border-radius: 50%;
 }
 .search-sub, .search-badge-muted { font-size: calc(14px * var(--font-scale, 1)); color: var(--text-muted); }
@@ -2372,23 +2513,9 @@ body.no-blur * {
     z-index: 20;
 }
 
-.friends-search input {
+/* Само поле — общий .search-box, как в магазине, только на всю ширину */
+.friends-search .search-box {
     width: 100%;
-    min-width: 0;
-    height: 42px;
-    padding: 0 14px;
-    box-sizing: border-box;
-    color: var(--text-primary);
-    background: var(--bg-secondary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-md);
-    outline: none;
-    transition: border-color .2s, box-shadow .2s;
-}
-
-.friends-search input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-color, var(--accent));
 }
 
 #friendSearchResults {
@@ -2403,13 +2530,13 @@ body.no-blur * {
     box-sizing: border-box;
 
     display: none;
-    padding: 7.5px;
+    padding: var(--space-2);
     background: var(--bg-primary);
     border: 2px solid var(--border);
     border-radius: var(--radius-md);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, .4);
+    box-shadow: var(--shadow-lg);
 
-    z-index: 100;
+    z-index: 50; /* Выше содержимого страницы, но ниже шапки сайта */
 }
 
 #friendSearchResults[style*="display: block"] {
@@ -2513,41 +2640,6 @@ body.no-blur * {
 
 /* ===== FRIEND SEARCH: FIXED ===== */
 
-.search-box.friends-search {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-    min-width: 0;
-    height: auto;
-    overflow: visible;
-
-    /* убираем рамку и подсветку от общего .search-box */
-    padding: 0;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-}
-
-.friends-search input {
-    flex: 0 0 auto;
-    display: block;
-    width: 100%;
-    height: 42px;
-    padding: 9px 14px;
-    color: var(--text-primary);
-    background: var(--bg-secondary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    outline: none;
-    transition: border-color .2s, box-shadow .2s;
-}
-
-.friends-search input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.1);
-}
-
 /* Результаты: обычный блок под полем */
 #friendSearchResults.search-results {
     position: absolute;
@@ -2594,9 +2686,9 @@ body.no-blur * {
 
 .search-avatar,
 .search-avatar-ph {
-    flex: 0 0 50px;
-    width: 50px;
-    height: 50px;
+    flex: 0 0 75px;
+    width: 75px;
+    height: 75px;
     border-radius: 50%;
     object-fit: cover;
 }
@@ -2605,7 +2697,7 @@ body.no-blur * {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: var(--text-primary);
     font-size: calc(16px * var(--font-scale, 1));
     font-weight: 700;
 }
@@ -2622,7 +2714,7 @@ body.no-blur * {
 .search-sub {
     display: block;
     overflow: hidden;
-    line-height: 1.3;
+    line-height: 1.5;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -2648,7 +2740,7 @@ body.no-blur * {
 .friend-add-btn {
     flex-shrink: 0;
     padding: 9px 14px;
-    color: #fff;
+    color: var(--text-primary);
     background: var(--accent);
     border: none;
     border-radius: var(--radius-sm);
@@ -2747,7 +2839,7 @@ body.no-blur * {
     }
 
     .search-area h1 {
-        font-size: calc(26px * var(--font-scale, 1));
+        font-size: calc(24px * var(--font-scale, 1));
     }
 
     .search-box-container {
@@ -2777,7 +2869,7 @@ body.no-blur * {
     }
 
     .featured-info h2 {
-        font-size: calc(26px * var(--font-scale, 1));
+        font-size: calc(24px * var(--font-scale, 1));
     }
 
     .featured-info p {
@@ -2815,7 +2907,7 @@ body.no-blur * {
 
     /* ----- Поиск ----- */
     .search-area h1 {
-        font-size: 22px;
+        font-size: 24px;
     }
 
     .search-box {
@@ -2901,7 +2993,7 @@ body.no-blur * {
     }
 
     .featured-info h2 {
-        font-size: 22px;
+        font-size: 24px;
         margin-bottom: 10px;
     }
 
@@ -2926,12 +3018,12 @@ body.no-blur * {
         justify-content: space-between;
     }
 
-    .featured-price {
-        font-size: 20px;
+    .price-block-lg .price {
+        font-size: calc(18px * var(--font-scale, 1));
     }
 
-    .old-featured-price {
-        font-size: 14px;
+    .price-block-lg .old-price {
+        font-size: calc(14px * var(--font-scale, 1));
     }
 
     .featured .buy-button,
@@ -2951,11 +3043,11 @@ body.no-blur * {
     }
 
     .section-header h2 {
-        font-size: 22px;
+        font-size: 24px;
     }
 
     .section-header a {
-        font-size: 13px;
+        font-size: 14px;
     }
 
     /* ----- Сетка карточек: 1 колонка ----- */
@@ -2973,15 +3065,15 @@ body.no-blur * {
     }
 
     .game-info h3 {
-        font-size: 17px;
+        font-size: 18px;
     }
 
     .game-genres {
-        font-size: 13px;
+        font-size: 14px;
     }
 
     .release-date {
-        font-size: 13px;
+        font-size: 14px;
         margin-bottom: 15px;
     }
 
@@ -2990,22 +3082,13 @@ body.no-blur * {
         gap: 8px;
     }
 
-    .price {
-        font-size: 16px;
-    }
-
-    .discount,
-    .not-on-steam-badge2 {
-        font-size: 12px;
-        padding: 6px 5px;
-    }
 }
 
 /* ---------- Очень маленькие экраны ---------- */
 @media (max-width: 380px) {
 
     .search-area h1 {
-        font-size: 21px;
+        font-size: 24px;
     }
 
     .featured > img {
@@ -3013,7 +3096,7 @@ body.no-blur * {
     }
 
     .featured-info h2 {
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .game-image {
@@ -3025,7 +3108,7 @@ body.no-blur * {
     }
 
     .timer-box {
-        font-size: 11px;
+        font-size: 12px;
     }
 }
 
@@ -3041,7 +3124,7 @@ body.no-blur * {
     position: relative;
     font-size: calc(32px * var(--font-scale, 1));
     letter-spacing: 2px;
-    background: linear-gradient(90deg, #f5b301 var(--percent), rgba(255,255,255,.2) var(--percent));
+    background: linear-gradient(90deg, var(--rating) var(--percent), rgba(255,255,255,.2) var(--percent));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -3086,13 +3169,13 @@ body.no-blur * {
     padding: 0 2px;
     font-size: calc(32px * var(--font-scale, 1));
     line-height: 1;
-    color: rgba(255,255,255,.2);
+    color: rgba(255,255,255,.4); /* пустые звёзды должны быть заметны: контраст не ниже 3:1 */
     cursor: pointer;
     transition: color .2s, transform .2s;
 }
 .star-input label:hover,
 .star-input label:hover ~ label,
-.star-input input:checked ~ label { color: #f5b301; }
+.star-input input:checked ~ label { color: var(--rating); }
 .star-input label:hover { transform: scale(1.25); }
 .star-input input:focus-visible + label { outline: 2px solid var(--accent); border-radius: var(--radius-sm); }
 
@@ -3150,6 +3233,1820 @@ body.no-blur * {
     align-items: center;
     margin-bottom: var(--padding-sm);
 }
+.review-author-block {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    min-width: 0;
+}
+.review-status {
+    padding: 2px 6px;
+    color: var(--text-secondary);
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    line-height: 1.25;
+    white-space: nowrap;
+}
 .review-author { color: inherit; font-weight: var(--text-semibold); text-decoration: none; font-size: calc(18px * var(--font-scale, 1));}
-.review-rating { color: #f5b301; letter-spacing: 3px; font-size: calc(22px * var(--font-scale, 1));}
+.review-rating { color: var(--rating); letter-spacing: 3px; font-size: calc(22px * var(--font-scale, 1));}
 .review-date { color: var(--text-muted); font-size: calc(14px * var(--font-scale, 1)); }
+/* =========================
+   КАТАЛОГ, ЧИПЫ, УВЕДОМЛЕНИЯ
+========================= */
+
+.chip {
+    display: inline-block;
+    padding: 9px 14px;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-accent);
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.chip:hover {
+    color: var(--text-primary);
+    border-color: var(--accent);
+}
+
+.chip.active {
+    color: var(--text-primary);
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.chip-count {
+    margin-left: 4px;
+    font-size: calc(12px * var(--font-scale, 1));
+    opacity: 0.7;
+}
+
+.catalog-header {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.catalog-header h1 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: calc(32px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.catalog-count {
+    color: var(--text-muted);
+    font-size: calc(24px * var(--font-scale, 1));
+}
+
+.catalog-reset {
+    margin-left: auto;
+    color: var(--accent-text);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+}
+
+.catalog-reset:hover {
+    color: var(--text-primary);
+}
+
+.catalog-hidden-note {
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+    text-decoration: none;
+}
+
+.catalog-hidden-note:hover {
+    color: var(--text-primary);
+}
+
+.catalog-layout {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.catalog-sidebar {
+    position: sticky;
+    top: 90px;
+    max-height: calc(100vh - 110px);
+    overflow-y: auto;
+    padding: var(--padding-sm);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.catalog-sidebar-toggle {
+    display: none;
+    color: var(--text-primary);
+    font-weight: var(--text-semibold);
+    cursor: pointer;
+}
+
+.filter-group {
+    min-width: 0;
+    margin: 0 0 18px;
+    padding: 0;
+    border: none;
+}
+
+.filter-group:last-child {
+    margin-bottom: 0;
+}
+
+.filter-group legend,
+.filter-group-title {
+    padding: var(--padding-sm);
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    letter-spacing: 0.3px;
+}
+
+.filter-group-title {
+    margin: 0;
+}
+
+/* Пункт-ссылка (в новостях) выглядит так же, как пункт-радиокнопка каталога */
+a.filter-option {
+    text-decoration: none;
+}
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    color: var(--text-muted);
+    border-left: 3px solid transparent;
+    border-radius: var(--radius-verysm);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.filter-option:hover {
+    transform: translateX(5px);
+    color: var(--text-primary);
+    background-color: var(--bg-card);
+    border-left-color: var(--accent);
+}
+
+.filter-option input {
+    flex: none;
+    margin: 0;
+}
+
+.filter-option input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    display: grid;
+    place-content: center;
+    width: 18px;
+    height: 18px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-verysm);
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.filter-option:hover input[type="checkbox"] {
+    border-color: var(--accent);
+}
+
+.filter-option input[type="checkbox"]::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    margin-top: -2px;
+    border: solid var(--on-accent, var(--text-primary));
+    border-width: 0 2px 2px 0;
+    opacity: 0;
+    transform: rotate(45deg) scale(0.6);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.filter-option input[type="checkbox"]:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.filter-option input[type="checkbox"]:checked::after {
+    opacity: 1;
+    transform: rotate(45deg) scale(1);
+}
+
+.filter-option:has(input[type="checkbox"]:checked) {
+    color: var(--text-primary);
+}
+
+.filter-count {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: calc(12px * var(--font-scale, 1));
+}
+
+/* Категории выглядят как меню: круглая радиокнопка не нужна, выбранный пункт подсвечен */
+.filter-option-radio {
+    position: relative;
+}
+
+.filter-option-radio input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.filter-option-radio:has(input:checked),
+.filter-option-radio.active {
+    color: var(--text-primary);
+    background-color: var(--bg-card-hover);
+    border-left-color: var(--accent);
+}
+
+.filter-option-radio:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.catalog-main {
+    min-width: 0;
+}
+
+.catalog-main .games-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.catalog-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.catalog-search {
+    flex: 1 1 240px;
+    width: auto;
+    min-width: 0;
+}
+
+.catalog-toolbar .filter-select {
+    height: 42px;
+}
+
+@media (max-width: 900px) {
+    .catalog-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .catalog-sidebar {
+        position: static;
+        max-height: none;
+    }
+
+    .catalog-sidebar-toggle {
+        display: list-item;
+    }
+
+    .catalog-sidebar[open] .catalog-sidebar-toggle {
+        margin-bottom: 14px;
+    }
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin: 30px 0;
+}
+
+.pagination-current {
+    color: var(--text-secondary);
+}
+
+.logout-form {
+    margin: 0;
+}
+
+/* "Выйти" — кнопка формы, но выглядит так же, как ссылки меню */
+.user-dropdown-menu button.logout-item {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    border: none;
+    background: none;
+    font-family: inherit;
+    line-height: inherit;
+    text-align: center;
+    cursor: pointer;
+}
+
+.messages-stack {
+    position: fixed;
+    top: 85px;
+    left: 50%;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: min(420px, calc(100vw - 32px));
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.message-toast {
+    padding: 11px 20px;
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    text-align: center;
+    animation: message-toast 5s ease forwards;
+}
+
+.message-toast.success { border-color: var(--success); }
+.message-toast.error { border-color: var(--danger); }
+
+@keyframes message-toast {
+    0% { opacity: 0; transform: translateY(-12px); }
+    6%, 90% { opacity: 1; transform: none; }
+    100% { opacity: 0; visibility: hidden; }
+}
+
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* У этих полей фокус уже показывает собственная рамка: вторая обводка не нужна */
+.search-box input:focus-visible,
+.form-group input:focus-visible,
+.filter-select:focus-visible {
+    outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Настройка «Уменьшить анимацию». Уведомления не трогаем: их время показа задаёт анимация */
+html[data-motion="reduced"] {
+    scroll-behavior: auto;
+}
+
+html[data-motion="reduced"] *:not(.message-toast),
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+}
+
+/* Шапка: на средних экранах все пункты должны помещаться без прокрутки страницы */
+.user-name {
+    display: inline-block;
+    max-width: 150px;
+    overflow: hidden;
+    vertical-align: middle;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (min-width: 901px) and (max-width: 1500px) {
+    .navbar { padding: 0 2%; }
+    .nav-left, .nav-right { gap: 16px; }
+    .logo { margin-right: 10px; }
+}
+
+@media (max-width: 1150px) {
+    .install-btn { display: none; }
+    .nav-link { font-size: calc(14px * var(--font-scale, 1)); }
+    .nav-left, .nav-right { gap: 12px; }
+    .logo { font-size: calc(18px * var(--font-scale, 1)); margin-right: 0; }
+    .user-name { max-width: 100px; }
+}
+
+/* Телефоны и планшеты: в шапке одна строка — логотип, корзина и кнопка ☰.
+   Разделы, переключатель темы и меню пользователя раскрываются по кнопке */
+@media (max-width: 768px) {
+    .navbar {
+        height: auto;
+        min-height: 64px;
+        padding: var(--space-2) var(--space-4);
+        flex-wrap: wrap;
+        gap: 0 var(--space-2);
+    }
+
+    .navbar.menu-open {
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+
+    /* логотип и ссылки становятся отдельными элементами строки шапки */
+    .nav-left {
+        display: contents;
+    }
+
+    .logo {
+        order: 0;
+        margin-right: auto;
+        font-size: calc(18px * var(--font-scale, 1));
+    }
+
+    .nav-cart-mobile {
+        order: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-1);
+        min-height: 44px;
+        padding: 0 var(--space-2);
+        color: var(--text-secondary);
+        text-decoration: none;
+    }
+
+    .nav-cart-mobile .cart-badge {
+        margin-left: 0;
+        padding: 2px 8px;
+        font-size: calc(12px * var(--font-scale, 1));
+    }
+
+    .nav-toggle {
+        order: 2;
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 5px;
+        width: 44px;
+        height: 44px;
+        padding: 0 11px;
+        background: transparent;
+        border: 2px solid var(--border-subtle);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+    }
+
+    .nav-toggle span {
+        display: block;
+        height: 2px;
+        background: var(--text-primary);
+        border-radius: var(--radius-pill);
+        transition: transform var(--transition), opacity var(--transition);
+    }
+
+    /* ☰ превращается в ✕ */
+    .menu-open .nav-toggle span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .menu-open .nav-toggle span:nth-child(2) { opacity: 0; }
+    .menu-open .nav-toggle span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .nav-links,
+    .nav-right {
+        display: none;
+        flex-basis: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+    }
+
+    .menu-open .nav-links,
+    .menu-open .nav-right {
+        display: flex;
+    }
+
+    .nav-links {
+        order: 3;
+        margin-top: var(--space-2);
+        padding-top: var(--space-2);
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .nav-right {
+        order: 4;
+        padding-bottom: var(--space-3);
+    }
+
+    .nav-links .nav-link,
+    .nav-right > .nav-link {
+        padding: var(--space-3) 0;
+    }
+
+    .nav-link.active::after {
+        display: none;
+    }
+
+    /* корзина уже есть в верхней строке */
+    .nav-right > .nav-cart-link {
+        display: none;
+    }
+
+    .season-toggle {
+        align-self: flex-start;
+        margin: var(--space-2) 0;
+    }
+
+    /* меню пользователя сразу раскрыто списком, без второго выпадающего окна */
+    .user-dropdown {
+        margin-top: var(--space-2);
+        padding-top: var(--space-2);
+        border-top: 1px solid var(--border-subtle);
+    }
+
+    .user-name {
+        max-width: none;
+        padding: var(--space-2) 0;
+        color: var(--text-muted);
+        font-size: calc(14px * var(--font-scale, 1));
+        pointer-events: none;
+    }
+
+    .user-dropdown-menu {
+        position: static;
+        min-width: 0;
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: none;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        text-align: left;
+    }
+
+    .user-dropdown-menu .admin-item,
+    .user-dropdown-menu .logout-item,
+    .user-dropdown-menu button.logout-item {
+        padding: var(--space-3) 0;
+        font-size: calc(16px * var(--font-scale, 1));
+        text-align: left;
+    }
+}
+
+/* Баннер по умолчанию, пока пользователь не загрузил свой */
+.profile-banner {
+    background-color: var(--bg-card);
+    background-image: linear-gradient(135deg, color-mix(in srgb, var(--accent) 45%, var(--bg-card)), var(--bg-card));
+}
+
+/* Профиль на планшетах и телефонах: меню над содержимым, а не отдельной колонкой */
+@media (max-width: 768px) {
+    .profile-layout {
+        flex-direction: column;
+        padding: 10px 0;
+        gap: 15px;
+    }
+
+    .profile-sidebar {
+        position: static;
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box;
+    }
+
+    .profile-content {
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: none;
+    }
+}
+
+/* =========================
+   ЖЕЛАЕМОЕ И ИЗБРАННОЕ
+========================= */
+
+/* !important: сезонная тема перекрашивает текст всех .buy-button в тёмный под оранжевый фон */
+.btn-muted {
+    background: var(--bg-card-hover);
+    color: var(--text-primary) !important;
+}
+
+.purchase-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* ♡ и ♥ берутся из разных шрифтов с разной высотой: без фиксированной высоты строки
+   кнопка при нажатии становится ниже, и вся страница сдвигается */
+.purchase-actions .buy-button {
+    line-height: 1.25;
+}
+
+.wishlist-wide {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-width: 10.5em;
+}
+
+.wishlist-wide.active {
+    background: var(--bg-card-hover);
+    background: color-mix(in srgb, var(--accent) 22%, var(--bg-card-hover));
+    box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.game-image {
+    position: relative;
+}
+
+.wishlist-btn {
+    position: absolute;
+    top: var(--padding-sm);
+    right: var(--padding-sm);
+    z-index: 3;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    backdrop-filter: blur(5px);
+    font-size: calc(18px * var(--font-scale, 1));
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.175s ease-out, color 0.2s, border-color 0.2s;
+}
+
+.wishlist-btn:hover {
+    transform: scale(1.1);
+    border-color: var(--accent);
+}
+
+.wishlist-btn:active {
+    transform: scale(0.9);
+}
+
+/* Сердце «В желаемое» — одна форма во всех местах; закрашено, когда игра в желаемом */
+.heart-icon {
+    display: inline-block;
+    width: 22.5px;
+    height: 22.5px;
+    flex-shrink: 0;
+    vertical-align: middle;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linejoin: round;
+}
+
+.active > .heart-icon,
+.heart-icon-filled {
+    fill: currentColor;
+}
+
+.wishlist-btn .heart-icon {
+    display: block;
+    margin: auto;
+}
+
+.wishlist-btn.active {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.profile-empty-icon .heart-icon {
+    width: 1em;
+    height: 1em;
+    color: var(--accent);
+}
+
+.profile-hint {
+    margin: -10px 0 var(--padding-sm2);
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.profile-games-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 15px;
+}
+
+.favorites-zone {
+    border-radius: var(--radius-md);
+    outline: 2px dashed transparent;
+    outline-offset: 6px;
+    transition: outline-color 0.2s;
+}
+
+.fav-dragging .favorites-zone {
+    outline-color: var(--border);
+}
+
+.favorites-zone.is-drag-over {
+    outline-color: var(--accent) !important;
+}
+
+.fav-card {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.fav-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
+    transition: border-color 0.3s;
+    pointer-events: none;
+}
+
+.fav-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.fav-card:hover::after {
+    border-color: var(--border);
+}
+
+.fav-card[draggable="true"] {
+    cursor: grab;
+}
+
+.fav-card img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.fav-card .no-cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+}
+
+.fav-card-title {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 24px var(--padding-sm2) var(--padding-sm);
+    overflow: hidden;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fav-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: calc(24px * var(--font-scale, 1));
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.fav-remove:hover {
+    background: var(--danger);
+    border-color: var(--danger);
+}
+
+.fav-card .fav-remove {
+    position: absolute;
+    top: var(--padding-sm);
+    right: var(--padding-sm);
+    z-index: 2;
+}
+
+.fav-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 16 / 9;
+    padding: var(--padding-sm2);
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    font-size: calc(14px * var(--font-scale, 1));
+    text-align: center;
+}
+
+.is-dragging {
+    opacity: 0.4;
+}
+
+.drop-before {
+    box-shadow: -4px 0 0 var(--accent);
+}
+
+.owned-games {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--padding-sm);
+}
+
+.owned-game {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+    cursor: grab;
+    transition: filter 0.2s, color 0.2s;
+}
+
+.owned-game:hover {
+    color: var(--text-primary);
+    filter: brightness(1.1);
+}
+
+.owned-game img {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: var(--radius-verysm);
+    object-fit: cover;
+}
+
+.owned-game .game-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fav-star {
+    flex-shrink: 0;
+    padding: 0 4px;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    font-size: calc(22px * var(--font-scale, 1));
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.175s ease-out;
+}
+
+.fav-star:hover {
+    transform: scale(1.15);
+}
+
+.fav-star.active,
+.fav-toggle.active {
+    color: var(--rating);
+}
+
+/* =========================
+   НОВОСТИ: СПИСОК И СТАТЬЯ
+========================= */
+
+.news-container .catalog-header {
+    align-items: center;
+    margin-bottom: var(--padding-md);
+}
+
+.news-title {
+    margin-bottom: 0;
+}
+
+.news-create {
+    display: inline-flex;
+    align-items: center;
+    align-self: stretch; /* та же высота, что у фильтров в ряду */
+    margin-left: auto;
+    color: var(--accent-text);
+    border-color: var(--accent);
+}
+
+/* Когда кнопка уходит на свою строку, она стоит слева, как фильтры */
+@media (max-width: 600px) {
+    .news-create {
+        margin-left: 0;
+    }
+}
+
+.news-create:hover {
+    color: var(--text-primary);
+    background: var(--accent);
+}
+
+/* Список новостей с боковой панелью занимает всю ширину контейнера, как каталог */
+.news-index {
+    max-width: none;
+    padding: 20px 0 100px;
+}
+
+.news-badge {
+    gap: 6px;
+}
+
+.news-badge .news-icon {
+    flex: none;
+    width: 1.15em;
+    height: 1.15em;
+}
+
+.news-results {
+    display: flex;
+    align-items: center;
+    margin: 0 0 var(--padding-md);
+    color: var(--text-muted);
+    font-weight: var(--text-semibold);
+    font-size: calc(16px * var(--font-scale, 1));
+}
+
+.news-group-title {
+    margin: var(--padding-sm2) 0 0;
+    color: var(--text-muted);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    letter-spacing: 0.3px;
+    text-transform: capitalize;
+}
+
+.news-group-title:first-child {
+    margin-top: 0;
+}
+
+.news-list {
+    gap: var(--padding-sm2);
+}
+
+.news-card {
+    display: flex;
+    gap: var(--padding-md);
+}
+
+.news-card-pinned {
+    border-color: var(--border-accent);
+}
+
+.news-card-image {
+    flex-shrink: 0;
+    width: 200px;
+    height: 112px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+}
+
+.news-card-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.news-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--padding-sm) var(--padding-sm2);
+    margin-bottom: var(--padding-sm2);
+}
+
+.news-card-meta .news-date {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.news-card-meta .catalog-reset {
+    margin-left: 0;
+}
+
+/* Закреплённая новость: вместо второй надписи — значок булавки */
+.news-pin {
+    display: inline-grid;
+    place-items: center;
+    color: var(--accent-text);
+}
+
+.news-card-title {
+    margin: 0 0 var(--padding-sm);
+    font-family: var(--font-display);
+    font-size: calc(18px * var(--font-scale, 1));
+    font-weight: var(--text-normal);
+    line-height: 1.25;
+}
+
+/* Вся карточка кликабельна */
+.news-card-link {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.news-card-link::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.news-excerpt {
+    margin: 0 0 var(--padding-sm);
+    color: var(--text-secondary);
+    font-size: calc(16px * var(--font-scale, 1));
+    line-height: 1.5;
+}
+
+.news-more {
+    color: var(--accent-text);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.news-back {
+    display: inline-block;
+    margin-bottom: var(--padding-md);
+    color: var(--accent-text);
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+}
+
+.news-back:hover {
+    color: var(--text-primary);
+}
+
+.news-article {
+    padding: var(--padding-big);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.news-article-title {
+    margin: 0 0 var(--padding-md);
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    font-size: calc(32px * var(--font-scale, 1));
+    font-weight: var(--text-normal);
+    line-height: 1.25;
+}
+
+.news-article-image {
+    display: block;
+    width: 100%;
+    max-height: 420px;
+    margin-bottom: var(--padding-md);
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+}
+
+.news-description a {
+    color: var(--accent-text);
+    overflow-wrap: anywhere;
+}
+
+.news-draft {
+    margin: 0 0 var(--padding-sm2);
+    padding: 9px 14px;
+    color: var(--warning);
+    border: 2px solid rgba(255, 171, 0, 0.3);
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.news-neighbours {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--padding-sm2);
+    margin-top: var(--padding-md);
+}
+
+.news-neighbour {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--padding-sm2);
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+    transition: background 0.3s, border-color 0.3s;
+}
+
+.news-neighbour:hover {
+    background: var(--bg-surface);
+    border-color: var(--border-accent);
+}
+
+.news-neighbour span {
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.news-neighbour-next {
+    text-align: right;
+}
+
+@media (max-width: 768px) {
+    .news-container {
+        padding: 15px 0;
+    }
+
+    .news-card {
+        flex-direction: column;
+    }
+
+    .news-card-image {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+    }
+
+    .news-article {
+        padding: var(--padding-md);
+    }
+
+    .purchase-actions {
+        justify-content: stretch;
+    }
+}
+
+/* Игра, запущенная прямо сейчас, в недавней активности профиля */
+.activity-playing {
+    color: var(--success);
+    font-weight: var(--text-semibold);
+}
+
+/* =========================
+   ПОДВАЛ
+========================= */
+
+.site-footer {
+    margin-top: auto; /* подвал всегда внизу экрана, даже на короткой странице */
+    padding: 40px 0 var(--space-5);
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-navbar); /* тот же фон, что у шапки */
+}
+
+.site-footer-inner,
+.site-footer-bottom {
+    width: min(1200px, 90%);
+    margin: 0 auto;
+}
+
+.site-footer-inner {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: var(--space-6);
+}
+
+.site-footer .logo {
+    font-size: calc(24px * var(--font-scale, 1));
+    margin: 0;
+}
+
+.site-footer-brand p {
+    max-width: 36ch;
+    margin: var(--space-3) 0 0;
+    color: var(--text-muted);
+    font-weight: var(--text-normal);
+    font-size: calc(14px * var(--font-scale, 1));
+    line-height: 1.5;
+}
+
+.site-footer-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+}
+
+.site-footer-col h2 {
+    margin: 0 0 var(--space-1);
+    color: var(--text-primary);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.site-footer-col a,
+.site-footer-bottom a {
+    color: var(--text-secondary);
+    font-size: calc(14px * var(--font-scale, 1));
+    text-decoration: none;
+    transition: color var(--transition);
+}
+
+.site-footer-col a:hover,
+.site-footer-bottom a:hover {
+    color: var(--accent-text);
+}
+
+.site-footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+@media (max-width: 768px) {
+    .site-footer-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-5);
+    }
+
+    .site-footer-brand {
+        grid-column: 1 / -1;
+    }
+}
+
+/* =========================
+   ПРОФИЛЬ НА ТЕЛЕФОНЕ
+========================= */
+
+@media (max-width: 600px) {
+    /* Шапка профиля: аватар и имя в строку, кнопка — отдельной строкой во всю ширину; ничего не уходит за край */
+    .profile-main {
+        flex-wrap: wrap;
+        gap: var(--space-3) var(--space-4);
+        padding: 0 var(--space-4) var(--space-4);
+    }
+
+    .profile-avatar-wrapper,
+    .profile-avatar {
+        width: 96px;
+        height: 96px;
+        min-width: 96px;
+    }
+
+    .profile-avatar {
+        font-size: calc(48px * var(--font-scale, 1));
+    }
+
+    .profile-info {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .profile-title {
+        overflow-wrap: anywhere;
+    }
+
+    .profile-actions {
+        flex-basis: 100%;
+    }
+
+    .profile-actions .buy-button,
+    .profile-actions > div {
+        width: 100%;
+        margin: 0;
+    }
+
+    /* Недавняя активность: обложка поменьше, время — под названием, а не узкой колонкой справа */
+    .activity-item {
+        flex-wrap: wrap;
+        gap: var(--space-2) var(--space-3);
+        min-height: 0;
+        max-height: none;
+    }
+
+    .activity-cover {
+        width: 120px;
+        height: 60px;
+    }
+
+    .activity-info-game {
+        flex: 1 1 0;
+        min-width: 0;
+        margin-left: 0;
+    }
+
+    .activity-info-game h3 {
+        font-size: calc(16px * var(--font-scale, 1));
+    }
+
+    .activity-info-t,
+    .activity-time {
+        font-size: calc(14px * var(--font-scale, 1));
+    }
+
+    .activity-time {
+        flex-basis: 100%;
+        margin-left: 0;
+    }
+}
+
+/* =========================
+   ЗАГРУЗКА КАРТИНОК И ВИДЕО
+========================= */
+
+/* Пока картинка или видео грузятся, вместо пустого места крутится белый индикатор размером
+   с play-badge. Он нарисован фоном самого элемента: загруженный кадр просто закрывает его.
+   Класс is-loaded ставит store.js, чтобы фон не просвечивал сквозь прозрачные PNG */
+:root {
+    --media-loader: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Ccircle cx='15' cy='15' r='12' fill='none' stroke='white' stroke-opacity='.25' stroke-width='3'/%3E%3Cpath d='M15 3a12 12 0 0 1 12 12' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 15 15' to='360 15 15' dur='.8s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E");
+}
+
+:is(.game-image img, .featured > img, .main-image-box img, .main-image-box video, .thumbnails-list img,
+    .news-card-image, .news-article-image, .cart-cover img, .rec-card-img, .hero-image, .fav-card img,
+    .activity-cover img, .library-screenshots img, .owned-game img, .search-result-cover, .lightbox-img):not(.is-loaded) {
+    background: var(--media-loader) center / 30px 30px no-repeat, var(--bg-secondary);
+}
+
+/* Видео встало на подгрузку во время просмотра — тот же индикатор поверх кадра */
+.main-image-box {
+    position: relative;
+}
+
+.main-image-box.is-buffering::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--media-loader) center / 30px 30px no-repeat;
+    pointer-events: none;
+}
+
+/* =========================
+   ДЛИННЫЕ НАЗВАНИЯ ИГР
+========================= */
+
+/* Название игры всегда в одну строку: если не помещается — обрезается многоточием
+   («Название игры...»). Полное название видно в подсказке (title) и на странице игры */
+:is(.game-card h3, .game-detail-title h1, .featured-info h2, .cart-game-info h2, .rec-card-title,
+    .game-name, .fav-card-title, .search-title, .activity-info-game h3, .hero-title, .launch-title) {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.game-detail-title h1 {
+    flex: 0 1 auto;
+}
+
+.game-detail-title .badge,
+.game-detail-title .badge-with-hint,
+.game-detail-title .hint {
+    flex: none;
+}
+
+/* =========================
+   КРОП АВАТАРКИ (js/avatar-crop.js)
+========================= */
+
+/* Окно и кнопки — как у кропа баннера, только сцена квадратная, а рамка круглая.
+   Селекторы двойные, чтобы перебить правила баннера из settings.css, который грузится позже */
+.avatar-crop-modal .avatar-crop-box {
+    width: min(440px, 100%);
+}
+
+.avatar-crop-modal .avatar-crop-stage {
+    aspect-ratio: 1 / 1;
+}
+
+.avatar-crop-stage .avatar-crop-frame {
+    top: 50%;
+    left: 50%;
+    width: 80%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* =========================
+   СВОРАЧИВАЕМОЕ ОПИСАНИЕ («Об этой игре» в библиотеке, «Об игре» на странице игры)
+========================= */
+
+.library-about {
+    padding: var(--padding-md);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.library-about summary {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: calc(24px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.library-about summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    list-style: none;
+    cursor: pointer;
+}
+
+.library-about summary::-webkit-details-marker {
+    display: none;
+}
+
+.library-about-arrow {
+    color: var(--text-muted);
+    font-size: calc(18px * var(--font-scale, 1));
+    transition: transform 0.2s, color 0.2s;
+}
+
+.library-about summary:hover .library-about-arrow {
+    color: var(--text-primary);
+}
+
+.library-about[open] .library-about-arrow {
+    transform: rotate(90deg);
+}
+
+.library-about-text {
+    margin-top: var(--padding-sm2);
+    color: var(--text-secondary);
+    font-size: calc(16px * var(--font-scale, 1));
+    line-height: 1.5;
+}
+
+.library-about-text p {
+    margin: 0 0 10px;
+}
+
+.library-about-text p:last-child {
+    margin-bottom: 0;
+}
+
+/* =========================
+   ПОДСКАЗКИ «?»
+========================= */
+
+/* Круглый значок; само окошко с текстом одно на страницу (#hintBubble), его ставит store.js */
+.hint {
+    box-sizing: border-box;
+    display: inline-grid;
+    flex: 0 0 22.5px;          /* в flex-строке не сжимается и не растягивается */
+    place-items: center;
+    width: 22.5px;
+    min-width: 22.5px;
+    max-width: 22.5px;
+    height: 22.5px;
+    min-height: 22.5px;
+    max-height: 22.5px;
+    aspect-ratio: 1;
+    padding: 0;
+    margin-left: 8px;
+    border: none;
+    overflow: hidden;
+    vertical-align: middle;
+    color: #fff;
+    background: var(--accent);
+    border: var(accent) 2px solid;
+    border-radius: 50%;
+    font-family: var(--font-body, inherit);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: 0;
+    text-transform: none;
+    cursor: help;
+    user-select: none;
+    transition: filter 0.2s;
+}
+
+.hint:hover,
+.hint:focus-visible,
+.hint.hint-open {
+    filter: brightness(1.2);
+}
+
+html[data-hints="off"] .hint {
+    display: none;
+}
+
+.hint-bubble {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 3000;
+    max-width: min(280px, calc(100vw - 16px));
+    overflow: hidden;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-accent);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: 500;
+    line-height: 1.5;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.2s, visibility 0.2s;
+}
+
+.hint-bubble.is-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Заголовок — плашка во всю ширину окошка, как «Нет обложки» в карточке */
+.hint-bubble-title {
+    padding: 2px 15px;
+    font-family: var(--font-display);
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-align: center;
+}
+
+.hint-bubble-text {
+    padding: 10px 15px;
+}
+
+/* Значок и его «?» не разъезжаются по разным строкам */
+.badge-with-hint {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+}
+
+/* Аватарка автора отзыва — того же размера, что у создателей в «О сайте» (50px) */
+.review-user {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+}
+
+.review-avatar {
+    display: grid;
+    flex: 0 0 50px;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    overflow: hidden;
+    color: var(--text-primary);
+    background: var(--accent);
+    border-radius: 50%;
+    font-family: var(--font-display);
+    font-size: calc(20px * var(--font-scale, 1));
+    text-decoration: none;
+}
+
+.review-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Поля ника и описания в режиме редактирования профиля */
+.profile-edit-input {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 360px;
+    margin: 0 0 var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-accent);
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-size: calc(14px * var(--font-scale, 1));
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.profile-edit-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+[data-profile-view][hidden],
+.profile-edit-input[hidden] {
+    display: none;
+}
+
+.profile-edit-name {
+    font-family: var(--font-display);
+    font-size: calc(18px * var(--font-scale, 1));
+}
+
+.profile-edit-bio {
+    resize: vertical;
+    min-height: 60px;
+}
+
+/* =========================
+   ПРОСМОТР КАРТИНОК НА ВЕСЬ ЭКРАН (store.js, gsLightbox)
+========================= */
+
+#currentImage {
+    cursor: zoom-in;
+}
+
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 56px 72px;
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.lightbox[hidden] {
+    display: none;
+}
+
+.lightbox-img {
+    max-width: 100%;
+    max-height: 100%;
+    min-width: 120px;
+    min-height: 120px;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+}
+
+.lightbox-btn {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    font-size: 32px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.175s ease-out;
+}
+
+.lightbox-btn:hover {
+    background: var(--accent);
+    transform: scale(1.1);
+}
+
+.lightbox-btn[hidden] {
+    display: none;
+}
+
+.lightbox-close {
+    top: 12px;
+    right: 12px;
+}
+
+.lightbox-prev {
+    left: 12px;
+}
+
+.lightbox-next {
+    right: 12px;
+}
+
+.lightbox-counter {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    color: var(--text-secondary);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    transform: translateX(-50%);
+}
+
+@media (max-width: 600px) {
+    .lightbox {
+        padding: 56px 8px;
+    }
+
+    .lightbox-prev,
+    .lightbox-next {
+        top: auto;
+        bottom: 8px;
+    }
+
+    .lightbox-prev {
+        left: 16px;
+    }
+
+    .lightbox-next {
+        right: 16px;
+    }
+}
+
+/* Отзыв: аватарка слева, ник, текст и дата — плотной колонкой справа от неё */
+.review.review {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: var(--space-3);
+    min-height: 0;
+}
+
+.review-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.review-body .review-header {
+    margin-bottom: 2px;
+}
+
+.review-body .profile-status {
+    margin: 0 0 2px;
+}
+
+/* Значки ролей (спрайт _role_icons.html) */
+.role-icon {
+    display: inline-block;
+    flex: none;
+    width: 1.25em;   /* на ~13% крупнее прежних 1.1em */
+    height: 1.25em;
+    margin-right: 0.35em;
+    vertical-align: -0.25em;
+}
+
+.role-icon-creator { color: var(--rating); }
+.role-icon-admin { color: var(--role-admin); }
+.role-icon-user { color: var(--accent-text); }
+
+/* Поле ника и описания: фокус показывает своя рамка, вторая обводка не нужна */
+.profile-edit-input:focus-visible {
+    outline: none;
+}
+
+/* Подсказка с колонками (например, роли) — окошко шире */
+.hint-bubble.hint-bubble-wide {
+    width: min(460px, calc(100vw - 16px));
+    max-width: none;
+}
+
+.hint-bubble-cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2) var(--space-3);
+    padding: 0 15px 12px;
+    color: var(--text-secondary);
+    font-size: calc(13px * var(--font-scale, 1));
+    line-height: 1.4;
+}
+
+.hint-bubble-cols > div {
+    padding: var(--space-2);
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+}
+
+.hint-bubble-cols strong {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--text-primary);
+    font-weight: var(--text-semibold);
+}

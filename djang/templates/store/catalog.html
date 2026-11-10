@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load store_extras %}
+
+{% block title %}GameStore | {{ title }}{% endblock %}
+
+{% block content %}
+<main class="container">
+    <div class="catalog-header">
+        <h1>{{ title }}</h1>
+        <span class="catalog-count">{{ page.paginator.count }} {{ page.paginator.count|ru_plural:"игра,игры,игр" }}</span>
+        {% if owned_hidden %}
+            <a href="{% url 'mfs:settings' %}#catalog" class="catalog-hidden-note">Купленные игры скрыты</a>
+        {% endif %}
+        {% if has_filters %}
+            <a href="{% url 'mfs:catalog' %}" class="catalog-reset">Сбросить фильтры</a>
+        {% endif %}
+    </div>
+
+    <form method="get" id="catalogForm" class="catalog-layout">
+        <details class="catalog-sidebar" id="catalogSidebar" open data-has-filters="{{ has_filters|yesno:'1,' }}">
+            <summary class="catalog-sidebar-toggle">Категории и жанры</summary>
+
+            <fieldset class="filter-group">
+                <legend>Категории</legend>
+                {% for option in category_options %}
+                    <label class="filter-option filter-option-radio">
+                        <input type="radio" name="category" value="{{ option.value }}" {% if selected_category == option.value %}checked{% endif %}>
+                        <span>{{ option.label }}</span>
+                        <span class="filter-count">{{ option.count }}</span>
+                    </label>
+                {% endfor %}
+            </fieldset>
+
+            <fieldset class="filter-group">
+                <legend>Жанры</legend>
+                {% for genre in genres %}
+                    <label class="filter-option">
+                        <input type="checkbox" name="genre" value="{{ genre.slug }}" {% if genre.slug in selected_genres %}checked{% endif %}>
+                        <span>{{ genre.name }}</span>
+                        <span class="filter-count">{{ genre.games_count }}</span>
+                    </label>
+                {% endfor %}
+            </fieldset>
+        </details>
+
+        <div class="catalog-main">
+            <div class="catalog-toolbar">
+                <div class="search-box catalog-search">
+                    <input type="search" name="q" value="{{ query }}" placeholder="Название игры..." aria-label="Название игры">
+                    <button type="button" class="clear-search-btn" aria-label="Очистить поиск" hidden>&times;</button>
+                    <button type="submit" aria-label="Найти">
+                        <img src="{% static 'img/icons/search.png' %}" width="22" height="22" alt="">
+                    </button>
+                </div>
+
+                <select name="sort" class="filter-select" aria-label="Сортировка">
+                    {% for key, label in sort_options %}
+                        <option value="{{ key }}" {% if sort == key %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% if page.object_list %}
+                <div class="games-grid">
+                    {% for game in page %}
+                        {% include 'store/_game_card.html' with show_wishlist=True %}
+                    {% endfor %}
+                </div>
+
+                {% if page.paginator.num_pages > 1 %}
+                <nav class="pagination" aria-label="Страницы каталога">
+                    {% if page.has_previous %}
+                        <a href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page.previous_page_number }}" class="chip"><span class="arrow-left" aria-hidden="true">➜</span> Назад</a>
+                    {% endif %}
+                    <span class="pagination-current">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+                    {% if page.has_next %}
+                        <a href="?{% if filter_query %}{{ filter_query }}&{% endif %}page={{ page.next_page_number }}" class="chip">Вперёд ➜</a>
+                    {% endif %}
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="empty-news">
+                    По этим фильтрам ничего не нашлось.
+                    <a href="{% url 'mfs:catalog' %}">Сбросить фильтры</a>
+                </div>
+            {% endif %}
+        </div>
+    </form>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('catalogForm');
+    const sidebar = document.getElementById('catalogSidebar');
+    const desktop = window.matchMedia('(min-width: 901px)');
+
+    // Фильтры применяются сразу; поиск — по Enter
+    form.addEventListener('change', e => {
+        if (e.target.type !== 'search') form.submit();
+    });
+
+    // На телефоне панель свёрнута, пока фильтры не выбраны; на компьютере открыта всегда
+    function syncSidebar() {
+        sidebar.open = desktop.matches || Boolean(sidebar.dataset.hasFilters);
+    }
+    syncSidebar();
+    desktop.addEventListener('change', syncSidebar);
+});
+</script>
+{% endblock %}

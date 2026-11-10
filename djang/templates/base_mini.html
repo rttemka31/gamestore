@@ -1,28 +1,28 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="ru"{% if user.is_authenticated %} data-font="{{ user.profile.font_size }}" data-radius="{{ user.profile.radius_size }}"{% endif %}>
+<html lang="ru"{% if user.is_authenticated %} data-font="{{ user.profile.font_size }}" data-radius="{{ user.profile.radius_size }}"{% if user.profile.reduce_motion %} data-motion="reduced"{% endif %}{% if not user.profile.show_hints %} data-hints="off"{% endif %}{% if user.profile.accent_color %} data-accent="custom"{% endif %}{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GameStore{% endblock %}</title>
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=19">
-    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=1">
-    <script src="{% static 'js/event/halloween.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=66">
+    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=9">
+    <script src="{% static 'js/event/halloween.js' %}?v=2"></script>
     <link id="siteIcon" rel="icon"
-        href="{% static 'css/icons/gamestore.png' %}?v=2"
-        data-default="{% static 'css/icons/gamestore.png' %}?v=2"
-        data-halloween="{% static 'css/icons/gamestore_halloween.png' %}?v=2">
+        href="{% static 'img/icons/gamestore.png' %}?v=2"
+        data-default="{% static 'img/icons/gamestore.png' %}?v=2"
+        data-halloween="{% static 'img/icons/gamestore_halloween.png' %}?v=2">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
-    <!-- Применение динамической темы на ВСЕХ страницах -->
+    {% block extra_head %}{% endblock %}
+    <!-- Цвет пользователя подключается после стилей страницы: иначе cart.css и library.css перебивают его своими цветами -->
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>
         :root {
             --accent: {{ user.profile.accent_color }};
             --accent-color: {{ user.profile.accent_color }};
             --accent-hover: {{ user.profile.accent_color }}cc;
-            --border-accent: color-mix(in srgb, var(--accent) 40%, black);
         }
         body.no-blur, body.no-blur * {
             backdrop-filter: none !important;
@@ -30,19 +30,21 @@
         }
     </style>
     {% endif %}
-    {% block extra_head %}{% endblock %}
 </head>
 
 <body class="{% if request.user.is_authenticated and request.user.profile.disable_blur %}no-blur{% endif %}">
+    {% include '_role_icons.html' %}
 
     <!-- Общий Navbar для всего сайта -->
     <header class="navbar">
         <div class="nav-left">
             <div class="logo">GAME<span>STORE</span></div>
-            <a href="{% url 'mfs:index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">МАГАЗИН</a>
+            <nav class="nav-links" id="siteNav" aria-label="Разделы сайта">
+                <a href="{% url 'mfs:index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">МАГАЗИН</a>
+            </nav>
         </div>
 
-        <div class="nav-right">
+        <div class="nav-right" id="navRight">
             {% if request.user.is_authenticated %}
                 <div class="user-dropdown">
                     <a href="javascript:void(0)" class="nav-link user-name" id="userMenuBtn">
@@ -50,11 +52,15 @@
                     </a>
                     <div class="user-dropdown-menu" id="userDropdownMenu">
                         <a href="{% url 'mfs:profile' %}" class="admin-item">Профиль</a>
+                        <a href="{% url 'mfs:profile' %}#wishlist" class="admin-item">Желаемое</a>
                         {% if request.user.is_staff %}
                             <a href="{% url 'admin:index' %}" class="admin-item" target="_blank">Админ-панель</a>
                         {% endif %}
                         <a href="{% url 'mfs:settings' %}" class="admin-item">Настройки</a>
-                        <a href="{% url 'mfs:logout' %}" class="logout-item">Выйти</a>
+                        <form method="post" action="{% url 'mfs:logout' %}" class="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-item">Выйти</button>
+                        </form>
                     </div>
                 </div>
             {% else %}
@@ -65,10 +71,17 @@
                 {% endif %}
             {% endif %}
         </div>
+
+        <!-- Телефоны: кнопка меню; разделы и меню пользователя раскрываются по ней -->
+        <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="siteNav navRight" aria-label="Открыть меню">
+            <span></span><span></span><span></span>
+        </button>
     </header>
 
     <!-- Основное содержимое каждой страницы -->
     {% block content %}{% endblock %}
+
+    {% include '_footer.html' %}
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -120,5 +133,6 @@
     <div id="installToast" class="toast-notification">
     Приложение пока недоступно для установки
     </div>
+    <script src="{% static 'js/nav.js' %}?v=1"></script>
 </body>
 </html>

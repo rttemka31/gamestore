@@ -1,0 +1,25 @@
+{% load static %}
+<!-- Галерея фрагментов сайта слева от формы входа и регистрации.
+     Набор повторён трижды, чтобы прокрутка шла без рывка и в колонке не оставалось пустого места -->
+<aside class="auth-showcase" aria-hidden="true">
+    <div class="auth-showcase-column">
+        <div class="auth-showcase-track">
+            {% for copy in "123" %}
+                <img src="{% static 'img/auth/featured.webp' %}" alt="" width="650" height="574" decoding="async">
+                <img src="{% static 'img/auth/game.webp' %}" alt="" width="650" height="662" decoding="async">
+                <img src="{% static 'img/auth/library-hero.webp' %}" alt="" width="650" height="345" decoding="async">
+                <img src="{% static 'img/auth/news.webp' %}" alt="" width="650" height="525" decoding="async">
+            {% endfor %}
+        </div>
+    </div>
+    <div class="auth-showcase-column">
+        <div class="auth-showcase-track">
+            {% for copy in "123" %}
+                <img src="{% static 'img/auth/popular.webp' %}" alt="" width="650" height="596" decoding="async">
+                <img src="{% static 'img/auth/catalog.webp' %}" alt="" width="524" height="720" decoding="async">
+                <img src="{% static 'img/auth/library-info.webp' %}" alt="" width="650" height="686" decoding="async">
+                <img src="{% static 'img/auth/profile.webp' %}" alt="" width="650" height="638" decoding="async">
+            {% endfor %}
+        </div>
+    </div>
+</aside>

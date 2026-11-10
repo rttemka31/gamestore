@@ -1,0 +1,19 @@
+<div class="favorites-grid">
+    {% for fav in favorites %}
+        <a href="{% url 'mfs:game_detail' fav.game_id %}" class="fav-card"{% if can_edit %} draggable="true" data-fav-id="{{ fav.game_id }}"{% endif %}>
+            {% if fav.game.cover %}
+                <img src="{{ fav.game.cover.url }}" alt="" draggable="false" loading="lazy" decoding="async">
+            {% else %}
+                <div class="no-cover">Нет обложки</div>
+            {% endif %}
+            <span class="fav-card-title">{{ fav.game.title }}</span>
+            {% if can_edit %}
+                <button type="button" class="fav-remove" data-fav-toggle="{{ fav.game_id }}" aria-label="Убрать из избранного" title="Убрать из избранного">&times;</button>
+            {% endif %}
+        </a>
+    {% endfor %}
+
+    {% if can_edit and favorites|length < max_favorites %}
+        <div class="fav-slot">Перетащите игру сюда</div>
+    {% endif %}
+</div>

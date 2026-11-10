@@ -1,16 +1,15 @@
-<!DOCTYPE html>
 {% extends 'base_mini.html' %}
 {% load static %}
 {% load socialaccount %}
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    {% block title %}GameStore | Вход{% endblock %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=3">
-</head>
-<body>
-    {% block content %}
+
+{% block title %}GameStore | Вход{% endblock %}
+
+{% block content %}
+<div class="auth-layout">
+    {% include 'users/_auth_gallery.html' %}
+
     <div class="auth-container">
+        <p class="auth-tagline">Игры, библиотека и друзья — в одном месте</p>
         <div class="auth-box">
             <h2>Вход</h2>
             
@@ -37,12 +36,16 @@
                 <button type="submit" class="buy-button auth-submit">Войти</button>
                 <!-- Внутри формы или под кнопкой "Войти" -->
                 <div class="social-login">
+{% if 'google' in social_providers %}
                     <a href="{% provider_login_url 'google' %}" class="nav-icon-wrapper" title="Войти через Google">
-                        <img src="{% static 'css/icons/google.png' %}" alt="Google" class="nav-icon">
+                        <img src="{% static 'img/icons/google.png' %}" alt="Google" class="nav-icon">
                     </a>
+{% endif %}
+{% if 'discord' in social_providers %}
                     <a href="{% provider_login_url 'discord' %}" class="nav-icon-wrapper" title="Войти через Discord" style="text-decoration: none; display: inline-block;">
-                        <img src="{% static 'css/icons/discord.png' %}" alt="" class="nav-icon">
+                        <img src="{% static 'img/icons/discord.png' %}" alt="" class="nav-icon">
                     </a>
+{% endif %}
                 </div>
                 <div class="section-header-2">
                     Нет аккаунта? <a href="{% url 'mfs:register' %}">Регистрация</a>
@@ -50,6 +53,5 @@
             </form>
         </div>
     </div>
-</body>
+</div>
 {% endblock %}
-</html>

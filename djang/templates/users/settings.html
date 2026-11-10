@@ -5,7 +5,7 @@
 {% block title %}GameStore | Настройки{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static '/css/settings.css' %}?v=10">
+    <link rel="stylesheet" href="{% static 'css/settings.css' %}?v=18">
 
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>
@@ -13,7 +13,6 @@
             --accent: {{ user.profile.accent_color }};
             --accent-color: {{ user.profile.accent_color }};
             --accent-hover: {{ user.profile.accent_color }}cc;
-            --border-accent: color-mix(in srgb, var(--accent) 35%, black);
         }
 
         body.no-blur, body.no-blur * {
@@ -21,7 +20,7 @@
             -webkit-backdrop-filter: none !important;
         }
         .settings-content {
-            padding-bottom: 50vh !important;
+            padding-bottom: 40px !important;
         }
 
         /* Стиль плавающего уведомления об автосохранении */
@@ -45,7 +44,7 @@
             font-weight: var(--text-normal);
             white-space: nowrap;
             line-height: 1;
-            font-family: "MyFont", Inter, sans-serif;
+            font-family: var(--font-display);
             background: rgba(0, 0, 0, 0.6);
             color: var(--text-primary);
             border-radius: var(--radius-sm);
@@ -74,7 +73,7 @@
             justify-content: center;
             font-size: 24px;
             cursor: pointer;
-            z-index: 999;
+            z-index: 3;
 
             /* Делаем плавание/появление при ховере: */
             opacity: 0;
@@ -105,23 +104,31 @@
             <!-- Левая навигация по разделам -->
             <nav class="settings-nav">
                 <a href="#profile" class="settings-nav-link active">
-                    <img src="{% static 'css/icons/profile.png' %}" alt="" class="nav-icon">
+                    <img src="{% static 'img/icons/profile.png' %}" alt="" class="nav-icon">
                     Профиль
                 </a>
                 <a href="#security" class="settings-nav-link">
-                    <img src="{% static 'css/icons/savety.png' %}" alt="" class="nav-icon">
+                    <img src="{% static 'img/icons/savety.png' %}" alt="" class="nav-icon">
                     Безопасность
                 </a>
                 <a href="#appearance" class="settings-nav-link">
-                    <img src="{% static 'css/icons/appearance.png' %}" alt="" class="nav-icon">
+                    <img src="{% static 'img/icons/appearance.png' %}" alt="" class="nav-icon">
                     Внешний вид
                 </a>
+                <a href="#catalog" class="settings-nav-link">
+                    <img src="{% static 'img/icons/catalog.png' %}" alt="" class="nav-icon">
+                    Каталог
+                </a>
                 <a href="#privacy" class="settings-nav-link">
-                    <img src="{% static 'css/icons/privacy.png' %}" alt="" class="nav-icon">
+                    <img src="{% static 'img/icons/privacy.png' %}" alt="" class="nav-icon">
                     Приватность
                 </a>
+                <a href="#about" class="settings-nav-link">
+                    <img src="{% static 'img/icons/about.png' %}" alt="" class="nav-icon">
+                    О сайте
+                </a>
                 <a href="#danger" class="settings-nav-link settings-nav-danger">
-                    <img src="{% static 'css/icons/delete.png' %}" alt="" class="nav-icon">
+                    <img src="{% static 'img/icons/delete.png' %}" alt="" class="nav-icon">
                     Удалить аккаунт
                 </a>
             </nav>
@@ -136,12 +143,13 @@
                         {% csrf_token %}
                         <input type="hidden" name="form" value="profile">
 
+                        <div class="settings-profile-top">
                         <div class="settings-field">
                             <label>Аватар</label>
                             <div class="avatar-wrapper" id="avatarWrapper">
                                 <div class="settings-avatar" id="avatarPreview">
                                     {% if user.profile.avatar %}
-                                        <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" id="avatarImg">
+                                        <img src="{{ user.profile.avatar.url }}" alt="" data-letter="{{ user.username|first|upper }}" id="avatarImg">
                                     {% else %}
                                         <span id="avatarLetter">{{ user.username|first|upper }}</span>
                                     {% endif %}
@@ -152,25 +160,30 @@
                             <input type="file" name="avatar" id="avatarInput" accept="image/*" style="display: none;">
                         </div>
 
-                        <div class="settings-field">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <label for="username">Имя пользователя</label>
-                                <small id="NameCounter" style="color: var(--text-muted); font-size: 13px;">0 / 24</small>
-                            </div>
-                            <input type="text" id="username" name="username" value="{{ user.username }}" maxlength="24">
-                        </div>
+                        <div class="settings-form">
+                            <div class="settings-grid">
+                                <div class="settings-field">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <label for="username">Имя пользователя</label>
+                                        <small id="NameCounter" style="color: var(--text-muted); font-size: 12px;">0 / 24</small>
+                                    </div>
+                                    <input type="text" id="username" name="username" value="{{ user.username }}" maxlength="24">
+                                </div>
 
-                        <div class="settings-field">
-                            <label for="email">Почта</label>
-                            <input type="email" id="email" name="email" value="{{ user.email }}">
-                        </div>
-
-                        <div class="settings-field">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <label for="bio">О себе</label>
-                                <small id="bioCounter" style="color: var(--text-muted); font-size: 13px;">0 / 150</small>
+                                <div class="settings-field">
+                                    <label for="email">Почта</label>
+                                    <input type="email" id="email" name="email" value="{{ user.email }}">
+                                </div>
                             </div>
-                            <textarea id="bio" name="bio" rows="3" maxlength="150" placeholder="Нет описания">{% if user.profile.bio and user.profile.bio != "None" %}{{ user.profile.bio }}{% endif %}</textarea>
+
+                            <div class="settings-field">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <label for="bio">О себе</label>
+                                    <small id="bioCounter" style="color: var(--text-muted); font-size: 12px;">0 / 150</small>
+                                </div>
+                                <textarea id="bio" name="bio" rows="2" maxlength="150" placeholder="Нет описания">{% if user.profile.bio and user.profile.bio != "None" %}{{ user.profile.bio }}{% endif %}</textarea>
+                            </div>
+                        </div>
                         </div>
 
                         <div class="settings-field">
@@ -214,23 +227,71 @@
                         {% csrf_token %}
                         <input type="hidden" name="form" value="password">
 
-                        <div class="settings-field">
-                            <label for="old_password">Текущий пароль</label>
-                            <input type="password" id="old_password" name="old_password">
+                        <div class="settings-grid">
+                            <div class="settings-field">
+                                <label for="old_password">Текущий пароль</label>
+                                <input type="password" id="old_password" name="old_password" autocomplete="current-password">
+                            </div>
+
+                            <div class="settings-field">
+                                <label for="new_password">Новый пароль</label>
+                                <input type="password" id="new_password" name="new_password" autocomplete="new-password">
+                            </div>
+
+                            <div class="settings-field">
+                                <label for="confirm_password">Подтверждение пароля</label>
+                                <input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password">
+                            </div>
                         </div>
 
-                        <div class="settings-field">
-                            <label for="new_password">Новый пароль</label>
-                            <input type="password" id="new_password" name="new_password">
-                        </div>
-
-                        <div class="settings-field">
-                            <label for="confirm_password">Подтверждение пароля</label>
-                            <input type="password" id="confirm_password" name="confirm_password">
-                        </div>
-
-                        <button type="submit" class="btn-primary" style="margin-top: 10px;">Сменить пароль</button>
+                        <button type="submit" class="btn-primary">Сменить пароль</button>
                     </form>
+
+                    <div class="settings-form settings-extra-action" id="devicesBlock">
+                        <span class="settings-toggle-title">Устройства</span>
+                        <span class="settings-hint">Где сейчас выполнен вход в аккаунт. Если устройство незнакомое — завершите его сеанс и смените пароль.</span>
+
+                        <ul class="device-list">
+                            {% for device in devices %}
+                                {% if device.legacy_count %}
+                                <li class="device-item" data-device="{{ device.id }}">
+                                    <span class="device-icon device-icon-legacy" aria-hidden="true">?</span>
+                                    <div class="device-info">
+                                        <span class="device-name">Старые сеансы: {{ device.legacy_count }}</span>
+                                        <span class="device-meta">Вход был до появления списка устройств, поэтому подробностей нет. Если не уверены — завершите их.</span>
+                                    </div>
+                                    <button type="button" class="btn-secondary device-logout" data-device-logout>Выйти</button>
+                                </li>
+                                {% else %}
+                                <li class="device-item{% if device.current %} device-item-current{% endif %}" data-device="{{ device.id }}">
+                                    <span class="device-icon">{% if device.is_mobile %}<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>{% else %}<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>{% endif %}</span>
+                                    <div class="device-info">
+                                        <span class="device-name">
+                                            {{ device.name }}
+                                            {% if device.current %}<span class="device-current">Это устройство</span>{% endif %}
+                                        </span>
+                                        <span class="device-meta">
+                                            {% if device.ip %}IP {{ device.ip }} • {% endif %}
+                                            {% if device.current or device.active_now %}активен сейчас{% elif device.seen %}был активен {{ device.seen|timesince }} назад{% else %}активность неизвестна{% endif %}
+                                            {% if device.started %} • вход {{ device.started|date:"j E, H:i" }}{% endif %}
+                                        </span>
+                                    </div>
+                                    {% if not device.current %}
+                                        <button type="button" class="btn-secondary device-logout" data-device-logout>Выйти</button>
+                                    {% endif %}
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+
+                        <p class="settings-hint device-empty"{% if devices|length > 1 %} hidden{% endif %}>Других устройств нет — вход выполнен только здесь.</p>
+
+                        <form method="post" action="{% url 'mfs:settings' %}" id="sessionsForm"{% if devices|length < 2 %} hidden{% endif %}>
+                            {% csrf_token %}
+                            <input type="hidden" name="form" value="logout_others">
+                            <button type="submit" class="btn-secondary">Выйти на всех, кроме этого</button>
+                        </form>
+                    </div>
                 </section>
 
                 <!-- Внешний вид -->
@@ -247,26 +308,29 @@
                             <input type="checkbox" name="disable_blur" id="disableBlurToggle" class="settings-toggle" {% if user.profile.disable_blur %}checked{% endif %}>
                         </label>
 
-                        <div class="settings-field" style="margin-top: 16px;">
-                            <span class="settings-toggle-title">Размер шрифта</span>
-                            <input type="range" class="settings-slider" name="font_size"
-                                   id="fontSizeSlider" min="0" max="2" step="1"
-                                   value="{{ user.profile.font_size }}">
-                            <div class="slider-labels"><span>Мелкий</span><span>Средний</span><span>Крупный</span></div>
+                        <div class="settings-grid">
+                            <div class="settings-field">
+                                <span class="settings-toggle-title">Размер шрифта</span>
+                                <input type="range" class="settings-slider" name="font_size"
+                                       id="fontSizeSlider" min="0" max="2" step="1"
+                                       value="{{ user.profile.font_size }}">
+                                <div class="slider-labels"><span>Мелкий</span><span>Средний</span><span>Крупный</span></div>
+                            </div>
+
+                            <div class="settings-field">
+                                <span class="settings-toggle-title">Скругление элементов</span>
+                                <input type="range" class="settings-slider" name="radius_size"
+                                       id="radiusSizeSlider" min="0" max="2" step="1"
+                                       value="{{ user.profile.radius_size }}">
+                                <div class="slider-labels"><span>Острые</span><span>Средние</span><span>Круглые</span></div>
+                            </div>
                         </div>
 
-                        <div class="settings-field" style="margin-top: 16px;">
-                            <span class="settings-toggle-title">Скругление элементов</span>
-                            <input type="range" class="settings-slider" name="radius_size"
-                                   id="radiusSizeSlider" min="0" max="2" step="1"
-                                   value="{{ user.profile.radius_size }}">
-                            <div class="slider-labels"><span>Острые</span><span>Средние</span><span>Круглые</span></div>
-                        </div>
-
-                        <div class="settings-field" style="margin-top: 16px;">
+                        <div class="settings-field">
                             <label class="settings-toggle-row">
                                 <div>
-                                    <span class="settings-toggle-title">Акцентный цвет сайта</span>
+                                    <span class="settings-toggle-title">Акцентный цвет сайта {% include 'store/_hint.html' with title="Акцентный цвет" text="Акцентный цвет — главный цвет оформления: кнопки, ссылки, выделения и значки. Выберите вариант, и сайт сразу перекрасится. Во время сезонной темы, например на Хэллоуин, действует её цвет, а ваш вернётся после." %}</span>
+                                    <span class="settings-hint">Не работает если у вас включена сезонная тема сайта</span>
                                 </div>
                             </label>
                             <div class="color-presets">
@@ -286,6 +350,48 @@
                             </div>
                             <input type="checkbox" name="hide_stats" class="settings-toggle" {% if user.profile.hide_stats %}checked{% endif %}>
                         </label>
+
+                        <label class="settings-toggle-row">
+                            <div>
+                                <span class="settings-toggle-title">Уменьшить анимацию</span>
+                                <span class="settings-hint">Убирает плавные переходы и движущиеся эффекты</span>
+                            </div>
+                            <input type="checkbox" name="reduce_motion" id="reduceMotionToggle" class="settings-toggle" {% if user.profile.reduce_motion %}checked{% endif %}>
+                        </label>
+
+                        <label class="settings-toggle-row">
+                            <div>
+                                <span class="settings-toggle-title">Подсказки «?»</span>
+                                <span class="settings-hint">Значки с короткими пояснениями возле непонятных мест сайта</span>
+                            </div>
+                            <input type="checkbox" name="show_hints" id="showHintsToggle" class="settings-toggle" {% if user.profile.show_hints %}checked{% endif %}>
+                        </label>
+                    </form>
+                </section>
+
+                <!-- Каталог -->
+                <section id="catalog" class="settings-card">
+                    <h2>Каталог</h2>
+                    <form method="post" action="{% url 'mfs:settings' %}" class="settings-form" id="catalogForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="form" value="catalog">
+
+                        <div class="settings-field">
+                            <label for="default_catalog_sort">Сортировка по умолчанию</label>
+                            <select id="default_catalog_sort" name="default_catalog_sort">
+                                {% for key, label in sort_options %}
+                                    <option value="{{ key }}" {% if user.profile.default_catalog_sort == key %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <label class="settings-toggle-row">
+                            <div>
+                                <span class="settings-toggle-title">Скрывать купленные игры</span>
+                                <span class="settings-hint">В каталоге останутся только игры, которых у вас ещё нет</span>
+                            </div>
+                            <input type="checkbox" name="hide_owned_in_catalog" class="settings-toggle" {% if user.profile.hide_owned_in_catalog %}checked{% endif %}>
+                        </label>
                     </form>
                 </section>
 
@@ -297,7 +403,7 @@
                         <input type="hidden" name="form" value="privacy">
 
                         <div class="settings-field">
-                            <span class="settings-toggle-title">Кто видит ваш профиль</span>
+                            <span class="settings-toggle-title">Кто видит ваш профиль {% include 'store/_hint.html' with title="Видимость профиля" text="Все — профиль открыт любому посетителю. Только друзья — его видят лишь ваши друзья. Только я — профиль виден только вам, остальные увидят закрытую страницу." %}</span>
                             <select id="profile_visibility" name="profile_visibility">
                                 <option value="everyone" {% if user.profile.profile_visibility == 'everyone' %}selected{% endif %}>Все</option>
                                 <option value="friends" {% if user.profile.profile_visibility == 'friends' %}selected{% endif %}>Только друзья</option>
@@ -305,17 +411,95 @@
                             </select>
                         </div>
 
-                        <label class="settings-toggle-row">
+                        <label class="settings-toggle-row" id="showLibraryRow" {% if user.profile.profile_visibility == 'private' %}inert{% endif %}>
                             <div>
                                 <span class="settings-toggle-title">Показывать библиотеку игр</span>
-                                <span class="settings-hint">Другие пользователи увидят список ваших игр</span>
+                                <span class="settings-hint" id="showLibraryHint">{% if user.profile.profile_visibility == 'private' %}Профиль виден только вам, поэтому библиотека тоже скрыта{% else %}Другие пользователи увидят список ваших игр и избранное{% endif %}</span>
                             </div>
                             <input type="checkbox" name="show_library" class="settings-toggle" {% if user.profile.show_library %}checked{% endif %}>
                         </label>
+
+                        <label class="settings-toggle-row" id="showWishlistRow" {% if user.profile.profile_visibility == 'private' %}inert{% endif %}>
+                            <div>
+                                <span class="settings-toggle-title">Показывать список желаемого</span>
+                                <span class="settings-hint">Виден другим, только если открыта библиотека</span>
+                            </div>
+                            <input type="checkbox" name="show_wishlist" class="settings-toggle" {% if user.profile.show_wishlist %}checked{% endif %}>
+                        </label>
+
+                        <label class="settings-toggle-row" id="allowRequestsRow" {% if user.profile.profile_visibility == 'private' %}inert{% endif %}>
+                            <div>
+                                <span class="settings-toggle-title">Принимать заявки в друзья</span>
+                                <span class="settings-hint">Если выключить, новые заявки отправить нельзя. Текущие друзья останутся</span>
+                            </div>
+                            <input type="checkbox" name="allow_friend_requests" class="settings-toggle" {% if user.profile.allow_friend_requests %}checked{% endif %}>
+                        </label>
                     </form>
+
+                    <div class="settings-form settings-extra-action">
+                        <span class="settings-toggle-title">Ваши данные</span>
+                        <span class="settings-hint">Файл JSON с библиотекой, желаемым, отзывами и списком друзей</span>
+                        <a href="{% url 'mfs:export_data' %}" class="btn-secondary settings-link-button" download>Скачать мои данные</a>
+                    </div>
                 </section>
 
                 <!-- Опасная зона -->
+                <!-- О сайте -->
+                <section id="about" class="settings-card">
+                    <h2>О сайте</h2>
+
+                    <div class="about-version">
+                        <div class="logo">GAME<span>STORE</span></div>
+                        {% if site_version %}
+                            <span class="about-version-text">
+                                Версия {{ site_version.number }} от {{ site_version.date|date:"d E Y" }}
+                                <a href="{{ site_version.url }}">Что нового ➜</a>
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <span class="settings-toggle-title">Создатели</span>
+                    <ul class="about-team">
+                        <li>
+                            <a href="https://github.com/rttemka31" target="_blank" rel="noopener noreferrer">
+                                <span class="about-avatar">R</span>
+                                <span>
+                                    <strong>rttemka31</strong>
+                                    <small>Автор, разработчик, основной код</small>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.anthropic.com/claude" target="_blank" rel="noopener noreferrer">
+                                <span class="about-avatar about-avatar-claude">C</span>
+                                <span>
+                                    <strong>Claude</strong>
+                                    <small>ИИ-ассистент Anthropic: код, дизайн и тесты</small>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <dl class="about-facts">
+                        <div>
+                            <dt>Игр в каталоге</dt>
+                            <dd>{{ site_stats.games }}</dd>
+                        </div>
+                        <div>
+                            <dt>Игроков</dt>
+                            <dd>{{ site_stats.players }}</dd>
+                        </div>
+                        <div>
+                            <dt>Работает на</dt>
+                            <dd>Django и Python {% include 'store/_hint.html' with title="Django и Python" text="Python — язык, на котором написана серверная часть GameStore. Django — фреймворк на Python: он собирает страницы, хранит аккаунты, библиотеку и корзину и защищает формы от атак." %}</dd>
+                        </div>
+                        <div>
+                            <dt>Исходный код</dt>
+                            <dd><a href="https://github.com/rttemka31/gamestore" target="_blank" rel="noopener noreferrer">GitHub ➜</a></dd>
+                        </div>
+                    </dl>
+                </section>
+
                 <section id="danger" class="settings-card settings-card-danger">
                     <h2>Удаление аккаунта</h2>
                     <p class="settings-hint">Это действие необратимо. Все данные профиля, библиотека и история заказов будут удалены навсегда.</p>
@@ -323,6 +507,15 @@
                     <form method="post" action="{% url 'mfs:settings' %}" class="settings-form" onsubmit="return confirm('Удалить аккаунт без возможности восстановления?');">
                         {% csrf_token %}
                         <input type="hidden" name="form" value="delete_account">
+                        <div class="settings-field">
+                            {% if user.has_usable_password %}
+                                <label for="delete_confirmation">Введите пароль для подтверждения</label>
+                                <input type="password" id="delete_confirmation" name="confirmation" autocomplete="current-password" required>
+                            {% else %}
+                                <label for="delete_confirmation">Введите имя пользователя «{{ user.username }}» для подтверждения</label>
+                                <input type="text" id="delete_confirmation" name="confirmation" autocomplete="off" required>
+                            {% endif %}
+                        </div>
                         <button type="submit" class="btn-danger">Удалить аккаунт</button>
                     </form>
                 </section>
@@ -333,6 +526,23 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // В режиме «Только я» настройка библиотеки не действует, поэтому переключатель заблокирован
+    const visibility = document.getElementById('profile_visibility');
+    const rows = ['showLibraryRow', 'showWishlistRow', 'allowRequestsRow'].map(id => document.getElementById(id));
+    const hint = document.getElementById('showLibraryHint');
+
+    visibility.addEventListener('change', () => {
+        const isPrivate = visibility.value === 'private';
+        rows.forEach(row => { row.inert = isPrivate; });
+        hint.textContent = isPrivate
+            ? 'Профиль виден только вам, поэтому библиотека тоже скрыта'
+            : 'Другие пользователи увидят список ваших игр и избранное';
+    });
+});
+</script>
+<script src="{% static 'js/avatar-crop.js' %}?v=1"></script>
 <!-- Индикатор автосохранения -->
 <div id="saveStatus" class="save-status"></div>
 <script>
@@ -422,7 +632,7 @@
         const max = Number(zoomSlider.max);
         const pct = (zoomSlider.value - min) / (max - min) * 100;
         zoomSlider.style.background =
-            `linear-gradient(to right, var(--accent, #6366f1) ${pct}%, rgba(255,255,255,.15) ${pct}%)`;
+            `linear-gradient(to right, var(--accent, #6c71fd) ${pct}%, rgba(255,255,255,.15) ${pct}%)`;
     }
  
     zoomSlider.addEventListener('input', () => setZoom(zoomSlider.value));
@@ -563,35 +773,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 2. При предпросмотре нового аватара пересчитываем цвет динамически без мигания
-    if (avatarInput) {
-        avatarInput.addEventListener("change", (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    // Создаем временную картинку в памяти для фонового расчета
-                    const tempImg = new Image();
-                    tempImg.src = event.target.result;
-
-                    tempImg.onload = () => {
-                        // 1. Сначала рассчитываем и задаем цвет границы
-                        setBorderFromImage(tempImg);
-
-                        // 2. И только после этого вставляем саму картинку в DOM
-                        avatarPreview.innerHTML = `<img src="${event.target.result}" id="avatarImg" alt="Preview">`;
-                    };
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-}); // <-- Не хватало этой закрывающей скобки для DOMContentLoaded
+    // 2. Для новой аватарки цвет рамки пересчитывает обработчик кропа
+    window.__setAvatarBorder = setBorderFromImage;
+});
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const saveStatus = document.querySelector('.save-status');
-        const autoSaveForms = document.querySelectorAll('#profileForm, #appearanceForm, #privacyForm');
+        const autoSaveForms = document.querySelectorAll('#profileForm, #appearanceForm, #catalogForm, #privacyForm');
         let statusTimeout;
 
         function showStatus(text, isError = false) {
@@ -636,7 +825,9 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             form.addEventListener('input', (e) => {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                // Файлы (аватар, баннер) отправляются после кропа, а не сразу при выборе
+                const isText = (e.target.tagName === 'INPUT' && e.target.type !== 'file') || e.target.tagName === 'TEXTAREA';
+                if (isText) {
                     clearTimeout(debounceTimer);
                     debounceTimer = setTimeout(() => submitAutoSaveForm(form), 800);
                 }
@@ -650,62 +841,64 @@ document.addEventListener("DOMContentLoaded", () => {
         window.__submitAutoSaveForm = submitAutoSaveForm;
         window.__profileForm = profileForm;
 
+        const avatarPreview = document.getElementById('avatarPreview');
         if (avatarInput) {
+            // Выбранную аватарку сначала кадрируем в круглой рамке, в форму уходит уже вырезанный квадрат
             avatarInput.addEventListener('change', () => {
-                if (avatarInput.files && avatarInput.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        let img = document.getElementById('avatarImg');
-                        if (!img) {
-                            const preview = document.getElementById('avatarPreview');
-                            const letter = document.getElementById('avatarLetter');
-                            if (letter) letter.remove();
-                            img = document.createElement('img');
-                            img.id = 'avatarImg';
-                            preview.insertBefore(img, preview.firstChild);
-                        }
-                        img.src = e.target.result;
-                    };
-                    reader.readAsDataURL(avatarInput.files[0]);
-                    submitAutoSaveForm(profileForm);
-                }
+                const file = avatarInput.files && avatarInput.files[0];
+                if (!file) return;
+                window.gsAvatarCrop.open(file, {
+                    onDone: (cropped, url) => {
+                        const files = new DataTransfer();
+                        files.items.add(cropped);
+                        avatarInput.files = files.files;
+
+                        const img = new Image();
+                        img.id = 'avatarImg';
+                        img.alt = '';
+                        img.onload = () => window.__setAvatarBorder?.(img);
+                        img.src = url;
+                        avatarPreview.replaceChildren(img);
+                        submitAutoSaveForm(profileForm);
+                    },
+                    onCancel: () => { avatarInput.value = ''; },
+                });
             });
         }
 
         const navLinks = document.querySelectorAll('.settings-nav-link');
         const sections = document.querySelectorAll('.settings-card');
 
-        // 1. Переключение класса active при клике
+        // Подсвечиваем раздел, до которого дочитали. Выбранный кликом пункт держится, пока пользователь сам не прокрутит
+        let clickedId = null;
+
+        function updateActiveLink() {
+            let current = sections[0];
+            sections.forEach(section => {
+                if (section.getBoundingClientRect().top <= window.innerHeight * 0.3) current = section;
+            });
+            // Нижние разделы короткие и не доезжают до верха экрана
+            if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
+                current = sections[sections.length - 1];
+            }
+
+            const id = clickedId || current.id;
+            navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${id}`));
+        }
+
         navLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                navLinks.forEach(l => l.classList.remove('active'));
-                this.classList.add('active');
+            link.addEventListener('click', () => {
+                clickedId = link.getAttribute('href').slice(1);
+                updateActiveLink();
             });
         });
 
-        // 2. Автоматическое переключение active при прокрутке страницы
-        const observerOptions = {
-            root: null,
-            rootMargin: '-20% 0px -60% 0px', // Зона срабатывания вверху экрана
-            threshold: 0
-        };
+        ['wheel', 'touchmove', 'keydown'].forEach(type => {
+            window.addEventListener(type, () => { clickedId = null; }, { passive: true });
+        });
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.getAttribute('id');
-                    navLinks.forEach(link => {
-                        if (link.getAttribute('href') === `#${id}`) {
-                            link.classList.add('active');
-                        } else {
-                            link.classList.remove('active');
-                        }
-                    });
-                }
-            });
-        }, observerOptions);
-
-        sections.forEach(section => observer.observe(section));
+        window.addEventListener('scroll', updateActiveLink, { passive: true });
+        updateActiveLink();
 
         // Выбор акцентного цвета
         const colorDots = document.querySelectorAll('.color-dot');
@@ -734,6 +927,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (disableBlurToggle) {
             disableBlurToggle.addEventListener('change', (e) => {
                 document.body.classList.toggle('no-blur', e.target.checked);
+            });
+        }
+
+        // Уменьшение анимации на лету
+        const reduceMotionToggle = document.getElementById('reduceMotionToggle');
+        if (reduceMotionToggle) {
+            reduceMotionToggle.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    document.documentElement.dataset.motion = 'reduced';
+                } else {
+                    delete document.documentElement.dataset.motion;
+                }
             });
         }
 
@@ -775,6 +980,62 @@ document.addEventListener("DOMContentLoaded", () => {
                 .catch(() => showStatus('Ошибка сети', true));
             });
         }
+
+        // Выход на других устройствах
+        const sessionsForm = document.getElementById('sessionsForm');
+        if (sessionsForm) {
+            sessionsForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                fetch(sessionsForm.action, {
+                    method: 'POST',
+                    body: new FormData(sessionsForm),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    showStatus(data.message || 'Ошибка', data.status !== 'success');
+                    if (data.status === 'success') {
+                        document.querySelectorAll('.device-item:not(.device-item-current)').forEach(item => item.remove());
+                        syncDevices();
+                    }
+                })
+                .catch(() => showStatus('Ошибка сети', true));
+            });
+        }
+
+        // Выход на одном устройстве
+        function syncDevices() {
+            const others = document.querySelectorAll('.device-item:not(.device-item-current)').length;
+            if (sessionsForm) sessionsForm.hidden = others === 0;
+            const empty = document.querySelector('.device-empty');
+            if (empty) empty.hidden = others > 0;
+        }
+
+        document.querySelectorAll('[data-device-logout]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const item = btn.closest('.device-item');
+                const body = new FormData(sessionsForm);
+                body.set('form', 'logout_device');
+                body.set('device', item.dataset.device);
+                btn.disabled = true;
+                fetch(sessionsForm.action, {
+                    method: 'POST',
+                    body,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    showStatus(data.message || 'Ошибка', data.status !== 'success');
+                    // «Уже завершён» — тоже повод убрать строку
+                    item.remove();
+                    syncDevices();
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    showStatus('Ошибка сети', true);
+                });
+            });
+        });
     });
 </script>
 <script>

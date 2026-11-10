@@ -1,79 +1,4 @@
-@font-face {
-    font-family: "MyFont";
-    src: url("fonts/unbounded.ttf") format("opentype"); /* Если файлы лежит в папке css/, замените на url("../fonts/reg.otf") */
-    font-weight: 100 900;
-    font-style: normal;
-}
-
-/* =========================
-   ОСНОВНЫЕ НАСТРОЙКИ
-========================= */
-
-:root {
-    /* Colors */
-    --bg-primary: #111216;
-    --bg-secondary: #17181f;
-    --bg-surface: #20222b;
-    --bg-card: #252833;
-    --bg-card-hover: #313442;
-
-    --font-display: "MyFont", Inter, sans-serif;
-    --text-primary: #ffffff;
-    --text-secondary: #bcc9d6;
-    --text-muted: #7f8b96;
-
-    --accent: #6366f1;
-    --success: #22c55e;
-    --danger: #c7312a;
-
-    --border: rgba(255, 255, 255, 0.2);
-    --border-accent: #3e3e70;
-    --border-subtle: rgba(255, 255, 255, 0.1);
-
-    --shadow: rgba(0, 0, 0, 0.2);
-    --font-scale: 1;
-    --radius-scale: 1;
-    --radius-verysm: calc(2.5px * var(--radius-scale));
-    --radius-sm: calc(5px * var(--radius-scale));
-    --radius-md: calc(10px * var(--radius-scale));
-    --radius-big: calc(50px * var(--radius-scale));
-
-    --padding-sm: 7.5px;
-    --padding-sm2: 15px;
-    --padding-md: 20px;
-    --padding-big: 30px;
-
-    --text-normal: 500;
-    --text-semibold: 600;
-    --text-bold: 700;
-    --transition: 0.2s ease;
-}
-
-html[data-font="0"]   { --font-scale: 0.9; }
-html[data-font="2"]   { --font-scale: 1.15; }
-html[data-radius="0"] { --radius-scale: 0.5; }
-html[data-radius="2"] { --radius-scale: 1.75; }
-
-* {
-    box-sizing: border-box;
-}
-
-html {
-    scroll-behavior: smooth;
-}
-
-body {
-    margin: 0;
-    background: radial-gradient(
-        circle at 50% 0%,
-        #282a36 0%,
-        #17181f 35%,
-        #111216 70%
-    );
-    background-attachment: fixed;
-    color: #d6d7d8;
-    font-family: Inter, Helvetica, sans-serif;
-}
+/* Токены, шрифт и базовые стили (body, настройки размера и скругления) — в style.css */
 
 /* =========================
    CONTAINER & SEARCH
@@ -172,11 +97,11 @@ body {
 .game-card .no-cover {
     width: 100%;
     height: 150px;
-    background: #2b303a;
+    background: var(--bg-surface);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #777;
+    color: var(--text-muted);
     font-size: calc(14px * var(--font-scale, 1));
 }
 
@@ -210,17 +135,6 @@ body {
     min-height: 30px;
 }
 
-.not-on-steam-badge2 {
-    font-family: var(--font-display);
-    border: 2px solid var(--border);
-    background: transparent;
-    color: var(--text-primary);
-    font-size: calc(14px * var(--font-scale, 1));
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    backdrop-filter: blur(5px); background: rgba(0, 0, 0, 0.6); color: #fff;
-}
-
 .buy-button {
     border: none;
     background:  var(--accent);
@@ -230,8 +144,6 @@ body {
     font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     cursor: pointer;
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
     outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
     display: inline-block; /* ОБЯЗАТЕЛЬНО: разрешает браузеру применять transform и анимации */
     text-decoration: none;
@@ -244,11 +156,11 @@ body {
 }
 
 .buy-button:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+    transform: scale(1.1);
 }
 
 .buy-button:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+    transform: scale(0.9);
 }
 
 .purchase-box {
@@ -292,17 +204,6 @@ body {
 ========================= */
 
 @media (max-width: 900px) {
-    .navbar {
-        padding: 0 4%;
-    }
-
-    .nav-left {
-        gap: 15px;
-    }
-
-    .logo {
-        margin-right: 5px;
-    }
 
     .profile {
         display: none;
@@ -340,21 +241,6 @@ body {
 }
 
 @media (max-width: 600px) {
-    .navbar {
-        height: auto;
-        padding: 20px 5%;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .nav-left {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .nav-right {
-        display: none;
-    }
 
     .container {
         width: 92%;
@@ -408,7 +294,7 @@ body {
     padding: 11px 27px;
     border-radius: var(--radius-md);
     font-size: calc(16px * var(--font-scale, 1));
-    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-md);
     transition: top 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s;
     opacity: 0;
     z-index: 1000;
@@ -419,11 +305,6 @@ body {
     top: 85px; /* Появляется прямо под вашей шапкой (navbar height 74px) */
     opacity: 1;
 }
-.arrow-down {
-    display: inline-block;
-    transform: rotate(90deg);
-}
-
 ::-webkit-scrollbar {
   width: 9px;
 }
@@ -446,76 +327,22 @@ body {
     background: var(--bg-card-hover);
 }
 
-.logout-btn {
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    padding: 9px 14px;
-    border:
-        2px solid var(--border);
-    border-radius: var(--radius-sm);
-    transition: 0.2s;
-}
-
-.logout-btn:hover {
-    background: rgba(255, 59, 48, 0.2);
-    border-color: var(--danger);
-}
-
-.install-btn {
-    border: none;
-    background: var(--bg-card-hover);
-    color: var(--text-primary);
-    padding: 9px 14px;
-    border-radius: var(--radius-sm);
-    font-weight: var(--text-semibold);
-    font-size: calc(16px * var(--font-scale, 1));
-    cursor: pointer;
-    transition: transform var(--transition);
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
-    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
-
-    /* 2. Анимируем строго свойство transform */
-    transition: transform 0.2s ease-out;
-
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-.install-btn:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
-}
-
-.install-btn:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
-}
-
 .cart-badge {
     background: var(--accent);
     color: white;
     font-size: calc(14px * var(--font-scale, 1));
     padding: 2px 10px;
-    border-radius: 15px;
-    margin-left: 5px;
+    border-radius: var(--radius-pill);
+    margin-left: var(--padding-sm);
 }
 
-
-
-
-
-
-
-
-
+/* Прокручивается сама страница, а список игр закреплён под шапкой (74px):
+   так у библиотеки один обычный скроллбар и прокрутка такая же плавная, как на остальных страницах */
 .steam-container {
     display: flex;
-    height: calc(100vh - 60px);
-    overflow: hidden;
+    align-items: flex-start;
 }
 
-/* --- ЛЕВАЯ ПАНЕЛЬ (SIDEBAR) --- */
 .steam-sidebar {
     width: 250px;
     min-width: 250px;
@@ -523,6 +350,9 @@ body {
     border-right: 2px solid var(--border-subtle);
     display: flex;
     flex-direction: column;
+    position: sticky;
+    top: 74px;
+    height: calc(100vh - 74px);
 }
 
 .sidebar-title {
@@ -591,8 +421,9 @@ body {
 /* --- ПРАВАЯ ЧАСТЬ (СТРАНИЦА ИГРЫ) --- */
 .steam-main {
     flex: 1;
+    min-width: 0;
+    min-height: calc(100vh - 74px);
     background-color: var(--bg-primary);
-    overflow-y: auto;
 }
 
 .game-detail-wrapper {
@@ -654,15 +485,15 @@ body {
     background: linear-gradient(
         to bottom,
         transparent 0%,
-        color-mix(in srgb, var(--bg-primary, #1a1c25) 20%, transparent) 30%,
-        color-mix(in srgb, var(--bg-primary, #1a1c25) 70%, transparent) 70%,
+        color-mix(in srgb, var(--bg-primary) 20%, transparent) 30%,
+        color-mix(in srgb, var(--bg-primary) 70%, transparent) 70%,
         var(--bg-primary) 100%
     );
 }
 
 .hero-title {
     margin: 0;
-    font-size: calc(32px * var(--font-scale, 1));
+    font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     color: var(--text-primary);
     text-shadow: 0 6px 6px rgba(0, 0, 0, 1);
@@ -695,8 +526,6 @@ body {
     font-weight: var(--text-semibold);
 
     /* 1. Готовим слой для GPU и отключаем скачки субпикселей */
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
     outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
 
     /* 2. Анимируем строго свойство transform */
@@ -723,11 +552,11 @@ body {
 
 .play-button:hover {
     /* 3. Scale 1.04–1.05 выглядит аккуратнее и не раздувает буквы */
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+    transform: scale(1.1);
 }
 
 .play-button:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+    transform: scale(0.9);
 }
 
 .play-button a {
@@ -736,14 +565,16 @@ body {
 
 /* ОПИСАНИЕ */
 .detail-body {
-    padding: var(--padding-big);
-    max-width: 900px;
+    width: 100%;
+    max-width: 1700px;
+    margin: 0 auto;
+    padding: var(--padding-big) 40px 60px;
 }
 
 .section-block h3 {
     font-size: calc(14px * var(--font-scale, 1));
     letter-spacing: 1px;
-    color: #67c1f5;
+    color: var(--accent-text);
     margin-bottom: 15px;
 }
 
@@ -754,7 +585,7 @@ body {
     background-color: rgba(0, 0, 0, 0.25);
     padding: var(--padding-md);
     border-radius: var(--radius-md);
-    border-left: 3px solid #67c1f5;
+    border-left: 3px solid var(--accent-text);
     margin: 0;
 }
 
@@ -768,7 +599,7 @@ body {
 
 .empty-state.h2  {
     color: var(--text-primary);
-    font-size: calc(22px * var(--font-scale, 1));
+    font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold) !important;
 }
 
@@ -782,8 +613,6 @@ body {
     border-radius: var(--radius-sm);
     font-weight: var(--text-semibold);
 
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
     outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
 
     /* 2. Анимируем строго свойство transform */
@@ -794,11 +623,11 @@ body {
 
 .store-btn:hover {
     /* 3. Scale 1.04–1.05 выглядит аккуратнее и не раздувает буквы */
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+    transform: scale(1.1);
 }
 
 .store-btn:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+    transform: scale(0.9);
 }
 
 /* Иконка в левом списке (как в Steam) */
@@ -818,6 +647,8 @@ body {
     align-items: center;
     gap: 15px;
 
+    /* Плашка не шире обложки: длинное название обрежется многоточием */
+    max-width: calc(100% - 80px);
     z-index: 3;
     background: rgba(0, 0, 0, 0.7);
     border-radius: var(--radius-md);
@@ -862,8 +693,6 @@ body {
     font-size: calc(22px * var(--font-scale, 1));
     cursor: pointer;
     transition: transform var(--transition);
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
     outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
 
     /* 2. Анимируем строго свойство transform */
@@ -874,11 +703,11 @@ body {
 }
 
 .settings-btn:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+    transform: scale(1.1);
 }
 
 .settings-btn:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+    transform: scale(0.9);
 }
 
 .dropdown-menu {
@@ -890,7 +719,7 @@ body {
     border:
         2px solid var(--border);
     border-radius: var(--radius-sm);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-lg);
     z-index: 100;
     min-width: 220px;
     overflow: hidden;
@@ -904,7 +733,7 @@ body {
     width: 100%;
     background: none;
     border: none;
-    color: #c6d4df;
+    color: var(--text-secondary);
     padding: 12px 16px;
     text-align: left;
     cursor: pointer;
@@ -918,141 +747,546 @@ body {
 }
 
 /* Контейнер профиля */
-.user-dropdown {
-    position: relative;
+
+/* Показываем меню при наличии класса .show (от клика) */
+
+/* --- ИЗБРАННОЕ В БИБЛИОТЕКЕ --- */
+.favorites-list {
+    flex-shrink: 0;
+    margin: 0 var(--padding-sm) var(--padding-sm);
+    padding: 3px;
+    border: 2px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.fav-dragging .favorites-list {
+    border-color: var(--border);
+}
+
+.favorites-list.is-drag-over {
+    border-color: var(--accent);
+    background-color: var(--bg-card);
+}
+
+.fav-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    color: var(--text-muted);
+    border-radius: var(--radius-verysm);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.fav-row:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-card);
+}
+
+.fav-row .game-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fav-row .fav-remove {
+    flex-shrink: 0;
+    width: 22.5px;
+    height: 22.5px;
+    font-size: 20px;
+    opacity: 0;
+    transition: opacity 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.fav-row:hover .fav-remove,
+.fav-row .fav-remove:focus-visible {
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .fav-row .fav-remove {
+        opacity: 1;
+    }
+}
+
+.fav-empty {
+    padding: 10px;
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+    text-align: center;
+}
+
+.fav-row.drop-before {
+    box-shadow: 0 -3px 0 var(--accent);
+}
+
+.sidebar-item[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+.fav-toggle {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+}
+
+/* На телефонах и планшетах список игр над страницей игры, а не отдельной колонкой */
+@media (max-width: 768px) {
+    .steam-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .steam-sidebar {
+        position: static;
+        height: auto;
+        width: 100%;
+        min-width: 0;
+        border-right: none;
+        border-bottom: 2px solid var(--border-subtle);
+    }
+
+    .steam-main {
+        min-height: 0;
+    }
+
+    .sidebar-list:not(.favorites-list) {
+        max-height: 240px;
+    }
+
+    .action-bar {
+        padding: var(--padding-md) var(--padding-sm2);
+    }
+
+    .detail-body {
+        padding: var(--padding-md) var(--padding-sm2) 40px;
+    }
+
+    /* Обложка игры: ниже, а блок с названием помещается в ширину экрана */
+    .hero-header {
+        height: 240px;
+    }
+
+    .hero-title-container {
+        left: var(--space-4);
+        right: var(--space-4);
+        max-width: none;
+        bottom: var(--space-4);
+        gap: var(--space-3);
+        padding: var(--space-3);
+    }
+
+    .hero-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .hero-divider {
+        height: 48px;
+    }
+
+    .last-launch-wrapper {
+        min-width: 0;
+    }
+
+    .hero-title {
+        font-size: calc(24px * var(--font-scale, 1));
+        line-height: 1.25;
+    }
+
+    .last-launch-info {
+        font-size: calc(14px * var(--font-scale, 1));
+    }
+}
+
+/* --- ПАНЕЛЬ ИГРЫ: новости и скриншоты слева, сведения об игре справа --- */
+.library-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: var(--padding-big);
+    align-items: start;
+}
+
+.library-panel-main,
+.library-panel-side {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: var(--padding-big);
+}
+
+.library-panel-side {
+    gap: var(--padding-md);
+}
+
+.library-panel .section-header {
+    margin-bottom: var(--padding-sm2);
+}
+
+.library-panel .section-header h2 {
+    margin: 0;
+}
+
+/* Окна панели выглядят так же, как карточки настроек и новостей */
+.library-card,
+.library-card h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: calc(24px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.library-card h2 {
+    margin-bottom: var(--padding-sm2);
+}
+
+.library-card-link {
+    display: inline-block;
+    margin-top: var(--padding-sm2);
+    color: var(--accent-text);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.library-card-link:hover {
+    color: var(--text-primary);
+}
+
+.library-screenshots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--padding-sm2);
+}
+
+@media (max-width: 480px) {
+    .library-screenshots {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.library-screenshots a {
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+}
+
+.library-screenshots img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: filter 0.2s;
+}
+
+.library-screenshots a:hover img {
+    filter: brightness(1.15);
+}
+
+.library-stats {
+    margin: 0;
+}
+
+.library-stats > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--padding-sm2);
+    padding: 10px 0;
+    font-size: calc(14px * var(--font-scale, 1));
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.library-stats > div:first-child {
+    padding-top: 0;
+}
+
+.library-stats > div:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.library-stats dt {
+    color: var(--text-muted);
+}
+
+.library-stats dd {
+    margin: 0;
+    color: var(--text-secondary);
+    font-weight: var(--text-normal);
+    text-align: right;
+}
+
+.library-muted {
+    color: var(--text-muted);
+    font-weight: var(--text-normal);
+}
+
+.library-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--padding-sm);
+    margin-top: var(--padding-sm);
+    padding: 6px 7px;
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.library-empty,
+.library-review-text {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: calc(14px * var(--font-scale, 1));
+    line-height: 1.5;
+}
+
+.library-rating {
+    margin-bottom: var(--padding-sm);
+    color: var(--border);
+    font-size: calc(22px * var(--font-scale, 1));
+    letter-spacing: 2px;
+    line-height: 1;
+}
+
+.library-rating .is-on {
+    color: var(--rating);
+}
+
+.library-friends {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 0 calc(var(--padding-sm) * -1);
+    padding: 0;
+    list-style: none;
+}
+
+.library-friends a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: var(--padding-sm);
+    color: var(--text-primary);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    font-family: var(--font-display);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.library-friends a:hover {
+    color: var(--text-primary);
+    background: var(--bg-card);
+}
+
+.library-friend-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+    color: var(--text-primary);
+    background: var(--bg-card-hover);
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.library-friend-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+    .library-panel {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .library-panel-side {
+        order: -1;
+    }
+}
+
+/* --- ЗАПУСК ИГРЫ: статус, таймер сеанса и экран запуска --- */
+.action-bar [hidden],
+.launch-overlay[hidden],
+.launch-card [hidden] {
+    display: none !important;
+}
+
+.status-running {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: var(--padding-sm);
+    cursor: default;
+}
+
+.status-running .status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: running-pulse 2s ease-in-out infinite;
+}
+
+.running-timer {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+}
+
+@keyframes running-pulse {
+    50% { opacity: 0.3; }
+}
+
+.stop-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 11px 20px;
+    color: var(--text-primary);
+    background: var(--bg-card-hover);
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.stop-button:hover {
+    border-color: var(--danger);
+    background: rgba(199, 49, 42, 0.2);
+}
+
+.stop-button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+/* Метка запущенной игры в списке слева */
+.sidebar-running {
+    display: none;
+    margin-left: auto;
+    padding: 2px 7px;
+    color: var(--bg-primary);
+    background: var(--success);
+    border-radius: var(--radius-verysm);
+    font-size: calc(13px * var(--font-scale, 1));
+    font-weight: var(--text-bold);
+    white-space: nowrap;
+}
+
+.sidebar-item.is-running .sidebar-running {
     display: inline-block;
 }
 
-.user-dropdown-menu {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    right: auto;
-    background-color: var(--bg-secondary);
-    border:
-        2px solid var(--border);
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.6);
-    border-radius: var(--radius-sm);
-    z-index: 1000;
-    min-width: 130px;
-    padding: 0px 0;
-    text-align: center;
+.sidebar-item .game-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
-
-    /* Скрытое состояние по умолчанию */
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transform: translateX(-50%) translateY(-6px);
-    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
 }
 
-/* Показываем меню при наличии класса .show (от клика) */
-.user-dropdown-menu.show {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: translateX(-50%) translateY(6px);
-}
-
-.user-dropdown-menu .logout-item {
-    display: block;
-    padding: 12px 16px;
-    color: #c6d4df !important;
-    text-decoration: none !important;
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-normal);
-    border-radius: var(--radius-sm);
-    transition: background 0.2s, color 0.2s;
-}
-
-.user-dropdown-menu .logout-item:hover {
-    background-color: var(--danger);
-    color: var(--text-primary);
-}
-
-.user-dropdown-menu .admin-item {
-    display: block;
-    padding: 12px 16px;
-    color: var(--text-secondary);
-    text-decoration: none !important;
-    border-radius: var(--radius-sm);
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-normal);
-    transition: background 0.2s, color 0.2s, filter 0.2s;
-}
-
-.user-dropdown-menu .admin-item:hover {
-    filter: brightness(1.10);
-    background-color: var(--bg-card-hover);
-    color: var(--text-primary) ;
-}
-
-/* =========================
-   NAVBAR (Единый стиль)
-========================= */
-
-.navbar {
-    width: 100%;
-    height: 74px;
+.launch-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 7%;
-    background: rgba(11, 18, 26, 0.96);
-    border-bottom: 1px solid var(--border-subtle);
-    box-shadow: 0 15px 25px var(--shadow);
-    backdrop-filter: blur(5px);
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    justify-content: center;
+    padding: var(--padding-md);
+    animation: launch-fade 0.25s ease-out;
 }
 
-.nav-left {
-    display: flex;
-    align-items: center;
-    gap: 25px;
-}
-
-.logo {
-    font-family: var(--font-display);
-    font-size: calc(24px * var(--font-scale, 1));
-    font-weight: var(--text-bold);
-    letter-spacing: 1px;
-    color: var(--text-primary);
-}
-
-.logo span {
-    color: var(--accent);
-}
-
-.nav-link {
-    position: relative;
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    transition: 0.2s;
-}
-
-.nav-link:hover,
-.nav-link.active {
-    color: var(--accent);
-}
-
-.nav-link.active::after {
-    content: "";
+.launch-backdrop {
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -8px;
-    height: 2px;
-    background-color: var(--accent);
-    border-radius: var(--radius-sm);
+    inset: 0;
+    background-color: var(--bg-primary);
+    background-size: cover;
+    background-position: center;
+    filter: blur(18px) brightness(0.35);
+    transform: scale(1.1); /* размытые края не просвечивают по краям экрана */
 }
 
-.nav-right {
+.launch-card {
+    position: relative;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 25px;
+    width: min(420px, 100%);
+    padding: var(--padding-big);
+    text-align: center;
+    background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+}
+
+.launch-icon {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+}
+
+.launch-title {
+    margin: var(--padding-sm2) 0 5px;
+    color: var(--text-primary);
+    font-size: calc(24px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.launch-step {
+    min-height: 1.5em;
+    margin: 0 0 var(--padding-sm2);
+    color: var(--text-secondary);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.launch-progress {
+    width: 100%;
+    height: 6px;
+    overflow: hidden;
+    background: var(--bg-card-hover);
+    border-radius: var(--radius-pill);
+}
+
+.launch-progress-bar {
+    width: 0;
+    height: 100%;
+    background: var(--accent);
+    border-radius: inherit;
+}
+
+.launch-note {
+    margin: var(--padding-sm2) 0 0;
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.launch-cancel {
+    margin-top: var(--padding-md);
+    align-self: center;
+}
+
+body.launch-open {
+    overflow: hidden;
+}
+
+@keyframes launch-fade {
+    from { opacity: 0; }
+}
+
+.last-launch-wrapper {
+    min-width: 0;
 }

@@ -12,3 +12,4 @@ __pycache__/
 staticfiles/
 djang/media/
 djang/fix_db.py
+backups/
