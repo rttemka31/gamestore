@@ -1,7 +1,7 @@
 {% if game.id in owned_game_ids %}
-    <button data-url="{% url 'mfs:library' %}" class="buy-button owned js-redirect">В библиотеке ➜</button>
+    <button data-url="{% url 'mfs:library' %}?active={{ game.id }}" class="buy-button owned js-redirect">В библиотеке ➜</button>
 {% elif game.id in cart_ids %}
     <button data-url="{% url 'mfs:cart_detail' %}" class="buy-button in-cart js-redirect">✓ Добавлено</button>
 {% else %}
-    <button data-url="{% url 'mfs:add_to_cart' game.id %}" class="buy-button js-add-to-cart">В корзину</button>
+    <button data-url="{% url 'mfs:add_to_cart' game.id %}" data-game-id="{{ game.id }}" class="buy-button js-add-to-cart">В корзину</button>
 {% endif %}

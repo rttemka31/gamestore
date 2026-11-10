@@ -772,9 +772,9 @@ h1 {
 
 .device-icon {
     display: grid;
-    flex: 0 0 40px;
+    flex: 0 0 42px;
     place-items: center;
-    height: 40px;
+    height: 42px;
     color: var(--text-secondary);
     background: var(--bg-card);
     border-radius: var(--radius-sm);
@@ -808,11 +808,13 @@ h1 {
 }
 
 .device-current {
-    padding: 1px var(--space-2);
-    color: var(--accent-text);
-    border: 2px solid var(--border-accent);
-    border-radius: var(--radius-sm);
-    font-size: calc(14px * var(--font-scale, 1));
+    padding: 2px 7px;
+    color: var(--text-primary);
+    background: var(--accent);
+    border-radius: var(--radius-verysm);
+    font-size: calc(13px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    white-space: nowrap;
 }
 
 .device-meta {

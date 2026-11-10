@@ -76,12 +76,19 @@ def news_plain(text):
 
 @register.filter
 def user_status(user):
-    """Статус пользователя: те же подписи, что и в профиле."""
+    """Роль пользователя со своим значком: «Создатель», «Админ» или «Пользователь».
+
+    Значки — символы из спрайта _role_icons.html, который подключён в base.html.
+    """
     if user.is_superuser:
-        return '👑 Создатель'
-    if user.is_staff:
-        return '🛡️ Админ'
-    return '🎮 Пользователь'
+        key, label = 'creator', 'Создатель'
+    elif user.is_staff:
+        key, label = 'admin', 'Админ'
+    else:
+        key, label = 'user', 'Пользователь'
+    return mark_safe(
+        f'<svg class="role-icon role-icon-{key}" aria-hidden="true"><use href="#role-{key}"></use></svg>{label}'
+    )
 
 
 @register.filter

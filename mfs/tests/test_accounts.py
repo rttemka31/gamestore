@@ -43,6 +43,31 @@ class ProfileAndSettingsTests(StoreTestCase):
     def post_settings(self, **data):
         return self.client.post(reverse('mfs:settings'), data)
 
+    def test_other_profile_tabs_and_friend_roles(self):
+        admin = User.objects.create_superuser('root', password='Str0ng-pass-123')
+        Friendship.objects.create(sender=self.other.profile, receiver=admin.profile, status=Friendship.Status.ACCEPTED)
+        response = self.client.get(reverse('mfs:user_profile', args=['bob']))
+        # «Профиль» — вкладка этого пользователя, а не переход в свой профиль
+        self.assertContains(response, 'href="#profile" class="settings-nav-link" data-tab="profile"')
+        self.assertContains(response, 'class="activity-cover-2"')
+        self.assertContains(response, '#role-creator"></use></svg>Создатель</p>')
+
+        Friendship.objects.create(sender=self.user.profile, receiver=admin.profile, status=Friendship.Status.ACCEPTED)
+        self.assertContains(self.client.get(reverse('mfs:profile')), '#role-creator"></use></svg>Создатель</p>')
+
+    def test_profile_page_edits_nickname_and_bio(self):
+        response = self.client.post(reverse('mfs:profile'), {'username': 'alice2', 'bio': '  Люблю инди  '})
+        self.assertRedirects(response, reverse('mfs:profile'))
+        self.user.refresh_from_db()
+        self.assertEqual((self.user.username, self.user.profile.bio), ('alice2', 'Люблю инди'))
+
+        # Занятый или недопустимый ник не сохраняется — те же проверки, что в настройках
+        for bad in ('BOB', 'a/b', 'x' * 25, ''):
+            self.client.post(reverse('mfs:profile'), {'username': bad, 'bio': 'new'})
+            self.user.refresh_from_db()
+            self.assertEqual(self.user.username, 'alice2', bad)
+            self.assertEqual(self.user.profile.bio, 'Люблю инди', bad)
+
     def test_rejects_taken_and_unsafe_usernames(self):
         for username in ('BOB', '<img src=x onerror=alert(1)>', 'a/b', '', 'x' * 25):
             response = self.post_settings(form='profile', username=username)
@@ -107,6 +132,18 @@ class ProfileAndSettingsTests(StoreTestCase):
         self.assertNotContains(self.client.get(reverse('mfs:index')), 'data-motion')
         self.post_settings(form='appearance', reduce_motion='on')
         self.assertContains(self.client.get(reverse('mfs:index')), 'data-motion="reduced"')
+
+    def test_hints_are_shown_and_can_be_turned_off(self):
+        response = self.client.get(reverse('mfs:profile'))
+        self.assertContains(response, 'class="hint"')
+        self.assertNotContains(response, 'data-hints="off"')
+
+        self.post_settings(form='appearance', accent_color='#10b981')  # подсказки не отмечены
+        self.assertFalse(Profile.objects.get(user=self.user).show_hints)
+        self.assertContains(self.client.get(reverse('mfs:index')), 'data-hints="off"')
+
+        self.post_settings(form='appearance', show_hints='on')
+        self.assertTrue(Profile.objects.get(user=self.user).show_hints)
 
     def test_catalog_uses_saved_sort_unless_url_overrides_it(self):
         self.post_settings(form='catalog', default_catalog_sort='title')

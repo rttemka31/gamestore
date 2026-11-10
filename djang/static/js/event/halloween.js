@@ -1,15 +1,24 @@
 (function () {
     var root = document.documentElement, KEY = 'gs-halloween';
     var d = new Date(), m = d.getMonth(), day = d.getDate();
-    var auto = (m === 9 && day >= 15) || (m === 10 && day <= 3);
+    // Сезон — с 15 октября по 14 ноября включительно. В сезон тема включена сама, и её можно
+    // выключить переключателем; после 14 ноября она пропадает вместе с переключателем,
+    // а сохранённый выбор забывается, чтобы в следующем году сезон начался заново
+    var inSeason = (m === 9 && day >= 15) || (m === 10 && day <= 14);
+    var auto = inSeason;
     var pref = null;
 
     try {
         var q = new URLSearchParams(location.search).get('halloween');
-        if (q === '1') localStorage.setItem(KEY, 'on');
-        else if (q === '0') localStorage.setItem(KEY, 'off');
-        else if (q === 'auto') localStorage.removeItem(KEY);
-        pref = localStorage.getItem(KEY);
+        if (!inSeason) {
+            localStorage.removeItem(KEY);
+            pref = q === '1' ? 'on' : null;  // ?halloween=1 — посмотреть тему вне сезона, без сохранения
+        } else {
+            if (q === '1') localStorage.setItem(KEY, 'on');
+            else if (q === '0') localStorage.setItem(KEY, 'off');
+            else if (q === 'auto') localStorage.removeItem(KEY);
+            pref = localStorage.getItem(KEY);
+        }
     } catch (e) {}
 
     function isOn() { return root.getAttribute('data-season') === 'halloween'; }
@@ -30,7 +39,7 @@
 
     function mount() {
         setIcon(isOn());
-        if (document.getElementById('seasonToggle')) return;
+        if (!inSeason || document.getElementById('seasonToggle')) return;
         var host = document.querySelector('.nav-right') || document.querySelector('.navbar');
         if (!host) return;
 

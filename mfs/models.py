@@ -128,6 +128,7 @@ class Profile(models.Model):
     font_size = models.PositiveSmallIntegerField(default=1)    # 0 мелкий, 1 средний, 2 крупный
     radius_size = models.PositiveSmallIntegerField(default=1)  # 0 острые, 1 средние, 2 круглые
     reduce_motion = models.BooleanField(default=False)
+    show_hints = models.BooleanField(default=True)  # значки «?» с пояснениями на сайте
 
     hide_owned_in_catalog = models.BooleanField(default=False)
     default_catalog_sort = models.CharField(max_length=20, default='new')

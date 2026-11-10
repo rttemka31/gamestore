@@ -10,6 +10,8 @@
 ========================= */
 
 :root {
+    --bg-navbar: rgba(11, 18, 26, 0.96);  /* шапка и подвал */
+    --role-admin: #4ea8ff;               /* значок роли «Админ» */
     --bg-primary: #111216;
     --bg-secondary: #17181f;
     --bg-surface: #20222b;
@@ -88,9 +90,16 @@ html[data-radius="2"] { --radius-scale: 1.5; }
 
 html {
     scroll-behavior: smooth;
+    /* Полоса прокрутки (тёмная) есть всегда: страница не прыгает вбок, а пустой
+       «желоб» от scrollbar-gutter не светится белой полосой */
+    overflow-y: scroll;
 }
 
 body {
+    /* Колонка на всю высоту окна: на короткой странице подвал прижат к низу, а не висит посередине */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     margin: 0;
     background: radial-gradient(
         circle at 50% 0%,
@@ -122,7 +131,7 @@ textarea {
     align-items: center;
     justify-content: space-between;
     padding: 0 7%;
-    background: rgba(11, 18, 26, 0.96);
+    background: var(--bg-navbar);
     border-bottom: 1px solid var(--border-subtle);
     box-shadow: var(--shadow-md);
     backdrop-filter: blur(5px);
@@ -1540,8 +1549,6 @@ html[data-motion="reduced"] .auth-showcase-track {
     text-decoration: none;
     margin: 5px;
     
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
     outline: 1px solid transparent;
     transition: transform 0.175s ease-out;
     -webkit-font-smoothing: antialiased;
@@ -1586,7 +1593,7 @@ html[data-motion="reduced"] .auth-showcase-track {
 .install-btn:hover,
 .btn-primary:hover,
 .btn-secondary:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+    transform: scale(1.1);
 }
 
 .nav-left.button:active,
@@ -1594,7 +1601,7 @@ html[data-motion="reduced"] .auth-showcase-track {
 .install-btn:active,
 .btn-primary:active,
 .btn-secondary:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+    transform: scale(0.9);
 }
 
 /* =========================
@@ -2102,6 +2109,8 @@ html[data-motion="reduced"] .auth-showcase-track {
 
 .activity-info,
 .activity-info-game {
+    flex: 1 1 auto;
+    min-width: 0; /* длинное название игры обрезается многоточием, а не растягивает карточку */
     margin-left: var(--padding-sm2);
     display: flex;
     flex-direction: column;
@@ -2677,9 +2686,9 @@ body.no-blur * {
 
 .search-avatar,
 .search-avatar-ph {
-    flex: 0 0 50px;
-    width: 50px;
-    height: 50px;
+    flex: 0 0 75px;
+    width: 75px;
+    height: 75px;
     border-radius: 50%;
     object-fit: cover;
 }
@@ -3232,14 +3241,14 @@ body.no-blur * {
     min-width: 0;
 }
 .review-status {
-    padding: 3px 6px;
+    padding: 2px 6px;
     color: var(--text-secondary);
     background: var(--bg-primary);
     border: 2px solid var(--border);
     border-radius: var(--radius-sm);
-    font-size: calc(12px * var(--font-scale, 1));
+    font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
-    line-height: 1.2;
+    line-height: 1.25;
     white-space: nowrap;
 }
 .review-author { color: inherit; font-weight: var(--text-semibold); text-decoration: none; font-size: calc(18px * var(--font-scale, 1));}
@@ -3893,8 +3902,8 @@ html[data-motion="reduced"] *::after {
 /* Сердце «В желаемое» — одна форма во всех местах; закрашено, когда игра в желаемом */
 .heart-icon {
     display: inline-block;
-    width: 18px;
-    height: 18px;
+    width: 22.5px;
+    height: 22.5px;
     flex-shrink: 0;
     vertical-align: middle;
     fill: none;
@@ -4029,7 +4038,7 @@ html[data-motion="reduced"] *::after {
     background: rgba(0, 0, 0, 0.6);
     border: 2px solid var(--border);
     border-radius: var(--radius-sm);
-    font-size: calc(18px * var(--font-scale, 1));
+    font-size: calc(24px * var(--font-scale, 1));
     line-height: 1;
     cursor: pointer;
     transition: background 0.2s, border-color 0.2s;
@@ -4410,10 +4419,10 @@ html[data-motion="reduced"] *::after {
 ========================= */
 
 .site-footer {
-    margin-top: var(--space-5);
+    margin-top: auto; /* подвал всегда внизу экрана, даже на короткой странице */
     padding: 40px 0 var(--space-5);
     border-top: 1px solid var(--border-subtle);
-    background: color-mix(in srgb, var(--bg-primary) 85%, transparent);
+    background: var(--bg-navbar); /* тот же фон, что у шапки */
 }
 
 .site-footer-inner,
@@ -4580,7 +4589,7 @@ html[data-motion="reduced"] *::after {
 
 :is(.game-image img, .featured > img, .main-image-box img, .main-image-box video, .thumbnails-list img,
     .news-card-image, .news-article-image, .cart-cover img, .rec-card-img, .hero-image, .fav-card img,
-    .activity-cover img, .library-screenshots img, .owned-game img, .search-result-cover):not(.is-loaded) {
+    .activity-cover img, .library-screenshots img, .owned-game img, .search-result-cover, .lightbox-img):not(.is-loaded) {
     background: var(--media-loader) center / 30px 30px no-repeat, var(--bg-secondary);
 }
 
@@ -4616,7 +4625,9 @@ html[data-motion="reduced"] *::after {
     flex: 0 1 auto;
 }
 
-.game-detail-title .badge {
+.game-detail-title .badge,
+.game-detail-title .badge-with-hint,
+.game-detail-title .hint {
     flex: none;
 }
 
@@ -4643,3 +4654,399 @@ html[data-motion="reduced"] *::after {
     transform: translate(-50%, -50%);
 }
 
+/* =========================
+   СВОРАЧИВАЕМОЕ ОПИСАНИЕ («Об этой игре» в библиотеке, «Об игре» на странице игры)
+========================= */
+
+.library-about {
+    padding: var(--padding-md);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.library-about summary {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: calc(24px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.library-about summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    list-style: none;
+    cursor: pointer;
+}
+
+.library-about summary::-webkit-details-marker {
+    display: none;
+}
+
+.library-about-arrow {
+    color: var(--text-muted);
+    font-size: calc(18px * var(--font-scale, 1));
+    transition: transform 0.2s, color 0.2s;
+}
+
+.library-about summary:hover .library-about-arrow {
+    color: var(--text-primary);
+}
+
+.library-about[open] .library-about-arrow {
+    transform: rotate(90deg);
+}
+
+.library-about-text {
+    margin-top: var(--padding-sm2);
+    color: var(--text-secondary);
+    font-size: calc(16px * var(--font-scale, 1));
+    line-height: 1.5;
+}
+
+.library-about-text p {
+    margin: 0 0 10px;
+}
+
+.library-about-text p:last-child {
+    margin-bottom: 0;
+}
+
+/* =========================
+   ПОДСКАЗКИ «?»
+========================= */
+
+/* Круглый значок; само окошко с текстом одно на страницу (#hintBubble), его ставит store.js */
+.hint {
+    box-sizing: border-box;
+    display: inline-grid;
+    flex: 0 0 22.5px;          /* в flex-строке не сжимается и не растягивается */
+    place-items: center;
+    width: 22.5px;
+    min-width: 22.5px;
+    max-width: 22.5px;
+    height: 22.5px;
+    min-height: 22.5px;
+    max-height: 22.5px;
+    aspect-ratio: 1;
+    padding: 0;
+    margin-left: 8px;
+    border: none;
+    overflow: hidden;
+    vertical-align: middle;
+    color: #fff;
+    background: var(--accent);
+    border: var(accent) 2px solid;
+    border-radius: 50%;
+    font-family: var(--font-body, inherit);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: 0;
+    text-transform: none;
+    cursor: help;
+    user-select: none;
+    transition: filter 0.2s;
+}
+
+.hint:hover,
+.hint:focus-visible,
+.hint.hint-open {
+    filter: brightness(1.2);
+}
+
+html[data-hints="off"] .hint {
+    display: none;
+}
+
+.hint-bubble {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 3000;
+    max-width: min(280px, calc(100vw - 16px));
+    overflow: hidden;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-accent);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: 500;
+    line-height: 1.5;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.2s, visibility 0.2s;
+}
+
+.hint-bubble.is-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Заголовок — плашка во всю ширину окошка, как «Нет обложки» в карточке */
+.hint-bubble-title {
+    padding: 2px 15px;
+    font-family: var(--font-display);
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-align: center;
+}
+
+.hint-bubble-text {
+    padding: 10px 15px;
+}
+
+/* Значок и его «?» не разъезжаются по разным строкам */
+.badge-with-hint {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+}
+
+/* Аватарка автора отзыва — того же размера, что у создателей в «О сайте» (50px) */
+.review-user {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+}
+
+.review-avatar {
+    display: grid;
+    flex: 0 0 50px;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    overflow: hidden;
+    color: var(--text-primary);
+    background: var(--accent);
+    border-radius: 50%;
+    font-family: var(--font-display);
+    font-size: calc(20px * var(--font-scale, 1));
+    text-decoration: none;
+}
+
+.review-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Поля ника и описания в режиме редактирования профиля */
+.profile-edit-input {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 360px;
+    margin: 0 0 var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-accent);
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-size: calc(14px * var(--font-scale, 1));
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.profile-edit-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+[data-profile-view][hidden],
+.profile-edit-input[hidden] {
+    display: none;
+}
+
+.profile-edit-name {
+    font-family: var(--font-display);
+    font-size: calc(18px * var(--font-scale, 1));
+}
+
+.profile-edit-bio {
+    resize: vertical;
+    min-height: 60px;
+}
+
+/* =========================
+   ПРОСМОТР КАРТИНОК НА ВЕСЬ ЭКРАН (store.js, gsLightbox)
+========================= */
+
+#currentImage {
+    cursor: zoom-in;
+}
+
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 56px 72px;
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.lightbox[hidden] {
+    display: none;
+}
+
+.lightbox-img {
+    max-width: 100%;
+    max-height: 100%;
+    min-width: 120px;
+    min-height: 120px;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+}
+
+.lightbox-btn {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    font-size: 32px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.175s ease-out;
+}
+
+.lightbox-btn:hover {
+    background: var(--accent);
+    transform: scale(1.1);
+}
+
+.lightbox-btn[hidden] {
+    display: none;
+}
+
+.lightbox-close {
+    top: 12px;
+    right: 12px;
+}
+
+.lightbox-prev {
+    left: 12px;
+}
+
+.lightbox-next {
+    right: 12px;
+}
+
+.lightbox-counter {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    color: var(--text-secondary);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    transform: translateX(-50%);
+}
+
+@media (max-width: 600px) {
+    .lightbox {
+        padding: 56px 8px;
+    }
+
+    .lightbox-prev,
+    .lightbox-next {
+        top: auto;
+        bottom: 8px;
+    }
+
+    .lightbox-prev {
+        left: 16px;
+    }
+
+    .lightbox-next {
+        right: 16px;
+    }
+}
+
+/* Отзыв: аватарка слева, ник, текст и дата — плотной колонкой справа от неё */
+.review.review {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: var(--space-3);
+    min-height: 0;
+}
+
+.review-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.review-body .review-header {
+    margin-bottom: 2px;
+}
+
+.review-body .profile-status {
+    margin: 0 0 2px;
+}
+
+/* Значки ролей (спрайт _role_icons.html) */
+.role-icon {
+    display: inline-block;
+    flex: none;
+    width: 1.25em;   /* на ~13% крупнее прежних 1.1em */
+    height: 1.25em;
+    margin-right: 0.35em;
+    vertical-align: -0.25em;
+}
+
+.role-icon-creator { color: var(--rating); }
+.role-icon-admin { color: var(--role-admin); }
+.role-icon-user { color: var(--accent-text); }
+
+/* Поле ника и описания: фокус показывает своя рамка, вторая обводка не нужна */
+.profile-edit-input:focus-visible {
+    outline: none;
+}
+
+/* Подсказка с колонками (например, роли) — окошко шире */
+.hint-bubble.hint-bubble-wide {
+    width: min(460px, calc(100vw - 16px));
+    max-width: none;
+}
+
+.hint-bubble-cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2) var(--space-3);
+    padding: 0 15px 12px;
+    color: var(--text-secondary);
+    font-size: calc(13px * var(--font-scale, 1));
+    line-height: 1.4;
+}
+
+.hint-bubble-cols > div {
+    padding: var(--space-2);
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+}
+
+.hint-bubble-cols strong {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--text-primary);
+    font-weight: var(--text-semibold);
+}

@@ -57,8 +57,10 @@ html[data-season="halloween"] {
     }
 
     /* ---------- Шапка ---------- */
+    --bg-navbar: rgba(14, 9, 5, 0.96);
+
     & .navbar {
-        background: rgba(14, 9, 5, 0.96);
+        background: var(--bg-navbar);
         border-bottom: 1px solid rgba(206, 98, 22, 0.3);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 122, 26, 0.15);
     }
@@ -91,7 +93,8 @@ html[data-season="halloween"] {
     & .checkout-button,
     & .cart-badge,
     & .play-button,
-    & .status-running {
+    & .status-running,
+    & .hint {
         color: #1a0d03;
     }
 

@@ -144,8 +144,6 @@
     font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     cursor: pointer;
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
     outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
     display: inline-block; /* ОБЯЗАТЕЛЬНО: разрешает браузеру применять transform и анимации */
     text-decoration: none;
@@ -158,11 +156,11 @@
 }
 
 .buy-button:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+    transform: scale(1.1);
 }
 
 .buy-button:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+    transform: scale(0.9);
 }
 
 .purchase-box {
@@ -528,8 +526,6 @@
     font-weight: var(--text-semibold);
 
     /* 1. Готовим слой для GPU и отключаем скачки субпикселей */
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
     outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
 
     /* 2. Анимируем строго свойство transform */
@@ -556,11 +552,11 @@
 
 .play-button:hover {
     /* 3. Scale 1.04–1.05 выглядит аккуратнее и не раздувает буквы */
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+    transform: scale(1.1);
 }
 
 .play-button:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+    transform: scale(0.9);
 }
 
 .play-button a {
@@ -617,8 +613,6 @@
     border-radius: var(--radius-sm);
     font-weight: var(--text-semibold);
 
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
     outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
 
     /* 2. Анимируем строго свойство transform */
@@ -629,11 +623,11 @@
 
 .store-btn:hover {
     /* 3. Scale 1.04–1.05 выглядит аккуратнее и не раздувает буквы */
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+    transform: scale(1.1);
 }
 
 .store-btn:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+    transform: scale(0.9);
 }
 
 /* Иконка в левом списке (как в Steam) */
@@ -699,8 +693,6 @@
     font-size: calc(22px * var(--font-scale, 1));
     cursor: pointer;
     transition: transform var(--transition);
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
     outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
 
     /* 2. Анимируем строго свойство transform */
@@ -711,11 +703,11 @@
 }
 
 .settings-btn:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+    transform: scale(1.1);
 }
 
 .settings-btn:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+    transform: scale(0.9);
 }
 
 .dropdown-menu {
@@ -943,15 +935,7 @@
 
 /* Окна панели выглядят так же, как карточки настроек и новостей */
 .library-card,
-.library-about {
-    padding: var(--padding-md);
-    background: var(--bg-secondary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-md);
-}
-
-.library-card h2,
-.library-about summary {
+.library-card h2 {
     margin: 0;
     color: var(--text-primary);
     font-size: calc(24px * var(--font-scale, 1));
@@ -1006,47 +990,6 @@
 
 .library-screenshots a:hover img {
     filter: brightness(1.15);
-}
-
-.library-about summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    list-style: none;
-    cursor: pointer;
-}
-
-.library-about summary::-webkit-details-marker {
-    display: none;
-}
-
-.library-about-arrow {
-    color: var(--text-muted);
-    font-size: calc(18px * var(--font-scale, 1));
-    transition: transform 0.2s, color 0.2s;
-}
-
-.library-about summary:hover .library-about-arrow {
-    color: var(--text-primary);
-}
-
-.library-about[open] .library-about-arrow {
-    transform: rotate(90deg);
-}
-
-.library-about-text {
-    margin-top: var(--padding-sm2);
-    color: var(--text-secondary);
-    font-size: calc(16px * var(--font-scale, 1));
-    line-height: 1.5;
-}
-
-.library-about-text p {
-    margin: 0 0 10px;
-}
-
-.library-about-text p:last-child {
-    margin-bottom: 0;
 }
 
 .library-stats {
@@ -1194,7 +1137,7 @@
     height: 9px;
     border-radius: 50%;
     background: currentColor;
-    animation: running-pulse 1.6s ease-in-out infinite;
+    animation: running-pulse 2s ease-in-out infinite;
 }
 
 .running-timer {
@@ -1238,7 +1181,7 @@
     color: var(--bg-primary);
     background: var(--success);
     border-radius: var(--radius-verysm);
-    font-size: calc(12px * var(--font-scale, 1));
+    font-size: calc(13px * var(--font-scale, 1));
     font-weight: var(--text-bold);
     white-space: nowrap;
 }

@@ -131,6 +131,7 @@ def settings_view(request):
             profile.font_size = _step(request.POST.get('font_size'))
             profile.radius_size = _step(request.POST.get('radius_size'))
             profile.reduce_motion = 'reduce_motion' in request.POST
+            profile.show_hints = 'show_hints' in request.POST
             profile.save()
             return JsonResponse({'status': 'success'})
 
@@ -349,6 +350,20 @@ def profile(request):
     if request.method == 'POST':
         changed = False
 
+        # Ник и описание правятся прямо в профиле — с теми же проверками, что и в настройках
+        if 'username' in request.POST:
+            username = request.POST['username'].strip()
+            error = _account_error(user, username, user.email)
+            if error:
+                messages.error(request, error)
+                return redirect('mfs:profile')
+            if username != user.username:
+                user.username = username
+                user.save(update_fields=['username'])
+        if 'bio' in request.POST:
+            profile.bio = request.POST['bio'].strip()[:150]
+            changed = True
+
         for field in ('avatar', 'banner'):
             if field in request.FILES:
                 error = _clean_image(request.FILES[field])
@@ -391,6 +406,7 @@ def profile(request):
         'favorites': _favorites(user),
         'max_favorites': MAX_FAVORITES,
         'can_edit': True,
+        'max_username_length': MAX_USERNAME_LENGTH,
         'wishlist_games': _wishlist_games(user),
         **_user_game_state(request),
         'friends': friends,

@@ -11,8 +11,8 @@
 
         <!-- Левое меню -->
         <aside class="profile-sidebar">
-            <!-- Переход на собственный профиль -->
-            <a href="{% url 'mfs:profile' %}" class="settings-nav-link">
+            <!-- Вкладка профиля этого пользователя (свой профиль — в меню под ником в шапке) -->
+            <a href="#profile" class="settings-nav-link" data-tab="profile">
                 <img src="{% static 'img/icons/profile.png' %}"
                      alt="" class="nav-icon">
                 Профиль
@@ -66,13 +66,8 @@
                             
                             {% if not restricted %}
                                 <p class="profile-status">
-                                    {% if target.user.is_superuser %}
-                                        👑 Создатель
-                                    {% elif target.user.is_staff %}
-                                        🛡️ Админ
-                                    {% else %}
-                                        🎮 Пользователь
-                                    {% endif %}
+                                    {{ target.user|user_status }}
+                                    {% include 'store/_hint.html' with title="Роли на сайте" text="Роль показывает, кто человек на сайте.||{creator}Создатель — автор и владелец GameStore||{admin}Админ — добавляет игры и новости, следит за порядком||{user}Пользователь — игрок с библиотекой, друзьями и отзывами" %}
                                 </p>
 
                                 <p class="profile-status">
@@ -254,27 +249,21 @@
 
                         <div class="activity-list">
                             {% for item in friends %}
-                            <div class="activity-item">
-                                <div class="activity-cover">
-                                    {% if item.profile.avatar %}
-                                    <img src="{{ item.profile.avatar.url }}"
-                                         alt="" data-letter="{{ item.profile.user.username|first|upper }}">
-                                    {% else %}
-                                    <span>
-                                        {{ item.profile.user.username|first|upper }}
-                                    </span>
-                                    {% endif %}
+                            <a href="{% url 'mfs:user_profile' item.profile.user.username %}" class="activity-item-link">
+                                <div class="activity-item">
+                                    <div class="activity-cover-2">
+                                        {% if item.profile.avatar %}
+                                            <img src="{{ item.profile.avatar.url }}" alt="" data-letter="{{ item.profile.user.username|first|upper }}" loading="lazy" decoding="async">
+                                        {% else %}
+                                            <span>{{ item.profile.user.username|first|upper }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="activity-info">
+                                        <h3>{{ item.profile.user.username }}</h3>
+                                        <p class="profile-status">{{ item.profile.user|user_status }}</p>
+                                    </div>
                                 </div>
-
-                                <div class="activity-info">
-                                    <h3>
-                                        <a href="{% url 'mfs:user_profile' item.profile.user.username %}"
-                                           style="color: inherit; text-decoration: none;">
-                                            {{ item.profile.nickname|default:item.profile.user.username }}
-                                        </a>
-                                    </h3>
-                                </div>
-                            </div>
+                            </a>
                             {% empty %}
                             <p class="empty-activity">
                                 У пользователя пока нет друзей.

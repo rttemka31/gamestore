@@ -4,7 +4,7 @@
 {% block title %}GameStore | Библиотека{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/library.css' %}?v=30">
+    <link rel="stylesheet" href="{% static 'css/library.css' %}?v=32">
 {% endblock %}
 
 {% block content %}
@@ -12,7 +12,7 @@
 
     <!-- Левая панель -->
     <aside class="steam-sidebar">
-        <div class="sidebar-title">Избранное (<span data-fav-count>{{ favorites|length }}</span> из {{ max_favorites }})</div>
+        <div class="sidebar-title">Избранное (<span data-fav-count>{{ favorites|length }}</span> из {{ max_favorites }}) {% include 'store/_hint.html' with title="Избранное" text="Перетащите сюда игры из списка ниже, всего до 6. Избранные игры стоят в библиотеке первыми и видны в вашем профиле. Порядок меняется перетаскиванием." %}</div>
         <ul class="sidebar-list favorites-list" data-favorites data-layout="library" data-url="{% url 'mfs:favorites_update' %}">
             {% include 'store/_library_favorites.html' %}
         </ul>

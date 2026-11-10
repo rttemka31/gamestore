@@ -23,7 +23,7 @@
             </div>
             <div class="library-screenshots">
                 {% for shot in game.screenshots.all|slice:":4" %}
-                    <a href="{% url 'mfs:game_detail' game.id %}">
+                    <a href="{{ shot.image|thumb:'1920' }}" data-lightbox="library-{{ game.id }}" data-original="{{ shot.image|thumb:'1920' }}" aria-label="Открыть скриншот на весь экран">
                         <img src="{{ shot.image|thumb:'480x270' }}" alt="Скриншот {{ game.title }}" loading="lazy" decoding="async">
                     </a>
                 {% endfor %}

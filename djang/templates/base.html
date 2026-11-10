@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="ru"{% if user.is_authenticated %} data-font="{{ user.profile.font_size }}" data-radius="{{ user.profile.radius_size }}"{% if user.profile.reduce_motion %} data-motion="reduced"{% endif %}{% if user.profile.accent_color %} data-accent="custom"{% endif %}{% endif %}>
+<html lang="ru"{% if user.is_authenticated %} data-font="{{ user.profile.font_size }}" data-radius="{{ user.profile.radius_size }}"{% if user.profile.reduce_motion %} data-motion="reduced"{% endif %}{% if not user.profile.show_hints %} data-hints="off"{% endif %}{% if user.profile.accent_color %} data-accent="custom"{% endif %}{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}GameStore{% endblock %}</title>
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=57">
-    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=8">
-    <script src="{% static 'js/event/halloween.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=65">
+    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=9">
+    <script src="{% static 'js/event/halloween.js' %}?v=2"></script>
     <link id="siteIcon" rel="icon"
         href="{% static 'img/icons/gamestore.png' %}?v=2"
         data-default="{% static 'img/icons/gamestore.png' %}?v=2"
@@ -39,6 +39,7 @@
       data-cart-url="{% url 'mfs:cart_detail' %}"
       data-library-url="{% url 'mfs:library' %}"
       data-login-url="{% url 'mfs:login' %}">
+    {% include '_role_icons.html' %}
 
     <!-- Общий Navbar для всего сайта -->
     <header class="navbar">
@@ -153,7 +154,7 @@
             }
         });
     </script>
-    <script src="{% static 'js/store.js' %}?v=8"></script>
+    <script src="{% static 'js/store.js' %}?v=13"></script>
     <script src="{% static 'js/nav.js' %}?v=1"></script>
     {% block extra_js %}{% endblock %}
     <div id="installToast" class="toast-notification">

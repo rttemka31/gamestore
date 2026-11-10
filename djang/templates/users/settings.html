@@ -271,9 +271,9 @@
                                             {% if device.current %}<span class="device-current">Это устройство</span>{% endif %}
                                         </span>
                                         <span class="device-meta">
-                                            {% if device.ip %}IP {{ device.ip }} · {% endif %}
+                                            {% if device.ip %}IP {{ device.ip }} • {% endif %}
                                             {% if device.current or device.active_now %}активен сейчас{% elif device.seen %}был активен {{ device.seen|timesince }} назад{% else %}активность неизвестна{% endif %}
-                                            {% if device.started %} · вход {{ device.started|date:"j E, H:i" }}{% endif %}
+                                            {% if device.started %} • вход {{ device.started|date:"j E, H:i" }}{% endif %}
                                         </span>
                                     </div>
                                     {% if not device.current %}
@@ -329,7 +329,7 @@
                         <div class="settings-field">
                             <label class="settings-toggle-row">
                                 <div>
-                                    <span class="settings-toggle-title">Акцентный цвет сайта</span>
+                                    <span class="settings-toggle-title">Акцентный цвет сайта {% include 'store/_hint.html' with title="Акцентный цвет" text="Акцентный цвет — главный цвет оформления: кнопки, ссылки, выделения и значки. Выберите вариант, и сайт сразу перекрасится. Во время сезонной темы, например на Хэллоуин, действует её цвет, а ваш вернётся после." %}</span>
                                     <span class="settings-hint">Не работает если у вас включена сезонная тема сайта</span>
                                 </div>
                             </label>
@@ -357,6 +357,14 @@
                                 <span class="settings-hint">Убирает плавные переходы и движущиеся эффекты</span>
                             </div>
                             <input type="checkbox" name="reduce_motion" id="reduceMotionToggle" class="settings-toggle" {% if user.profile.reduce_motion %}checked{% endif %}>
+                        </label>
+
+                        <label class="settings-toggle-row">
+                            <div>
+                                <span class="settings-toggle-title">Подсказки «?»</span>
+                                <span class="settings-hint">Значки с короткими пояснениями возле непонятных мест сайта</span>
+                            </div>
+                            <input type="checkbox" name="show_hints" id="showHintsToggle" class="settings-toggle" {% if user.profile.show_hints %}checked{% endif %}>
                         </label>
                     </form>
                 </section>
@@ -395,7 +403,7 @@
                         <input type="hidden" name="form" value="privacy">
 
                         <div class="settings-field">
-                            <span class="settings-toggle-title">Кто видит ваш профиль</span>
+                            <span class="settings-toggle-title">Кто видит ваш профиль {% include 'store/_hint.html' with title="Видимость профиля" text="Все — профиль открыт любому посетителю. Только друзья — его видят лишь ваши друзья. Только я — профиль виден только вам, остальные увидят закрытую страницу." %}</span>
                             <select id="profile_visibility" name="profile_visibility">
                                 <option value="everyone" {% if user.profile.profile_visibility == 'everyone' %}selected{% endif %}>Все</option>
                                 <option value="friends" {% if user.profile.profile_visibility == 'friends' %}selected{% endif %}>Только друзья</option>
@@ -483,7 +491,7 @@
                         </div>
                         <div>
                             <dt>Работает на</dt>
-                            <dd>Django и Python</dd>
+                            <dd>Django и Python {% include 'store/_hint.html' with title="Django и Python" text="Python — язык, на котором написана серверная часть GameStore. Django — фреймворк на Python: он собирает страницы, хранит аккаунты, библиотеку и корзину и защищает формы от атак." %}</dd>
                         </div>
                         <div>
                             <dt>Исходный код</dt>

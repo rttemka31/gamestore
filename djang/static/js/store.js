@@ -69,7 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await window.gsPost(btn.dataset.url);
             if (data.status === 'owned') {
                 btn.classList.add('owned');
-                makeRedirect(btn, 'В библиотеке ➜', libraryUrl);
+                // сразу на страницу этой игры в библиотеке, а не на библиотеку вообще
+                const gameId = btn.dataset.gameId;
+                makeRedirect(btn, 'В библиотеке ➜', gameId ? `${libraryUrl}?active=${gameId}` : libraryUrl);
             } else if (data.status === 'ok') {
                 btn.classList.add('in-cart');
                 makeRedirect(btn, '✓ Добавлено', cartUrl);
@@ -225,6 +227,206 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// ---------- Подсказки «?» ----------
+// Значок .hint хранит текст в data-hint. Окошко одно на страницу и висит прямо в body: так его
+// не обрезают карточки с overflow: hidden. Показ — при наведении, фокусе с клавиатуры или нажатии
+// (на телефоне), скрытие — когда курсор ушёл, при прокрутке, Esc или нажатии в другом месте.
+(() => {
+    let bubble = null;
+    let current = null;
+
+    function place(hint) {
+        const gap = 8;
+        const icon = hint.getBoundingClientRect();
+        const box = bubble.getBoundingClientRect();
+        const left = Math.min(Math.max(gap, icon.left + icon.width / 2 - box.width / 2), window.innerWidth - box.width - gap);
+        let top = icon.top - box.height - gap;
+        if (top < gap) top = icon.bottom + gap;  // сверху не помещается — показываем снизу
+        bubble.style.left = `${left}px`;
+        bubble.style.top = `${top}px`;
+    }
+
+    function show(hint) {
+        if (!bubble) {
+            bubble = document.createElement('div');
+            bubble.className = 'hint-bubble';
+            bubble.id = 'hintBubble';
+            bubble.setAttribute('role', 'tooltip');
+            document.body.append(bubble);
+        }
+        current?.classList.remove('hint-open');
+        current = hint;
+        hint.classList.add('hint-open');
+        bubble.replaceChildren();
+        if (hint.dataset.hintTitle) {
+            const title = document.createElement('div');
+            title.className = 'hint-bubble-title';
+            title.textContent = hint.dataset.hintTitle;
+            bubble.append(title);
+        }
+        // Текст вида «вступление||Пункт — пояснение||…»: пункты раскладываются колонками
+        const [intro, ...items] = hint.dataset.hint.split('||');
+        const text = document.createElement('div');
+        text.className = 'hint-bubble-text';
+        text.textContent = intro;
+        bubble.append(text);
+        bubble.classList.toggle('hint-bubble-wide', items.length > 0);
+        if (items.length) {
+            const cols = document.createElement('div');
+            cols.className = 'hint-bubble-cols';
+            items.forEach(item => {
+                const [rawHead, ...rest] = item.split(' — ');
+                const col = document.createElement('div');
+                const title = document.createElement('strong');
+                // «{creator}Создатель» — значок роли из спрайта _role_icons.html и подпись
+                const role = rawHead.match(/^\{(creator|admin|user)\}/);
+                const head = role ? rawHead.slice(role[0].length) : rawHead;
+                if (role) {
+                    const svgNS = 'http://www.w3.org/2000/svg';
+                    const icon = document.createElementNS(svgNS, 'svg');
+                    icon.setAttribute('class', `role-icon role-icon-${role[1]}`);
+                    icon.setAttribute('aria-hidden', 'true');
+                    const use = document.createElementNS(svgNS, 'use');
+                    use.setAttribute('href', `#role-${role[1]}`);
+                    icon.append(use);
+                    title.append(icon);
+                }
+                title.append(head);
+                col.append(title, document.createTextNode(rest.join(' — ')));
+                cols.append(col);
+            });
+            bubble.append(cols);
+        }
+        bubble.classList.add('is-visible');
+        place(hint);
+    }
+
+    function hide() {
+        if (!current) return;
+        current.classList.remove('hint-open');
+        current = null;
+        bubble.classList.remove('is-visible');
+    }
+
+    document.addEventListener('mouseover', e => {
+        const hint = e.target.closest('.hint');
+        if (hint && hint !== current) show(hint);
+    });
+    document.addEventListener('mouseout', e => {
+        const hint = e.target.closest('.hint');
+        if (hint && hint === current && document.activeElement !== hint) hide();
+    });
+    document.addEventListener('focusin', e => { if (e.target.matches?.('.hint')) show(e.target); });
+    document.addEventListener('focusout', e => { if (e.target === current) hide(); });
+
+    // Нажатие на значок не должно срабатывать как нажатие на ссылку или подпись вокруг него
+    document.addEventListener('click', e => {
+        const hint = e.target.closest('.hint');
+        if (hint) {
+            e.preventDefault();
+            e.stopPropagation();
+            show(hint);
+        } else {
+            hide();
+        }
+    }, true);
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') hide();
+        if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('.hint')) {
+            e.preventDefault();
+            show(e.target);
+        }
+    });
+    window.addEventListener('scroll', hide, {passive: true});
+    window.addEventListener('resize', hide);
+})();
+
+// ---------- Просмотр картинок на весь экран ----------
+// window.gsLightbox.open(urls, index). Любая ссылка или картинка с data-lightbox="группа" и
+// data-original открывает просмотр по нажатию; стрелки листают картинки той же группы.
+(() => {
+    let box, img, counter, urls = [], index = 0, lastFocus = null;
+
+    function build() {
+        box = document.createElement('div');
+        box.className = 'lightbox';
+        box.hidden = true;
+        box.setAttribute('role', 'dialog');
+        box.setAttribute('aria-modal', 'true');
+        box.setAttribute('aria-label', 'Просмотр картинки');
+        box.innerHTML = `
+            <button type="button" class="lightbox-btn lightbox-close" aria-label="Закрыть">×</button>
+            <button type="button" class="lightbox-btn lightbox-prev" aria-label="Предыдущая">‹</button>
+            <img class="lightbox-img" alt="">
+            <button type="button" class="lightbox-btn lightbox-next" aria-label="Следующая">›</button>
+            <div class="lightbox-counter" aria-live="polite"></div>`;
+        document.body.append(box);
+        img = box.querySelector('.lightbox-img');
+        counter = box.querySelector('.lightbox-counter');
+
+        box.querySelector('.lightbox-close').addEventListener('click', close);
+        box.querySelector('.lightbox-prev').addEventListener('click', () => show(index - 1));
+        box.querySelector('.lightbox-next').addEventListener('click', () => show(index + 1));
+        // нажатие по тёмному фону вокруг картинки закрывает просмотр
+        box.addEventListener('click', e => { if (e.target === box) close(); });
+
+        // на телефоне — листание свайпом
+        let startX = null;
+        box.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive: true});
+        box.addEventListener('touchend', e => {
+            if (startX === null) return;
+            const dx = e.changedTouches[0].clientX - startX;
+            if (Math.abs(dx) > 50) show(index + (dx < 0 ? 1 : -1));
+            startX = null;
+        });
+    }
+
+    function show(i) {
+        index = (i + urls.length) % urls.length;
+        img.src = urls[index];
+        const several = urls.length > 1;
+        counter.textContent = several ? `${index + 1} / ${urls.length}` : '';
+        box.querySelectorAll('.lightbox-prev, .lightbox-next').forEach(btn => { btn.hidden = !several; });
+    }
+
+    function open(list, start = 0) {
+        if (!list.length) return;
+        if (!box) build();
+        urls = list;
+        lastFocus = document.activeElement;
+        box.hidden = false;
+        document.body.style.overflow = 'hidden';
+        show(start);
+        box.querySelector('.lightbox-close').focus();
+    }
+
+    function close() {
+        if (!box || box.hidden) return;
+        box.hidden = true;
+        img.removeAttribute('src');
+        document.body.style.overflow = '';
+        lastFocus?.focus?.();
+    }
+
+    document.addEventListener('keydown', e => {
+        if (!box || box.hidden) return;
+        if (e.key === 'Escape') close();
+        else if (e.key === 'ArrowLeft') show(index - 1);
+        else if (e.key === 'ArrowRight') show(index + 1);
+    });
+
+    // Ссылки-миниатюры (например, скриншоты в библиотеке)
+    document.addEventListener('click', e => {
+        const item = e.target.closest('a[data-lightbox]');
+        if (!item) return;
+        e.preventDefault();
+        const group = [...document.querySelectorAll(`a[data-lightbox="${item.dataset.lightbox}"]`)];
+        open(group.map(el => el.dataset.original), group.indexOf(item));
+    });
+
+    window.gsLightbox = {open, close};
+})();
 
 // ---------- Индикатор загрузки картинок и видео ----------
 // Пока картинка не загрузилась, CSS рисует под ней белый индикатор. Здесь отмечаем загруженные

@@ -11,7 +11,7 @@
     <div class="game-detail-title">
         <h1 title="{{ game.title }}">{{ game.title }}</h1>
         {% if game.is_not_on_steam %}
-            <span class="badge badge-exclusive">Эксклюзив</span>
+            <span class="badge-with-hint"><span class="badge badge-exclusive">Эксклюзив</span>{% include 'store/_hint.html' with title="Эксклюзив" text="Эксклюзив — игра, которой нет в Steam. Купить и запустить её можно только в GameStore. В каталоге такие игры отмечены этим же значком на обложке." %}</span>
         {% endif %}
     </div>
 
@@ -29,7 +29,7 @@
                 
                 <img id="currentImage" 
                     src="{% if game.cover %}{{ game.cover|thumb:'1280' }}{% elif game.screenshots.all %}{{ game.screenshots.all.0.image|thumb:'1280' }}{% endif %}" 
-                    alt="{{ game.title }}" fetchpriority="high" decoding="async"
+                    alt="{{ game.title }}" fetchpriority="high" decoding="async" title="Открыть на весь экран"
                     {% if game.trailer_file or not game.cover and not game.screenshots.all %}style="display: none;"{% endif %}>
                 </div>
 
@@ -45,13 +45,15 @@
                 {% endif %}
                 
                 {% if game.cover %}
-                    <img src="{{ game.cover|thumb:'200x110' }}" data-full="{{ game.cover|thumb:'1280' }}" alt="" decoding="async"
+                    <img src="{{ game.cover|thumb:'200x110' }}" data-full="{{ game.cover|thumb:'1280' }}"
+                         data-lightbox="game" data-original="{{ game.cover|thumb:'1920' }}" alt="" decoding="async"
                          class="thumb {% if not game.trailer_file %}active{% endif %}" 
                          onclick="showImage(this.dataset.full, this)">
                 {% endif %}
                 
                 {% for s in game.screenshots.all %}
-                    <img src="{{ s.image|thumb:'200x110' }}" data-full="{{ s.image|thumb:'1280' }}" alt="" loading="lazy" decoding="async"
+                    <img src="{{ s.image|thumb:'200x110' }}" data-full="{{ s.image|thumb:'1280' }}"
+                         data-lightbox="game" data-original="{{ s.image|thumb:'1920' }}" alt="" loading="lazy" decoding="async"
                          class="thumb {% if not game.trailer_file and not game.cover and forloop.first %}active{% endif %}" 
                          onclick="showImage(this.dataset.full, this)">
                 {% endfor %}
@@ -147,17 +149,17 @@
 
     <!-- ОПИСАНИЕ -->
     <section class="detail-section">
-    <div class="game-description">
-        <h2>Об игре</h2>
-        <div class="description-box">
+    <!-- Полное описание сворачивается, как «Об этой игре» в библиотеке -->
+    <details class="library-about game-description">
+        <summary>Об игре <span class="library-about-arrow" aria-hidden="true">➜</span></summary>
+        <div class="library-about-text">
             {% if game.long_description %}
-                <!-- Фильтр linebreaks красиво сохраняет абзацы и переносы строк -->
                 {{ game.long_description|linebreaks }}
             {% else %}
                 <p>Описание игры пока не добавлено.</p>
             {% endif %}
         </div>
-    </div>
+    </details>
 </section>
 
     <!-- ОТЗЫВЫ -->
@@ -204,19 +206,29 @@
     <div class="reviews">
         {% for review in reviews %}
             <div class="review">
-                <div class="review-header">
-                    <div class="review-author-block">
-                        <a href="{% url 'mfs:user_profile' review.user.username %}" class="review-author">
-                            {{ review.user.username }}
-                        </a>
-                        <span class="review-status">{{ review.user|user_status }}</span>
+                <a href="{% url 'mfs:user_profile' review.user.username %}" class="review-avatar" tabindex="-1" aria-hidden="true">
+                    {% if review.user.profile.avatar %}
+                        <img src="{{ review.user.profile.avatar.url }}" alt="" data-letter="{{ review.user.username|first|upper }}" loading="lazy" decoding="async">
+                    {% else %}
+                        <span>{{ review.user.username|first|upper }}</span>
+                    {% endif %}
+                </a>
+                <!-- Ник, текст и дата одной колонкой рядом с аватаркой -->
+                <div class="review-body">
+                    <div class="review-header">
+                        <div class="review-author-block">
+                            <a href="{% url 'mfs:user_profile' review.user.username %}" class="review-author">
+                                {{ review.user.username }}
+                            </a>
+                            <span class="review-status">{{ review.user|user_status }}</span>
+                        </div>
+                        <span class="review-rating">
+                            {% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}
+                        </span>
                     </div>
-                    <span class="review-rating">
-                        {% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}
-                    </span>
+                    {% if review.text %}<p class="profile-status">{{ review.text }}</p>{% endif %}
+                    <span class="release-date">{{ review.created_at|date:"d b. Yг." }}</span>
                 </div>
-                {% if review.text %}<p class="profile-status">{{ review.text }}</p>{% endif %}
-                <span class="release-date">{{ review.created_at|date:"d b. Yг." }}</span>
             </div>
         {% empty %}
             <div class="description-box"><p>Отзывов пока нет. Будьте первым!</p></div>
@@ -242,6 +254,14 @@
             video.querySelector('source')?.addEventListener('error', showControls, {once: true});
         }
     })();
+
+    // Нажатие на большую картинку открывает её на весь экран; листать можно все картинки ленты
+    document.getElementById('currentImage')?.addEventListener('click', () => {
+        const items = [...document.querySelectorAll('.thumbnails-list [data-lightbox="game"]')];
+        if (!items.length) return;
+        const active = items.findIndex(item => item.classList.contains('active'));
+        window.gsLightbox.open(items.map(item => item.dataset.original), Math.max(0, active));
+    });
 
     function showImage(src, element) {
         const video = document.getElementById('mainVideo');

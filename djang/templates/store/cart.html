@@ -5,7 +5,7 @@
 {% block title %}GameStore | Корзина{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/cart.css' %}?v=25">
+    <link rel="stylesheet" href="{% static 'css/cart.css' %}?v=27">
 {% endblock %}
 
 {% block content %}
@@ -57,20 +57,23 @@
 
                     <!-- Цена -->
                     <div class="cart-price">
-                        {% if game.is_not_on_steam or game.discount > 0 %}
-                            <div class="cart-badges">
-                                {% if game.is_not_on_steam %}<span class="badge badge-exclusive">Эксклюзив</span>{% endif %}
-                                {% if game.discount > 0 %}<span class="badge badge-discount">-{{ game.discount }}%</span>{% endif %}
-                            </div>
+                        {% if game.is_not_on_steam %}
+                            <div class="cart-badges"><span class="badge badge-exclusive">Эксклюзив</span></div>
                         {% endif %}
-                        {% if game.discount > 0 %}
-                            <div class="cart-price-row">
-                                <span class="old-price">{{ game.price|floatformat:0 }}₴</span>
-                                <span class="current-price">{{ game.discounted_price|floatformat:0 }}₴</span>
-                            </div>
-                        {% else %}
-                            <span class="current-price">{{ game.price|floatformat:0 }}₴</span>
-                        {% endif %}
+                        <!-- Цена в том же виде, что и в карточках каталога: значок скидки, старая и новая цена -->
+                        <div class="game-bottom cart-price-line">
+                            {% if game.discount > 0 %}
+                                <span class="badge badge-discount">-{{ game.discount }}%</span>
+                                <div class="price-block">
+                                    <span class="old-price">{{ game.price|floatformat:0 }}₴</span>
+                                    <span class="price">{{ game.discounted_price|floatformat:0 }}₴</span>
+                                </div>
+                            {% else %}
+                                <div class="price-block">
+                                    <span class="price">{% if game.price == 0 %}Бесплатно{% else %}{{ game.price|floatformat:0 }}₴{% endif %}</span>
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             {% endfor %}

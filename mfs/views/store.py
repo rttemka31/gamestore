@@ -132,7 +132,7 @@ def catalog(request):
         # Подзапрос вместо JOIN: игра с двумя выбранными жанрами не задвоится
         games = games.filter(pk__in=Game.objects.filter(genres__slug__in=selected_genres).values('pk'))
 
-    title = 'Каталог игр'
+    title = 'Каталог'
     categories = _catalog_categories()
     if category in categories:
         title, condition = categories[category]
@@ -185,7 +185,7 @@ def game_detail(request, game_id):
 
     return render(request, 'store/game_detail.html', {
         'game': game,
-        'reviews': game.reviews.select_related('user'),
+        'reviews': game.reviews.select_related('user__profile'),  # профиль — для аватарки
         'avg_rating': avg_rating,
         'avg_percent': avg_rating / 5 * 100,
         'reviews_count': stats['count'],

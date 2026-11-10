@@ -60,25 +60,25 @@
                             </div>
  
                             <div class="profile-info">
-                                <h1 class="profile-title">
+                                <h1 class="profile-title" data-profile-view>
                                     {{ user.username }}
                                 </h1>
+                                <!-- В режиме редактирования вместо ника и описания — поля ввода -->
+                                <input type="text" name="username" class="profile-edit-input profile-edit-name" value="{{ user.username }}"
+                                       maxlength="{{ max_username_length }}" autocomplete="username" aria-label="Имя пользователя" required hidden data-profile-edit>
                                 <p class="profile-status">
-                                    {% if user.is_superuser %}
-                                        👑 Создатель
-                                    {% elif user.is_staff %}
-                                        🛡️ Админ
-                                    {% else %}
-                                        🎮 Пользователь
-                                    {% endif %}
+                                    {{ user|user_status }}
+                                    {% include 'store/_hint.html' with title="Роли на сайте" text="Роль показывает, кто человек на сайте.||{creator}Создатель — автор и владелец GameStore||{admin}Админ — добавляет игры и новости, следит за порядком||{user}Пользователь — игрок с библиотекой, друзьями и отзывами" %}
                                 </p>
-                                <p class="profile-status">
+                                <p class="profile-status" data-profile-view>
                                     {% if user.profile.bio and user.profile.bio != "None" %}
                                         {{ user.profile.bio }}
                                     {% else %}
                                         <span style="color: var(--text-muted);">Нет описания</span>
                                     {% endif %}
                                 </p>
+                                <textarea name="bio" class="profile-edit-input profile-edit-bio" maxlength="150" rows="2"
+                                          placeholder="Пара слов о себе (до 150 символов)" aria-label="Описание профиля" hidden data-profile-edit>{% if user.profile.bio != "None" %}{{ user.profile.bio|default:'' }}{% endif %}</textarea>
                             </div>
  
                             <!-- Блок с кнопками -->
@@ -268,15 +268,7 @@
                                 </div>
                                 <div class="activity-info">
                                     <h3><a href="{% url 'mfs:user_profile' f.sender.user.username %}" style="color:inherit;text-decoration:none;">{{ f.sender.user.username }}</a></h3>
-                                    <p class="profile-status">
-                                        {% if target.user.is_superuser %}
-                                            👑 Создатель
-                                        {% elif target.user.is_staff %}
-                                            🛡️ Админ
-                                        {% else %}
-                                            🎮 Пользователь
-                                        {% endif %}
-                                    </p>
+                                    <p class="profile-status">{{ item.profile.user|user_status }}</p>
                                 </div>
                                 <div class="activity-time">
                                     <button type="button" class="buy-button" style="background:#28a745;color:#fff;"
@@ -303,15 +295,7 @@
                                 </div>
                                 <div class="activity-info">
                                     <h3><a href="{% url 'mfs:user_profile' item.profile.user.username %}" style="color:inherit;text-decoration:none;">{{ item.profile.user.username }}</a></h3>
-                                    <p class="profile-status">
-                                        {% if target.user.is_superuser %}
-                                            👑 Создатель
-                                        {% elif target.user.is_staff %}
-                                            🛡️ Админ
-                                        {% else %}
-                                            🎮 Пользователь
-                                        {% endif %}
-                                    </p>
+                                    <p class="profile-status">{{ item.profile.user|user_status }}</p>
                                 </div>
                                 <div class="activity-time">
                                     <button type="button" class="buy-button" style="background: var(--bg-card-hover);"
@@ -340,15 +324,7 @@
                                 </div>
                                 <div class="activity-info">
                                     <h3><a style="color:inherit;text-decoration:none;">{{ f.receiver.user.username }}</a></h3>
-                                    <p class="profile-status">
-                                        {% if target.user.is_superuser %}
-                                            👑 Создатель
-                                        {% elif target.user.is_staff %}
-                                            🛡️ Админ
-                                        {% else %}
-                                            🎮 Пользователь
-                                        {% endif %}
-                                    </p>
+                                    <p class="profile-status">{{ item.profile.user|user_status }}</p>
                                 </div>
                                 <div class="activity-time">
                                     <button type="button" class="buy-button" style="background: var(--bg-card-hover);"
@@ -576,16 +552,30 @@ document.addEventListener("DOMContentLoaded", () => {
     // ДОБАВИТЬ: исходный фон баннера
     let originalBannerBg = bannerPreview.style.backgroundImage;
 
+    // Ник и описание: в режиме редактирования показываем поля вместо текста
+    const viewEls = document.querySelectorAll("[data-profile-view]");
+    const editEls = document.querySelectorAll("[data-profile-edit]");
+    function toggleTextEditing(editing) {
+        viewEls.forEach(el => { el.hidden = editing; });
+        editEls.forEach(el => {
+            el.hidden = !editing;
+            if (!editing) el.value = el.defaultValue;  // отмена возвращает прежний текст
+        });
+    }
+
     // Включение режима редактирования
     editBtn.addEventListener("click", () => {
         editBtn.style.display = "none";
         editActions.style.display = "flex";
         avatarOverlay.style.display = "flex";
         bannerOverlay.style.display = "flex"; // ДОБАВИТЬ
+        toggleTextEditing(true);
+        document.querySelector(".profile-edit-name")?.focus();
     });
 
     // Отмена редактирования
     cancelBtn.addEventListener("click", () => {
+        toggleTextEditing(false);
         editBtn.style.display = "block";
         editActions.style.display = "none";
         avatarOverlay.style.display = "none";

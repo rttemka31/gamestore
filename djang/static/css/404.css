@@ -144,8 +144,6 @@ body {
     cursor: pointer;
     transition: transform var(--transition);
     text-decoration: none;
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
     outline: 1px solid transparent;
 
     transition: transform 0.175s ease-out;
@@ -154,7 +152,7 @@ body {
 }
 
 .buy-button:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+    transform: scale(1.1);
 }
 
 @media (max-width: 900px) {

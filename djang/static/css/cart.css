@@ -230,16 +230,11 @@
 }
 
 /* Старая и новая цена в одну строку: так цена не наезжает на значки в углу */
-.cart-price-row {
-    display: flex;
-    align-items: baseline;
-    gap: var(--padding-sm);
-}
-
-.current-price {
-    color: var(--text-primary);
-    font-size: calc(18px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
+/* Строка цены — общий .game-bottom из style.css, только прижата вправо и без отступа сверху */
+.cart-price-line {
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    margin-top: 0;
 }
 
 .discount-row {
@@ -330,8 +325,6 @@
     font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     cursor: pointer;
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
     outline: 1px solid transparent;
 
     transition: transform 0.175s ease-out;
@@ -341,11 +334,11 @@
 }
 
 .checkout-button:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+    transform: scale(1.1);
 }
 
 .checkout-button:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+    transform: scale(0.9);
 }
 
 .payment-note {
@@ -409,8 +402,6 @@
     font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     cursor: pointer;
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
     outline: 1px solid transparent;
     
     transition: transform 0.175s ease-out;
@@ -420,11 +411,11 @@
 }
 
 .buy-button:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+    transform: scale(1.1);
 }
 
 .buy-button:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+    transform: scale(0.9);
 }
 
 .buy-button.in-cart {
@@ -682,8 +673,6 @@ a.game-card:hover {
     font-weight: var(--text-semibold);
     cursor: pointer;
 
-    will-change: transform;
-    transform: perspective(1px) translateZ(0) rotate(0.01deg);
     outline: 1px solid transparent;
 
     transition: transform 0.175s ease-out;
@@ -693,11 +682,11 @@ a.game-card:hover {
 }
 
 .btn-add-rec:hover {
-    transform: perspective(1px) scale(1.1) rotate(0.01deg);
+    transform: scale(1.1);
 }
 
 .btn-add-rec:active {
-    transform: perspective(1px) scale(0.9) rotate(0.01deg);
+    transform: scale(0.9);
 }
 
 ::-webkit-scrollbar {

@@ -263,6 +263,25 @@ class PagesTests(StoreTestCase):
             self.assertEqual(response.status_code, 200, month)
             self.assertEqual(len(response.context['page']), 1, month)
 
+    def test_review_shows_author_avatar_or_letter(self):
+        Profile.objects.filter(user=self.other).update(avatar='avatars/bob.png')
+        Review.objects.create(user=self.other, game=self.game, rating=4)
+        Review.objects.create(user=self.user, game=self.game, rating=5)
+        with self.assertNumQueries(7):  # аватарки берутся тем же запросом, что и отзывы
+            response = self.client.get(reverse('mfs:game_detail', args=[self.game.pk]))
+        self.assertContains(response, 'class="review-avatar"', count=2)
+        self.assertContains(response, 'src="/media/avatars/bob.png"')
+        self.assertContains(response, '<span>A</span>')
+
+    def test_owned_game_button_opens_it_in_library(self):
+        self.game.owners.add(self.user)
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('mfs:game_detail', args=[self.game.pk]))
+        self.assertContains(response, f'data-url="{reverse("mfs:library")}?active={self.game.pk}"')
+        # Ещё не купленная игра знает свой id — для перехода после бесплатного получения
+        response = self.client.get(reverse('mfs:game_detail', args=[self.game2.pk]))
+        self.assertContains(response, f'data-game-id="{self.game2.pk}"')
+
     def test_review_shows_author_status(self):
         admin = User.objects.create_superuser('root', password='Str0ng-pass-123')
         staff = User.objects.create_user('mod', password='Str0ng-pass-123', is_staff=True)
@@ -304,6 +323,24 @@ class BadgeAndMenuTests(StoreTestCase):
         self.assertContains(response, 'badge badge-discount')
         self.assertContains(response, 'badge badge-exclusive game-card-label')
         self.assertNotContains(response, 'not-on-steam-badge2')
+
+    def test_catalog_title_and_cart_price_style(self):
+        response = self.client.get(reverse('mfs:catalog'))
+        self.assertEqual(response.context['title'], 'Каталог')
+        self.assertContains(response, '<title>GameStore | Каталог</title>', html=False)
+
+        self.client.force_login(self.user)
+        self.ajax_add(self.game)
+        response = self.client.get(reverse('mfs:cart_detail'))
+        # Цена в корзине в том же виде, что в карточках: значок скидки, старая и новая цена
+        self.assertContains(response, 'class="game-bottom cart-price-line"')
+        self.assertContains(response, '<span class="badge badge-discount">-50%</span>')
+        self.assertContains(response, '<span class="price">50₴</span>')
+
+    def test_hint_has_title_strip(self):
+        Game.objects.filter(pk=self.game.pk).update(is_not_on_steam=True)
+        response = self.client.get(reverse('mfs:game_detail', args=[self.game.pk]))
+        self.assertContains(response, 'data-hint-title="Эксклюзив"')
 
     def test_header_has_mobile_menu_button(self):
         for url in (reverse('mfs:index'), reverse('mfs:login')):
