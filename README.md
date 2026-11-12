@@ -63,7 +63,7 @@ DJANGO_DEBUG=0
 DJANGO_HTTPS=1
 ```
 
-и запускай сервер так (без `--insecure` при выключенном `DEBUG` не загрузятся стили и скрипты):
+И запускай сервер так (без `--insecure` при выключенном `DEBUG` не загрузятся стили и скрипты):
 
 ```
 python manage.py runserver --insecure
