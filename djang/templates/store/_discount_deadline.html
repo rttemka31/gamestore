@@ -1,0 +1,11 @@
+{% comment %}Срок скидки под ценой — окошко как у подсказки «?»: сверху плашка-заголовок «Скидка до 30 ноября»,
+   под ней «ещё 2 дня 5 ч». Сколько осталось, пишет и обновляет store.js (.js-deadline){% endcomment %}
+{% if game.discount > 0 and game.discount_until %}
+    <div class="discount-deadline">
+        <div class="discount-deadline-title">Скидка до {{ game.discount_until|date:"j E" }}</div>
+        <div class="discount-deadline-body">
+            <svg class="discount-deadline-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span class="js-deadline" data-deadline="{{ game.discount_until|date:'c' }}"></span>
+        </div>
+    </div>
+{% endif %}

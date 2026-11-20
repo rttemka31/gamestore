@@ -5,6 +5,8 @@ from django.core.cache import cache
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
+from ..models import Gift, UserLibrary
+
 register = template.Library()
 
 BOLD_RE = re.compile(r'\*\*(.+?)\*\*')
@@ -24,12 +26,31 @@ def thumb(field, spec):
 
 
 @register.filter
+def absolute_url(url, request):
+    """Полный адрес с доменом — для превью ссылок (og:image): Discord и Telegram не понимают относительные."""
+    return request.build_absolute_uri(url) if request and url else url
+
+
+@register.filter
 def playtime(seconds):
     """Время в игре: до часа — минуты («45 мин»), дальше часы с десятыми («12,6 ч», «3 ч»)."""
     seconds = int(seconds or 0)
     if seconds < 3600:
         return f'{seconds // 60} мин'
     return f'{hours_display(seconds)} ч'
+
+
+@register.filter
+def playtime_words(seconds):
+    """Время в игре словами: «17 минут», «1 час», «12,5 часа», «5 часов»."""
+    seconds = int(seconds or 0)
+    if seconds < 3600:
+        minutes = seconds // 60
+        return f'{minutes} {ru_plural(minutes, "минута,минуты,минут")}'
+    hours = hours_display(seconds)
+    if ',' in hours:  # дробное число часов: «12,5 часа»
+        return f'{hours} часа'
+    return f'{hours} {ru_plural(int(hours), "час,часа,часов")}'
 
 
 def hours_display(seconds):
@@ -74,16 +95,27 @@ def news_plain(text):
     return ' '.join(re.sub(r'\*\*|^\s*[-*] ', '', str(text), flags=re.M).split())
 
 
+def is_developer(user):
+    """Автор хотя бы одной игры. Результат запоминается на объекте: в списках друзей
+    и отзывах роль одного человека может понадобиться несколько раз."""
+    if not hasattr(user, '_is_developer'):
+        user._is_developer = user.game_set.exists()
+    return user._is_developer
+
+
 @register.filter
 def user_status(user):
-    """Роль пользователя со своим значком: «Создатель», «Админ» или «Пользователь».
+    """Роль пользователя со своим значком: «Создатель», «Админ», «Разработчик» или «Пользователь».
 
+    «Разработчик» выдаётся сам — любому, кто указан автором хотя бы одной игры.
     Значки — символы из спрайта _role_icons.html, который подключён в base.html.
     """
     if user.is_superuser:
         key, label = 'creator', 'Создатель'
     elif user.is_staff:
         key, label = 'admin', 'Админ'
+    elif is_developer(user):
+        key, label = 'developer', 'Разработчик'
     else:
         key, label = 'user', 'Пользователь'
     return mark_safe(
@@ -114,3 +146,21 @@ def site_version():
     Подвал есть на каждой странице, поэтому версия кэшируется; при изменении новостей кэш сбрасывается."""
     from ..views.accounts import _site_version  # здесь, а не наверху: представления сами импортируют эти фильтры
     return cache.get_or_set(SITE_VERSION_CACHE_KEY, lambda: _site_version() or {}, 300)
+
+
+@register.simple_tag(takes_context=True)
+def new_gifts(context):
+    """Подарки, о которых получатель ещё не знает: окно «Вам подарили игру» показывается на любой странице."""
+    user = getattr(context.get('request'), 'user', None)
+    if not user or not user.is_authenticated:
+        return []
+    return list(Gift.objects.filter(receiver=user, seen=False).select_related('sender', 'game').order_by('created_at'))
+
+
+@register.simple_tag(takes_context=True)
+def library_new_count(context):
+    """Сколько игр куплено или подарено, но ещё не открыто в библиотеке: счётчик у «Библиотеки» в шапке."""
+    user = getattr(context.get('request'), 'user', None)
+    if not user or not user.is_authenticated:
+        return 0
+    return UserLibrary.objects.filter(user=user, is_new=True).count()

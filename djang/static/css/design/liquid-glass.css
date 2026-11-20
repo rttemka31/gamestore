@@ -1,0 +1,435 @@
+/* =========================================================
+   GAMESTORE — ДИЗАЙН «LIQUID GLASS» (демо)
+   Подключать ПОСЛЕ style.css и halloween.css. Работает только когда у <html>
+   есть атрибут data-design="glass" (его ставит base.html по настройке профиля),
+   поэтому обычный дизайн остаётся нетронутым.
+
+   Основа: стекло видно, только когда за ним есть свет. Поэтому у страницы появляется
+   неподвижный фон с тремя мягкими пятнами света от акцентного цвета (body::before), а цвета
+   поверхностей (--bg-card, --bg-secondary…) в этом дизайне полупрозрачные. Через токены
+   стеклянными становятся сразу все блоки сайта — карточки, поля, чипы, списки, — а не только
+   перечисленные ниже. Размытие панелям не нужно: фон под ними и так плавный, а прокрутка
+   остаётся быстрой. При прокрутке панели проходят над пятнами света и меняют оттенок.
+
+   Виды стекла:
+   1) прозрачное — маленькие кнопки и значки поверх картинок (сердечко, трейлер,
+      просмотрщик, «Эксклюзив»): размытие, насыщенность, блик и преломление краёв;
+   2) тёмное — плашки поверх картинок и тёмных карточек (название в библиотеке, таймер);
+   3) цветное — акцентные кнопки («Купить», «Играть», «Оформить»…);
+   4) нейтральное — второстепенные кнопки (шестерёнка, «Установить», тумблер темы…);
+   5) панели — карточки и блоки страниц. Размытие только у плавающих элементов
+      (шапка, меню, подсказки, уведомления): на обычных карточках его не видно,
+      а прокрутку оно бы замедлило.
+
+   Как сделаны детали:
+   - кромка — отдельный слой ::before с градиентом и маской: светлее у верхнего левого
+     и нижнего правого угла, темнее по бокам, как у стекла Apple. Маска рисует её
+     со сглаживанием, ровно 2px со всех сторон, поэтому «лесенки» нет, а при наведении она не сбрасывается.
+     Слой не перехватывает нажатия (pointer-events: none) и не мешает обводке фокуса;
+   - блик — мягкий градиент в фоне, без резких светлых линий;
+   - тень — только нейтральная и мягкая, без цветного свечения;
+   - анимации наведения остаются родными (увеличение, подъём карточки) — стекло
+     лишь сохраняет свой фон и в состоянии наведения, чтобы не пропадать рывком.
+   Преломление краёв — SVG-фильтр #lg-refract из _liquid_glass.html: его понимают
+   только Chrome, Edge и Opera, поэтому он включён атрибутом data-glass-refract
+   и только на компьютере. В остальных случаях стекло просто матовое.
+   Использует CSS-вложенность, как и halloween.css.
+========================================================= */
+
+html[data-design="glass"] {
+    /* ---------- Свет за стеклом ---------- */
+    --lg-base: #0c0d12;
+    --lg-pool-1: color-mix(in srgb, var(--accent) 46%, transparent);
+    --lg-pool-2: color-mix(in srgb, var(--accent) 26%, transparent);
+    --lg-pool-3: color-mix(in srgb, var(--accent) 22%, transparent);
+
+    /* ---------- Поверхности: те же токены, что в style.css, но полупрозрачные ---------- */
+    --bg-secondary: rgba(9, 10, 15, 0.42);    /* дымчатое стекло: поля ввода, чипы, утопленные блоки */
+    --bg-surface: rgba(40, 43, 58, 0.44);
+    --bg-card: rgba(58, 62, 84, 0.4);         /* матовое стекло: карточки и панели */
+    --bg-card-hover: rgba(84, 89, 118, 0.5);
+    --border-accent: rgba(255, 255, 255, 0.2); /* рамки полей — нейтральная кромка стекла; фокус остаётся акцентным */
+    --shadow-md: 0 14px 34px rgba(0, 0, 0, 0.28);
+    /* Формы мягче: у стекла крупные скругления (настройка «Скругление элементов» по-прежнему работает) */
+    --radius-verysm: calc(4px * var(--radius-scale));
+    --radius-sm: calc(8px * var(--radius-scale));
+    --radius-md: calc(16px * var(--radius-scale));
+    /* Плавающие окна поверх текста (меню, подсказки) плотнее панелей; solid — там, где просвечивать нельзя */
+    --lg-float: rgba(24, 26, 35, 0.7);
+    --lg-solid: #1c1e27;
+
+    --lg-tint: rgba(255, 255, 255, 0.07);
+    --lg-tint-hover: rgba(255, 255, 255, 0.14);
+    --lg-sheen: linear-gradient(150deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.07) 35%, rgba(255, 255, 255, 0) 62%, rgba(255, 255, 255, 0.06) 100%);
+    --lg-sheen-soft: linear-gradient(165deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.015) 40%, rgba(255, 255, 255, 0) 70%);
+    --lg-sheen-button: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.04) 50%, rgba(255, 255, 255, 0) 100%);
+    --lg-blur: blur(2px) saturate(170%);
+    --lg-drop: 0 6px 18px rgba(0, 0, 0, 0.3);
+    --lg-edge-soft: rgba(255, 255, 255, 0.07); /* одиночные линии: низ шапки, край списка игр */
+    /* Кромка: блик в верхнем левом углу, отражение в нижнем правом, бока темнее */
+    --lg-ring: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.50) 0%, rgba(255, 255, 255, 0.13) 20%, rgba(255, 255, 255, 0.04) 42%,
+        rgba(255, 255, 255, 0.04) 60%, rgba(255, 255, 255, 0.15) 82%, rgba(255, 255, 255, 0.36) 100%);
+    --lg-ring-soft: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.06) 22%, rgba(255, 255, 255, 0.02) 45%,
+        rgba(255, 255, 255, 0.02) 60%, rgba(255, 255, 255, 0.06) 82%, rgba(255, 255, 255, 0.15) 100%);
+
+    /* ---------- Фон страницы: неподвижный слой со светом ---------- */
+    /* Отдельный слой, а не background-attachment: fixed — тот на телефонах дёргается при прокрутке */
+    & body {
+        background: transparent;
+    }
+
+    & body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background:
+            radial-gradient(ellipse 75% 60% at 6% -6%, var(--lg-pool-1), transparent 72%),
+            radial-gradient(ellipse 60% 55% at 102% 22%, var(--lg-pool-2), transparent 72%),
+            radial-gradient(ellipse 70% 55% at 45% 106%, var(--lg-pool-3), transparent 72%),
+            var(--lg-base);
+    }
+
+    /* Дорожки полос прокрутки внутри стеклянных блоков (жанры каталога, лента скриншотов) —
+       без тёмной подложки, иначе на стекле она выглядит заплаткой */
+    & ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    /* Раскрытый список <select> рисует система: полупрозрачный фон там превратился бы в светлый */
+    & select option {
+        background: var(--lg-solid);
+    }
+
+    /* ---------- Кромка: слой ::before поверх элемента ---------- */
+    /* Кнопки и значки — яркая кромка; панели — мягкая; картинки — средняя */
+    & :where(.wishlist-btn, .play-badge, .lightbox-btn:not(.lightbox-close), .game-card-label,
+             .hero-title-container, .timer-box, .buy-button, .play-button, .checkout-button, .btn-add-rec,
+             .btn-primary, .friend-add-btn, .install-btn, .settings-btn:not(.fav-toggle), .stop-button,
+             .store-btn, .btn-muted, .btn-secondary, .season-toggle, .search-box)::before,
+    & :where(.featured, a.game-card, .news-card, .news-article, .news-neighbour, .cart-item, .cart-summary,
+             .rec-card, .profile-card, .settings-card, .device-item, .library-about, .description-box,
+             .fav-slot, .about-team a, .activity-item, .settings-nav, .profile-sidebar, .user-dropdown-menu,
+             .dropdown-menu, .library-panel-side .library-card)::before,
+    & :where(.thumb, .main-image-box, .library-screenshots a, .cart-cover, .activity-cover)::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        /* Ровно 2px: при дробной толщине у элемента на нецелом пикселе одна сторона
+           округлялась до 2px, а противоположная до 1px, и кромка выглядела ломаной */
+        padding: 2px;
+        border-radius: inherit;
+        background: var(--lg-ring-current, var(--lg-ring));
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+        pointer-events: none;
+    }
+
+    & :where(.featured, a.game-card, .news-card, .news-article, .news-neighbour, .cart-item, .cart-summary,
+             .rec-card, .profile-card, .settings-card, .device-item, .library-about, .description-box,
+             .fav-slot, .about-team a, .activity-item, .settings-nav, .profile-sidebar, .user-dropdown-menu,
+             .dropdown-menu, .library-panel-side .library-card) {
+        --lg-ring-current: var(--lg-ring-soft);
+    }
+
+    & .main-image-box::after {
+        border-color: transparent;
+    }
+
+    & :where(.thumb, .main-image-box, .library-screenshots a, .cart-cover, .activity-cover) {
+        --lg-ring-current: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.36) 0%, rgba(255, 255, 255, 0.09) 22%, rgba(255, 255, 255, 0.03) 45%,
+            rgba(255, 255, 255, 0.03) 60%, rgba(255, 255, 255, 0.09) 82%, rgba(255, 255, 255, 0.26) 100%);
+    }
+
+    /* У этих элементов рамка 2px прозрачная — кромка ложится прямо на неё, а не внутрь.
+       Смещение задано самому слою (а не переменной у элемента), чтобы оно не доставалось
+       кнопкам внутри таких карточек */
+    & :where(.wishlist-btn, .game-card-label, .timer-box, .season-toggle,
+             .buy-button, .play-button, .checkout-button, .btn-add-rec, .btn-primary, .friend-add-btn,
+             .install-btn, .stop-button, .btn-muted, .btn-secondary,
+             .news-article, .news-neighbour, .cart-summary, .settings-card, .device-item, .library-about,
+             .description-box, .fav-slot, .about-team a, .settings-nav, .profile-sidebar, .user-dropdown-menu)::before {
+        inset: -2px;
+    }
+
+    /* Кромке нужна точка отсчёта: у элементов без позиционирования ставим relative */
+    & :where(.timer-box, .buy-button, .play-button, .checkout-button, .btn-add-rec, .btn-primary,
+             .friend-add-btn, .install-btn, .settings-btn, .stop-button, .store-btn, .btn-muted, .btn-secondary,
+             .season-toggle, .featured, .news-article, .news-neighbour, .profile-card, .settings-card,
+             .device-item, .library-about, .description-box, .fav-slot, .about-team a,
+             .library-panel-side .library-card, .library-screenshots a, .cart-cover, .activity-cover) {
+        position: relative;
+    }
+
+    /* Наведение на карточку больше не применяет filter ко всей карточке: фильтр на родителе
+       меняет то, что размывает стекло внутри (сердечко), и стекло вспыхивало.
+       Картинка осветляется сама по себе, как и раньше */
+    & a.game-card:hover,
+    & .featured:hover {
+        filter: none;
+    }
+
+    & .featured:hover > img {
+        filter: brightness(1.1);
+    }
+
+    /* ---------- 1. Прозрачное стекло: кнопки и значки поверх картинок ---------- */
+    & .wishlist-btn,
+    & .play-badge,
+    & .lightbox-btn:not(.lightbox-close),
+    & .game-card-label {
+        background: var(--lg-sheen), var(--lg-tint);
+        border-color: transparent;
+        -webkit-backdrop-filter: var(--lg-blur);
+        backdrop-filter: var(--lg-blur);
+        box-shadow: var(--lg-drop);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Круглые кнопки — как капли */
+    & .wishlist-btn,
+    & .play-badge,
+    & .lightbox-btn:not(.lightbox-close) {
+        border-radius: 50%;
+    }
+
+    /* «Эксклюзив» — стекло с оттенком акцента */
+    & .game-card-label {
+        background: var(--lg-sheen), color-mix(in srgb, var(--accent) 45%, transparent);
+        color: #fff;
+    }
+
+    /* При наведении стекло только светлеет — увеличение остаётся родным */
+    & .wishlist-btn:hover,
+    & .lightbox-btn:not(.lightbox-close):hover {
+        background: var(--lg-sheen), var(--lg-tint-hover);
+    }
+
+    /* ---------- 2. Тёмное стекло: плашки поверх картинок и тёмных карточек ---------- */
+    & .hero-title-container,
+    & .timer-box {
+        background: var(--lg-sheen-soft), rgba(8, 12, 18, 0.45);
+        border-color: transparent;
+        -webkit-backdrop-filter: blur(12px) saturate(160%);
+        backdrop-filter: blur(12px) saturate(160%);
+        box-shadow: var(--lg-drop);
+    }
+
+    /* ---------- 3. Цветное стекло: акцентные кнопки (и в наведении тоже) ---------- */
+    & :is(.buy-button:not(.in-cart, .btn-muted, .btn-success, .btn-danger-solid), .play-button,
+          .checkout-button, .btn-add-rec, .btn-primary, .friend-add-btn),
+    & :is(.buy-button:not(.in-cart, .btn-muted, .btn-success, .btn-danger-solid), .play-button,
+          .checkout-button, .btn-add-rec, .btn-primary, .friend-add-btn):hover {
+        background: var(--lg-sheen-button), color-mix(in srgb, var(--accent) 85%, transparent);
+        border-color: transparent;
+    }
+
+    /* ---------- 4. Нейтральное стекло: второстепенные кнопки ---------- */
+    & :is(.install-btn, .settings-btn:not(.fav-toggle), .store-btn, .btn-muted, .btn-secondary, .season-toggle,
+          .stop-button, .buy-button.in-cart, .btn-success, .btn-danger-solid) {
+        background-image: var(--lg-sheen-button);
+    }
+
+    /* «В желаемое» — второстепенная кнопка, хотя у неё и класс .buy-button: без этого правила
+       цветное стекло акцентных кнопок красило её в акцент, как «Купить» рядом */
+    & .buy-button.btn-muted,
+    & .buy-button.btn-muted:hover {
+        background: var(--lg-sheen-button), var(--bg-card-hover);
+    }
+
+    /* Тумблер темы в шапке: на стеклянной шапке он иначе теряется */
+    & .season-toggle {
+        background-color: rgba(255, 255, 255, 0.06);
+    }
+
+    /* ---------- 5. Панели: карточки и блоки страниц ---------- */
+    /* Блик держится и при наведении, когда основные стили меняют цвет фона */
+    & :is(.featured, a.game-card, .news-card, .news-article, .news-neighbour, .empty-news,
+          .cart-item, .cart-summary, .rec-card, .profile-card, .profile-empty, .settings-card,
+          .device-item, .library-about, .description-box, .auth-box, .catalog-sidebar,
+          .fav-card, .fav-slot, .about-team a, .activity-item, .settings-nav, .profile-sidebar, .empty-block) {
+        background-image: var(--lg-sheen-soft);
+        border-color: transparent;
+    }
+
+    /* Карточки справа в библиотеке становятся стеклянными блоками */
+    & .library-panel-side .library-card {
+        padding: var(--padding-md);
+        background: var(--lg-sheen-soft), var(--bg-card);
+        border-radius: var(--radius-md);
+    }
+
+    /* Список игр в библиотеке — стеклянная боковая панель */
+    & .steam-sidebar {
+        background: var(--lg-sheen-soft), var(--bg-secondary);
+        border-right-color: var(--lg-edge-soft);
+    }
+
+    /* Страница игры в библиотеке лежит на том же светящемся фоне, что и остальные страницы.
+       Обложка растворяется в нём маской: прежнее затемнение к цвету страницы оставило бы полосу */
+    & .steam-main,
+    & .action-bar,
+    & .hero-header {
+        background-color: transparent;
+    }
+
+    & .hero-overlay {
+        display: none;
+    }
+
+    & .hero-image {
+        -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
+        mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
+    }
+
+    /* Плавающие элементы — с размытием: под ними видно движущуюся страницу */
+    & :where(.user-dropdown-menu, .dropdown-menu, .search-results, .hint-bubble, .message-toast,
+             .toast-notification, .launch-card) {
+        background: var(--lg-sheen-soft), var(--lg-float);
+        border-color: transparent;
+        -webkit-backdrop-filter: blur(18px) saturate(170%);
+        backdrop-filter: blur(18px) saturate(170%);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    /* Меню пользователя и мобильное меню лежат внутри стеклянной шапки, а размытие внутри
+       размытия браузеры не рисуют: полупрозрачное меню просвечивало бы текстом страницы */
+    & .navbar :where(.user-dropdown-menu) {
+        background: var(--lg-sheen-soft), var(--lg-solid);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    /* ---------- Шапка — стеклянная панель над прокручиваемой страницей ---------- */
+    /* Размытие 28px и плотный фон: при слабом размытии мелкие детали текста и картинок под шапкой
+       «переливались» при медленной прокрутке. Насыщенность умеренная — она тоже усиливала мерцание */
+    & .navbar {
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
+            rgba(11, 18, 26, 0.68);
+        -webkit-backdrop-filter: blur(28px) saturate(130%);
+        backdrop-filter: blur(28px) saturate(130%);
+        border-bottom: 1px solid var(--lg-edge-soft);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Подвал — та же стеклянная панель, что шапка (под ним ничего не движется, размытие не нужно) */
+    & .site-footer {
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
+            rgba(11, 18, 26, 0.68);
+        border-top: 1px solid var(--lg-edge-soft);
+    }
+
+    /* ---------- Поиск: стеклянное поле, лупа — прозрачная кнопка внутри него ---------- */
+    & .search-box {
+        border-width: 0;
+        background: var(--lg-sheen-soft), var(--bg-secondary);
+        box-shadow: var(--lg-drop);
+        --lg-ring-current: var(--lg-ring);
+    }
+
+    & .search-box:focus-within {
+        --lg-ring-current: linear-gradient(var(--accent), var(--accent));
+        box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 25%, transparent);
+    }
+
+    & .search-box button[type="submit"] {
+        background: transparent;
+        border-left: 1px solid var(--lg-edge-soft);
+    }
+
+    & .search-box button[type="submit"]:hover {
+        background: rgba(255, 255, 255, 0.08);
+        filter: none;
+    }
+}
+
+/* Градиенты стекла растягиваются на весь элемент вместе с прозрачной рамкой: иначе под рамкой
+   градиент начинался заново и у элементов с рамкой 2px появлялась вторая светлая полоса */
+html[data-design="glass"] :is(.wishlist-btn, .play-badge, .lightbox-btn, .game-card-label, .hero-title-container,
+        .timer-box, .buy-button, .play-button, .checkout-button, .btn-add-rec, .btn-primary, .friend-add-btn,
+        .install-btn, .settings-btn, .stop-button, .store-btn, .btn-muted, .btn-secondary, .season-toggle,
+        .featured, a.game-card, .news-card, .news-article, .news-neighbour, .empty-news, .cart-item, .cart-summary,
+        .rec-card, .profile-card, .profile-empty, .settings-card, .device-item, .library-about, .description-box,
+        .auth-box, .catalog-sidebar, .fav-card, .fav-slot, .about-team a, .activity-item, .settings-nav,
+        .profile-sidebar, .user-dropdown-menu, .dropdown-menu, .search-results, .hint-bubble, .message-toast,
+        .toast-notification, .launch-card, .library-card, .navbar, .site-footer, .search-box) {
+    background-origin: border-box;
+}
+
+/* Преломление краёв — только там, где браузер его умеет (Chrome, Edge, Opera),
+   и только на компьютере: на телефоне фильтр заметно нагружает прокрутку */
+@media (hover: hover) and (min-width: 769px) {
+    html[data-design="glass"][data-glass-refract] {
+        & .wishlist-btn,
+        & .play-badge,
+        & .lightbox-btn:not(.lightbox-close),
+        & .game-card-label {
+            backdrop-filter: url(#lg-refract) var(--lg-blur);
+        }
+
+        & .hero-title-container {
+            backdrop-filter: url(#lg-refract) blur(12px) saturate(160%);
+        }
+    }
+}
+
+/* На узком экране «Ваш заказ» перестаёт быть sticky — кромке снова нужна точка отсчёта,
+   иначе она растягивается на всю страницу */
+@media (max-width: 900px) {
+    html[data-design="glass"] .cart-summary {
+        position: relative;
+        top: auto; /* иначе top: 100px от «липкого» режима сдвигал блок на 100px вниз */
+    }
+}
+
+/* На телефоне меню настроек и профиля — горизонтальная лента с прокруткой:
+   кромка внутри прокручиваемого блока ехала бы вместе с пунктами меню */
+@media (max-width: 720px) {
+    html[data-design="glass"] :is(.settings-nav, .profile-sidebar)::before {
+        content: none;
+    }
+}
+
+/* «Отключить размытие»: без размытия прозрачное стекло нечитаемо — делаем его плотнее */
+html[data-design="glass"] body.no-blur {
+    --lg-tint: rgba(20, 26, 34, 0.75);
+    --lg-tint-hover: rgba(36, 44, 56, 0.8);
+
+    & .navbar {
+        background: var(--bg-navbar);
+    }
+
+    & :where(.user-dropdown-menu, .dropdown-menu, .search-results, .hint-bubble, .message-toast,
+             .toast-notification, .launch-card) {
+        background: var(--lg-solid);
+    }
+}
+
+/* Второе и третье пятно света — соседние оттенки акцента (для фиолетового это розовый и голубой).
+   Браузеры без относительного синтаксиса цвета оставляют все три пятна акцентными */
+@supports (color: oklch(from red l c h)) {
+    html[data-design="glass"] {
+        --lg-pool-2: oklch(from var(--accent) l c calc(h + 55) / 0.34);
+        --lg-pool-3: oklch(from var(--accent) calc(l + 0.05) c calc(h - 75) / 0.3);
+    }
+}
+
+/* Хэллоуин + стекло: те же полупрозрачные поверхности, но в тёплой палитре сезонной темы */
+html[data-design="glass"][data-season="halloween"] {
+    --lg-base: #0c0805;
+    --bg-secondary: rgba(12, 7, 3, 0.45);
+    --bg-surface: rgba(40, 26, 15, 0.5);
+    --bg-card: rgba(74, 46, 26, 0.55);
+    --bg-card-hover: rgba(96, 60, 32, 0.62);
+    --border-accent: rgba(255, 190, 130, 0.26);
+    --lg-float: rgba(30, 19, 11, 0.74);
+    --lg-solid: #1d130b;
+}

@@ -1,8 +1,13 @@
-"""Защита аккаунтов: хеширование паролей, блокировка подбора, ограничения регистрации."""
+"""Защита аккаунтов: хеширование паролей, блокировка подбора, ограничения регистрации,
+страницы allauth, почта и разрешённые адреса сайта."""
+from allauth.account.models import EmailAddress
+from allauth.socialaccount.adapter import get_adapter as get_social_adapter
+from allauth.socialaccount.models import SocialApp
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
+from django.core import mail
 from django.test import Client, RequestFactory, override_settings
-from django.urls import reverse
+from django.urls import resolve, reverse
 
 from ..security import MAX_FAILURES_PER_ACCOUNT, MAX_FAILURES_PER_IP, MAX_REGISTRATIONS_PER_IP, client_ip
 from .base import StoreTestCase
@@ -133,3 +138,90 @@ class SettingsProtectionTests(StoreTestCase):
         self.assertTrue(User.objects.filter(pk=self.user.pk).exists())
         self.client.post(reverse('mfs:settings'), {'form': 'delete_account', 'confirmation': 'alice'})
         self.assertFalse(User.objects.filter(pk=self.user.pk).exists())
+
+
+class AuthorDeletionTests(StoreTestCase):
+    def test_deleting_author_account_keeps_their_games(self):
+        # bob — автор обеих игр, alice одну из них купила
+        self.user.purchased_games.add(self.game)
+        self.client.force_login(self.other)
+        self.client.post(reverse('mfs:settings'), {'form': 'delete_account', 'confirmation': PASSWORD})
+        self.assertFalse(User.objects.filter(pk=self.other.pk).exists())
+
+        self.game.refresh_from_db()
+        self.assertIsNone(self.game.author)
+        self.assertTrue(self.user.purchased_games.filter(pk=self.game.pk).exists())
+        self.assertContains(self.client.get(reverse('mfs:game_detail', args=[self.game.pk])), 'Не указан')
+
+
+class AllauthPagesTests(StoreTestCase):
+    """От allauth на сайте работает только вход через соцсети; его собственные страницы закрыты."""
+
+    def test_builtin_pages_lead_to_site_pages(self):
+        self.assertRedirects(self.client.get('/accounts/signup/'), reverse('mfs:register'))
+        for page in ('', 'login/', 'password/reset/', 'email/'):
+            self.assertRedirects(self.client.get(f'/accounts/{page}'), reverse('mfs:login'))
+        self.client.force_login(self.user)
+        self.assertRedirects(self.client.get('/accounts/password/change/'), reverse('mfs:settings'))
+
+    def test_signup_and_password_reset_cannot_be_posted(self):
+        users = User.objects.count()
+        self.client.post('/accounts/signup/', {
+            'username': 'x' * 40, 'email': 'a@b.co', 'password1': PASSWORD, 'password2': PASSWORD,
+        })
+        self.assertEqual(User.objects.count(), users)
+        self.assertRedirects(self.client.post('/accounts/password/reset/', {'email': 'a@b.co'}), reverse('mfs:login'))
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_social_login_addresses_still_belong_to_allauth(self):
+        for path, name in (
+            ('/accounts/google/login/', 'google_login'),
+            ('/accounts/discord/login/callback/', 'discord_callback'),
+            ('/accounts/3rdparty/signup/', 'socialaccount_signup'),
+        ):
+            self.assertEqual(resolve(path).url_name, name)
+
+
+class EmailOwnershipTests(StoreTestCase):
+    EMAIL = 'victim@gmail.com'
+
+    def google_login(self):
+        """Вход через Google с адресом EMAIL — таким, каким его видит allauth после ответа Google."""
+        SocialApp.objects.create(provider='google', name='Google', client_id='id', secret='secret')
+        request = RequestFactory().get('/accounts/google/login/callback/')
+        provider = get_social_adapter().get_provider(request, 'google')
+        return provider.sociallogin_from_response(request, {'sub': '1', 'email': self.EMAIL, 'email_verified': True})
+
+    def test_email_typed_in_settings_does_not_capture_social_login(self):
+        # Чужой адрес, вписанный в свой профиль, не должен приводить его владельца в этот аккаунт
+        self.user.email = self.EMAIL
+        self.user.save()
+        self.assertIsNone(get_social_adapter().authenticate_by_email(self.google_login()))
+
+    def test_verified_email_still_links_social_login(self):
+        EmailAddress.objects.create(user=self.other, email=self.EMAIL, verified=True, primary=True)
+        user, email = get_social_adapter().authenticate_by_email(self.google_login())
+        self.assertEqual((user, email), (self.other, self.EMAIL))
+
+    def test_email_of_another_account_is_rejected(self):
+        self.other.email = self.EMAIL
+        self.other.save()
+        EmailAddress.objects.create(user=self.other, email='social@gmail.com', verified=True, primary=True)
+
+        self.client.force_login(self.user)
+        for email in (self.EMAIL, 'VICTIM@gmail.com', 'social@gmail.com'):
+            response = self.client.post(reverse('mfs:settings'), {'form': 'profile', 'username': 'alice', 'email': email})
+            self.assertEqual(response.status_code, 400)
+            self.assertIn('уже используется', response.json()['message'])
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, '')
+
+        # Свою почту владелец сохраняет как раньше
+        self.client.force_login(self.other)
+        response = self.client.post(reverse('mfs:settings'), {'form': 'profile', 'username': 'bob', 'email': self.EMAIL})
+        self.assertEqual(response.status_code, 200)
+
+
+class AllowedHostsTests(StoreTestCase):
+    def test_unknown_host_is_rejected(self):
+        self.assertEqual(self.client.get(reverse('mfs:index'), headers={'host': 'evil.example'}).status_code, 400)

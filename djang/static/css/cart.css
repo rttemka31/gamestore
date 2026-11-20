@@ -17,10 +17,13 @@
    CONTAINER
 ========================= */
 
+/* Та же ширина, что у .container на остальных страницах. Ширина задана явно: body — колонка
+   flex, и без неё блок с margin: auto сжимался по содержимому (страница была уже остальных,
+   а на телефоне длинный жанр растягивал её шире экрана) */
 .cart-container {
-    max-width: 1200px;
+    width: min(1200px, 90%);
     margin: 0 auto;
-    padding: 20px 0px;
+    padding: 20px 0 100px; /* как у .container */
 }
 
 /* =========================
@@ -31,7 +34,7 @@
     display: flex;
     align-items: baseline;
     gap: 10px;
-    margin-bottom: 30px;
+    margin-bottom: var(--title-gap);
 }
 
 .cart-title h1 {
@@ -65,15 +68,14 @@
 .cart-items {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    gap: var(--grid-gap); /* как между карточками в профиле */
 }
 
 .cart-item {
     position: relative;
     display: flex;
     align-items: center;
-    min-height: 130px;
-    max-height: 130px;
+    min-height: 130px; /* без max-height: перенесённые жанры увеличивают карточку, а не наезжают на соседнюю */
     padding: var(--padding-sm2);
     background: var(--bg-card);
     
@@ -113,8 +115,8 @@
 ========================= */
 
 .cart-cover {
-    width: 200px;
-    height: 100px;
+    width: min(200px, 30%); /* на узкой колонке обложка уже — названию и жанрам остаётся место */
+    aspect-ratio: 2 / 1;
     flex-shrink: 0;
     overflow: hidden;
     background: var(--bg-card);
@@ -157,10 +159,33 @@
     font-weight: var(--text-semibold);
 }
 
+/* Жанры плашками; слой выше ссылки на всю карточку, чтобы плашки нажимались */
 .cart-genres {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 5px;
     color: var(--text-secondary);
     font-size: calc(14px * var(--font-scale, 1));
-    margin-bottom: 5px;
+}
+
+/* Жанр шире всей карточки рекомендации переносится внутри плашки, а не обрезается */
+.rec-card-genre .chip {
+    white-space: normal;
+    overflow-wrap: break-word;
+    line-height: 1.2;
+}
+
+.cart-genres .chip {
+    padding: 6px 7px;
+    font-size: calc(14px * var(--font-scale, 1));
+    /* длинный жанр («Для нескольких игроков») переносится внутри плашки, а не обрезается и не вылезает из карточки */
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: break-word;
+    line-height: 1.2;
 }
 
 .title-row {
@@ -260,7 +285,7 @@
 .cart-summary h2 {
     margin:
         0 0 30px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     letter-spacing: 0.3px;
@@ -314,31 +339,8 @@
 ========================= */
 
 .checkout-button {
-    text-decoration: none;
     width: 100%;
-    margin-top: 25px;
-    padding: 11px 27px;
-    border: none;
-    border-radius: var(--radius-sm);
-    background-color:  var(--accent);
-    color: var(--text-primary);
-    font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    cursor: pointer;
-    outline: 1px solid transparent;
-
-    transition: transform 0.175s ease-out;
-
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-.checkout-button:hover {
-    transform: scale(1.1);
-}
-
-.checkout-button:active {
-    transform: scale(0.9);
+    margin-top: var(--space-5);
 }
 
 .payment-note {
@@ -370,7 +372,7 @@
 }
 
 .empty-icon {
-    font-size: 48px;
+    font-size: var(--icon-xl);
     margin-bottom: 15px;
     opacity: 0.7;
 }
@@ -393,40 +395,6 @@
     text-decoration: none;
 }
 
-.buy-button {
-    border: none;
-    background:  var(--accent);
-    color: var(--text-primary);
-    padding: 11px 27px;
-    border-radius: var(--radius-sm);
-    font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    cursor: pointer;
-    outline: 1px solid transparent;
-    
-    transition: transform 0.175s ease-out;
-
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-.buy-button:hover {
-    transform: scale(1.1);
-}
-
-.buy-button:active {
-    transform: scale(0.9);
-}
-
-.buy-button.in-cart {
-    background: var(--success) !important;
-    color: var(--text-primary) !important;
-}
-
-.buy-button.in-cart:hover {
-    background: color-mix(in srgb, var(--success) 80%, black) !important;
-}
-
 /* =========================
    ADAPTIVE
 ========================= */
@@ -447,7 +415,7 @@
 
     .cart-container {
         width: 92%;
-        padding-top: 30px;
+        padding-top: 15px; /* как у .container на телефоне */
     }
 
     .cart-title h1 {
@@ -460,13 +428,13 @@
         flex-wrap: wrap;
     }
 
+    /* Обложка уже на узких телефонах — колонке с названием и жанрами остаётся больше места */
     .cart-cover {
-        width: 150px;
-        height: 75px;
+        width: min(150px, 36%);
     }
 
     .cart-game-info {
-        width: calc(100% - 150px);
+        width: auto;
         padding: 0 0 0 12px;
     }
 
@@ -496,7 +464,7 @@
 }
 
 .recommendations-section {
-    margin-top: 50px;
+    margin-top: var(--section-gap);
     width: 100%;
 }
 
@@ -504,11 +472,11 @@
     font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     color: var(--text-primary);
-    margin-bottom: 25px;
+    margin-bottom: var(--title-gap);
 }
 
 .recommendations-section {
-    margin-top: 30px;
+    margin-top: var(--section-gap);
     width: 100%;
     clear: both;
 }
@@ -517,7 +485,7 @@
     font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     color: var(--text-primary);
-    margin-bottom: 20px;
+    margin-bottom: var(--title-gap);
 }
 
 .recommendations-grid {
@@ -528,7 +496,7 @@
 
 .rec-card-img {
     width: 100%;
-    height: 150px;
+    aspect-ratio: 2 / 1; /* как обложки в каталоге */
     object-fit: cover;
     display: block;
 }
@@ -569,8 +537,6 @@ a.game-card:hover {
     background: var(--bg-card);
     border: none; 
     border-radius: var(--radius-md);
-    max-height: 300px;
-    min-height: 300px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -606,8 +572,14 @@ a.game-card:hover {
     opacity: 1;
 }
 
+/* Название — обычный заголовок карточки, а не подчёркнутая ссылка */
+.rec-card .title-link {
+    color: inherit;
+    text-decoration: none;
+}
+
 .rec-card-content {
-    padding: 8px 15px 15px;
+    padding: var(--space-4);
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -615,8 +587,8 @@ a.game-card:hover {
 }
 
 .rec-card-title {
-    margin-top: 10px;
-    font-size: calc(16px * var(--font-scale, 1));
+    margin-top: 0;
+    font-size: calc(18px * var(--font-scale, 1)); /* как в карточках каталога */
     font-weight: var(--text-semibold);
     color: var(--text-primary);
     margin-bottom: 10px;
@@ -630,6 +602,7 @@ a.game-card:hover {
     position: relative;
     z-index: 3;
     display: flex;
+    flex-wrap: wrap; /* жанры, которые не влезли в строку, переходят на следующую, а не обрезаются */
     gap: 5px;
     overflow: hidden;
     margin-bottom: var(--padding-sm2);
@@ -644,8 +617,11 @@ a.game-card:hover {
 
 .rec-card-footer {
     display: flex;
+    /* В узкой карточке (телефон, планшет) значок скидки, две цены и кнопка в одну строку
+       не помещаются: кнопка переносится ниже, а не обрезается краем карточки */
+    flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-2) 10px;
     margin-top: auto;
     min-height: 30px;
 }
@@ -656,37 +632,6 @@ a.game-card:hover {
     font-weight: var(--text-bold);
     line-height: 1;
     color: var(--text-primary);
-}
-
-.btn-add-rec {
-    text-decoration: none;
-    transition: background 0.2s;
-}
-
-.btn-add-rec {
-    border: none;
-    background: var(--accent);
-    color: var(--text-primary);
-    padding: 9px 14px;
-    border-radius: var(--radius-sm);
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    cursor: pointer;
-
-    outline: 1px solid transparent;
-
-    transition: transform 0.175s ease-out;
-
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-.btn-add-rec:hover {
-    transform: scale(1.1);
-}
-
-.btn-add-rec:active {
-    transform: scale(0.9);
 }
 
 ::-webkit-scrollbar {

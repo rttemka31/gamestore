@@ -3,10 +3,12 @@
 Счётчики живут в кэше Django: каждая неудачная попытка увеличивает счётчик, а через
 LOCK_SECONDS после первой попытки он сбрасывается сам.
 """
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
+from django.urls import reverse
 
 LOCK_SECONDS = 15 * 60
 MAX_FAILURES_PER_ACCOUNT = 5   # на одно имя пользователя с одного адреса
@@ -63,12 +65,48 @@ def record_password_check_failure(user):
     _bump(f'password-check:{user.pk}', LOCK_SECONDS)
 
 
+MAX_PASSWORD_RESETS_PER_IP = 5
+
+
+def password_reset_limited(request):
+    """Письма «Сброс пароля» с одного адреса — не больше пяти в час, чтобы сайтом не засыпали чужую почту."""
+    return cache.get(f'password-reset:{client_ip(request)}', 0) >= MAX_PASSWORD_RESETS_PER_IP
+
+
+def record_password_reset(request):
+    _bump(f'password-reset:{client_ip(request)}', REGISTRATION_WINDOW)
+
+
 def registration_limited(request):
     return cache.get(f'register:{client_ip(request)}', 0) >= MAX_REGISTRATIONS_PER_IP
 
 
 def record_registration(request):
     _bump(f'register:{client_ip(request)}', REGISTRATION_WINDOW)
+
+
+class SocialAccountAdapter(DefaultSocialAccountAdapter):
+    """Вход через соцсеть привязывается к существующему аккаунту только по подтверждённой почте.
+
+    Почту в настройках профиля можно вписать любую, её никто не проверяет. Без этой проверки
+    достаточно указать у себя чужой адрес — и его владелец при входе через Google попадёт
+    в ваш аккаунт. Подтверждённые адреса появляются только при входе через соцсеть.
+    """
+
+    def get_connect_redirect_url(self, request, socialaccount):
+        # После привязки соцсети в настройках — обратно в настройки, а не на страницу allauth
+        return reverse('mfs:settings') + '#social'
+
+    def authenticate_by_email(self, sociallogin):
+        from allauth.account.models import EmailAddress  # модели allauth — после загрузки приложений
+
+        found = super().authenticate_by_email(sociallogin)
+        if found is None:
+            return None
+        user, email = found
+        if not EmailAddress.objects.filter(user=user, email__iexact=email, verified=True).exists():
+            return None
+        return found
 
 
 class RateLimitedModelBackend(ModelBackend):

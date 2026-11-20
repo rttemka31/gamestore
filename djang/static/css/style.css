@@ -12,12 +12,17 @@
 :root {
     --bg-navbar: rgba(11, 18, 26, 0.96);  /* шапка и подвал */
     --role-admin: #4ea8ff;               /* значок роли «Админ» */
+    --role-developer: #3fd08f;           /* значок роли «Разработчик» */
     --bg-primary: #111216;
     --bg-secondary: #17181f;
     --bg-surface: #20222b;
     --bg-card: #252833;
     --bg-card-hover: #313442;
 
+    --font-body: Inter, Helvetica, sans-serif;
+    /* Unbounded — широкий шрифт с просторными промежутками: межбуквенный интервал ему не нужен.
+       Исключения — логотип и надписи заглавными (таймер): у них 0.04em, в em, а не в px,
+       чтобы интервал рос вместе с размером шрифта */
     --font-display: "Unbounded", Inter, sans-serif;
     --text-primary: #ffffff;
     --text-secondary: #bcc9d6;
@@ -56,6 +61,12 @@
     --radius-pill: 999px; /* таблетки и переключатели: всегда полностью скруглены */
 
     /* Шкала отступов: новые отступы берите из неё */
+    /* Размеры значков: в тексте / в кнопках и меню / поверх картинок / в пустых блоках */
+    --icon-inline: 20px;
+    --icon-md: 22.5px;
+    --icon-lg: 32px;
+    --icon-xl: 50px;
+
     --space-1: 4px;
     --space-2: 8px;
     --space-3: 12px;
@@ -63,15 +74,39 @@
     --space-5: 24px;
     --space-6: 32px;
 
-    --padding-sm: var(--space-2);
-    --padding-sm2: 15px;
+    /* Прежние имена отступов — теперь на той же сетке 4px, что и --space-* */
+    --padding-sm: var(--space-2);   /* 8px */
+    --padding-sm2: var(--space-4);  /* 16px */
     --padding-md: 20px;
-    --padding-big: 30px;
+    --padding-big: var(--space-6);  /* 32px */
 
+    /* Ритм страниц: у однотипных блоков одни и те же расстояния на всех страницах */
+    --grid-gap: var(--space-4);     /* между карточками в сетке и элементами списка */
+    --title-gap: 20px;              /* от заголовка страницы или раздела до содержимого */
+    --section-gap: 56px;            /* между разделами страницы */
+
+    /* Кнопки: два размера и общее увеличение при наведении */
+    --btn-h: 42px;
+    --btn-h-sm: 36px;
+    --btn-hover-scale: 1.05;
+
+    /* Толщина текста. У Inter подключены начертания 400, 600 и 800: промежуточные браузер
+       подменяет соседними (500 рисовалось как 400, 700 — как 800), поэтому для Inter берутся
+       только --text-regular, --text-semibold и --text-bold. --text-normal (500) — только для
+       акцентного шрифта Unbounded (меню шапки, значки, заголовки-названия): у него есть все толщины */
+    --text-regular: 400;
     --text-normal: 500;
     --text-semibold: 600;
-    --text-bold: 700;
+    --text-bold: 800;
     --transition: 0.2s ease;
+}
+
+/* На телефонах и планшетах ритм плотнее — меняются только сами переменные */
+@media (max-width: 768px) {
+    :root {
+        --title-gap: 16px;
+        --section-gap: 40px;
+    }
 }
 
 html[data-font="0"]   { --font-scale: 0.9; }
@@ -79,7 +114,7 @@ html[data-font="2"]   { --font-scale: 1.1; }
 html[data-radius="0"] { --radius-scale: 0.5; }
 html[data-radius="2"] { --radius-scale: 1.5; }
 
-& ::selection {
+::selection {
     background: var(--accent);
     color: var(--text-primary);
 }
@@ -89,6 +124,10 @@ html[data-radius="2"] { --radius-scale: 1.5; }
 }
 
 html {
+    /* Тёмный фон и у самого html: при быстрой прокрутке на телефоне (отскок, скрытие адресной
+       строки) под страницей виден он, а не белый. color-scheme — тёмные полосы прокрутки и поля */
+    background-color: var(--bg-primary);
+    color-scheme: dark;
     scroll-behavior: smooth;
     /* Полоса прокрутки (тёмная) есть всегда: страница не прыгает вбок, а пустой
        «желоб» от scrollbar-gutter не светится белой полосой */
@@ -109,7 +148,14 @@ body {
     );
     background-attachment: fixed;
     color: var(--text-primary);
-    font-family: Inter, Helvetica, sans-serif;
+    font-family: var(--font-body);
+    font-weight: var(--text-regular);
+}
+
+/* <strong> и <b> — той же толщины, что цены и другие ключевые числа */
+strong,
+b {
+    font-weight: var(--text-bold);
 }
 
 /* Поля и кнопки по умолчанию берут системный шрифт (Arial) — пусть наследуют шрифт сайта */
@@ -126,7 +172,7 @@ textarea {
 
 .navbar {
     width: 100%;
-    height: 74px;
+    height: 75px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -161,8 +207,8 @@ textarea {
 .logo {
     font-family: var(--font-display);
     font-size: calc(24px * var(--font-scale, 1));
-    font-weight: var(--text-bold);
-    letter-spacing: 1px;
+    font-weight: var(--text-semibold);
+    letter-spacing: 0.04em; /* фирменный знак: чуть разрежен, растёт вместе с размером */
     color: var(--text-primary);
     margin-right: 30px;
 }
@@ -177,7 +223,7 @@ textarea {
     color: var(--text-secondary);
     text-decoration: none;
     font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
+    font-weight: var(--text-normal);
     transition: 0.2s;
 }
 
@@ -222,7 +268,7 @@ textarea {
     border-radius: var(--radius-md);
     background: var(--bg-card);
     box-shadow: var(--shadow-md);
-    margin-bottom: 50px;
+    margin-bottom: var(--section-gap);
     border: none; 
     transition: 0.2s;
 }
@@ -256,6 +302,30 @@ textarea {
     display: block;
 }
 
+/* Трейлер игры недели лежит в той же ячейке сетки, что и обложка, и проявляется поверх неё */
+.featured-trailer {
+    grid-column: 1;
+    grid-row: 1;
+    /* Собственный размер видео (1280×720) не должен растягивать строку сетки: иначе карточка
+       становилась выше своих 375px и текст справа, выровненный по центру, уезжал вниз */
+    contain: size;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+.featured-trailer.is-playing {
+    opacity: 1;
+}
+
+.featured > img {
+    grid-column: 1;
+    grid-row: 1;
+}
+
 .featured-info {
     padding: var(--padding-md);
     display: flex;
@@ -267,8 +337,7 @@ textarea {
     font-family: var(--font-display);
     color: var(--accent-text);
     font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-bold);
-    letter-spacing: 0.3px;
+    font-weight: var(--text-normal);
     margin-bottom: 0;
     flex-wrap: nowrap;
 }
@@ -319,20 +388,22 @@ textarea {
 ========================= */
 
 .games-section {
-    margin-bottom: 55px;
+    margin-bottom: var(--section-gap);
 }
 
 .section-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 15px;
+    margin-bottom: var(--title-gap);
     font-weight: var(--text-semibold);
     color: var(--text-muted);
 }
 
-.section-header h2 {
-    margin-bottom: var(--padding-sm);
+/* Отступы задаёт сам блок заголовка; у h2 их нет, иначе к ним прибавлялись свои 20px сверху */
+.section-header h2,
+.detail-section .section-header h2 {
+    margin: 0;
     color: var(--text-primary);
     font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
@@ -373,7 +444,7 @@ textarea {
 .games-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 15px;
+    gap: var(--grid-gap);
     align-items: start;
 }
 
@@ -446,10 +517,11 @@ a.game-card:hover::after {
     justify-content: center;
     color: var(--text-muted);
     font-size: calc(14px * var(--font-scale, 1));
+    transition: filter 0.3s;
 }
 
 .game-card:hover .game-image img {
-    filter: brightness(1.10);
+    filter: brightness(1);
 }
 
 .game-info {
@@ -478,7 +550,7 @@ a.game-card:hover::after {
     margin-top: 0px;
     margin-bottom: 25px;
     color: var(--text-muted);
-    font-weight: var(--text-normal);
+    font-weight: var(--text-regular);
     font-size: calc(14px * var(--font-scale, 1));
     line-height: 1.75;
 }
@@ -495,7 +567,7 @@ a.game-card:hover::after {
 /* «Эксклюзив» в углу обложки, напротив сердечка: нижняя строка карточки остаётся только для цены */
 .game-card-label {
     position: absolute;
-    top: var(--space-3);  /* по центру сердечка «В желаемое» (36px) */
+    top: calc(var(--padding-sm) + 6px);  /* по центру сердечка «В желаемое»: (42px − 30px) / 2 */
     left: var(--space-2);
     z-index: 3;
 }
@@ -517,6 +589,7 @@ a.game-card:hover::after {
 .price {
     color: var(--text-primary);
     font-size: calc(18px * var(--font-scale, 1));
+    
     font-weight: var(--text-bold);
     line-height: 1;
 }
@@ -540,9 +613,8 @@ a.game-card:hover::after {
     border-radius: var(--radius-sm);
     font-family: var(--font-display);
     font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
+    font-weight: var(--text-normal);
     line-height: 1;
-    letter-spacing: 0.3px;
     white-space: nowrap;
 }
 
@@ -565,7 +637,7 @@ a.game-card:hover::after {
     display: flex;
     align-items: center;
     gap: 15px;
-    margin-bottom: var(--padding-big);
+    margin-bottom: var(--title-gap); /* как у заголовков других страниц */
 }
 
 .game-detail-title h1 {
@@ -575,9 +647,25 @@ a.game-card:hover::after {
     font-weight: var(--text-semibold);
 }
 
+.game-title-line {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* Возрастной рейтинг справа от названия — как счётчик «N товаров» у заголовка корзины */
+.game-age-rating {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    font-size: calc(24px * var(--font-scale, 1));
+    white-space: nowrap;
+}
+
 .game-detail {
     display: grid;
-    grid-template-columns: 1.3fr 1fr; /* Картинка занимает ~57% ширины, описание ~43% */
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); /* Картинка занимает ~57% ширины, описание ~43% */
     gap: 30px;
     margin-bottom: 15px;
     align-items: start; /* Предотвращает насильное растягивание картинки по высоте текста */
@@ -632,11 +720,25 @@ a.game-card:hover::after {
     min-width: 130px;
 }
 
+/* Ник разработчика ведёт в его профиль; оформлен как ссылка «Смотреть все» */
+.detail-author-link {
+    color: var(--accent-text);
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+    transition: color 0.2s;
+}
+
+.detail-author-link:hover {
+    color: var(--text-primary);
+}
+
 /* Жанры на странице игры ведут в каталог с похожими играми */
 .detail-genres {
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
+    min-width: 0; /* иначе длинный жанр растягивает строку шире карточки */
 }
 
 .detail-genres .chip {
@@ -647,6 +749,7 @@ a.game-card:hover::after {
 
 .purchase-box {
     display: flex;
+    flex-wrap: wrap; /* не помещаются в строку — кнопки целиком уходят под цену, а не по одной */
     align-items: center;
     justify-content: space-between;
     gap: 15px;
@@ -662,13 +765,13 @@ a.game-card:hover::after {
 }
 
 .detail-section {
-    margin-bottom: 50px;
+    margin-bottom: var(--section-gap);
 }
 
 .detail-section h2 {
     color: white;
     font-size: calc(24px * var(--font-scale, 1));
-    margin-bottom: var(--padding-md);
+    margin-bottom: var(--title-gap);
     font-weight: var(--text-semibold);
 }
 
@@ -703,8 +806,11 @@ a.game-card:hover::after {
         font-size: 16px;
     }
 
+    /* В одну колонку блок выше 375px: без снятия max-height описание и кнопка обрезались */
     .featured {
         grid-template-columns: 1fr;
+        min-height: 0;
+        max-height: none;
     }
 
     .featured > img {
@@ -726,11 +832,7 @@ a.game-card:hover::after {
     }
 
     .game-detail {
-        grid-template-columns: 1fr;
-    }
-
-    .main-image-box img {
-        min-height: 300px;
+        grid-template-columns: minmax(0, 1fr); /* просто 1fr растягивался под длинное слово или жанр */
     }
 }
 
@@ -765,6 +867,10 @@ a.game-card:hover::after {
     .purchase-box {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .purchase-actions {
+        margin-left: 0; /* в колонке кнопки растягиваются на всю ширину */
     }
 
     .buy-button {
@@ -1024,22 +1130,6 @@ html[data-motion="reduced"] .auth-showcase-track {
     }
 }
 
-.logout-btn {
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    padding: 9px 14px;
-    border: 2px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
-    transition: 0.2s;
-}
-
-.logout-btn:hover {
-    background: rgba(255, 59, 48, 0.2);
-    border-color: var(--danger);
-}
-
 /* =========================
    GALLERY
 ========================= */
@@ -1050,11 +1140,22 @@ html[data-motion="reduced"] .auth-showcase-track {
 
 .main-image-box {
     width: 100%;
-    height: 350px;
+    aspect-ratio: 16 / 9; /* пропорции трейлеров и скриншотов: кадр не обрезается, на телефоне тоже */
     background: var(--bg-secondary);
     border-radius: var(--radius-md);
     overflow: hidden;
+}
+
+/* Рамка как у карточек игр при наведении: полупрозрачная и лежит поверх кадра,
+   поэтому картинка и трейлер доходят до самого края. Этот же слой рисует индикатор подгрузки */
+.main-image-box::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 4;
     border: 2px solid var(--border);
+    border-radius: inherit;
+    pointer-events: none;
 }
 
 .main-image-box img {
@@ -1108,7 +1209,8 @@ html[data-motion="reduced"] .auth-showcase-track {
     transition: all var(--transition);
 }
 
-.video-thumb {
+.video-thumb,
+.media-thumb {
     position: relative;
     display: flex;
     align-items: center;
@@ -1117,14 +1219,16 @@ html[data-motion="reduced"] .auth-showcase-track {
     border-radius: var(--radius-sm);    /* Скругление углов для контейнера */
 }
 
-.video-thumb img {
+.video-thumb img,
+.media-thumb img {
     width: 100px !important;
     height: 55px !important;
     object-fit: cover;
     opacity: 0.5;
     transition: opacity 0.2s;
 }
-.video-thumb img:hover {
+.video-thumb img:hover,
+.media-thumb img:hover {
     opacity: 0.7;
 }
 .thumb.active {
@@ -1133,14 +1237,15 @@ html[data-motion="reduced"] .auth-showcase-track {
     box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
-.video-thumb.active img {
+.video-thumb.active img,
+.media-thumb.active img {
     opacity: 1;
 }
 
 .play-badge {
     position: absolute;
-    width: 30px;
-    height: 30px;
+    width: var(--icon-lg);
+    height: var(--icon-lg);
     background: var(--accent);
     border-radius: var(--radius-big);
     color: var(--text-primary);
@@ -1197,7 +1302,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     text-decoration: none !important;
     border-radius: var(--radius-sm);
     font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-normal);
+    font-weight: var(--text-regular);
     transition: background 0.2s, color 0.2s;
 }
 
@@ -1213,7 +1318,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     text-decoration: none !important;
     border-radius: var(--radius-sm);
     font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-normal);
+    font-weight: var(--text-regular);
     transition: background 0.2s, color 0.2s, filter 0.2s;
 }
 
@@ -1280,7 +1385,7 @@ html[data-motion="reduced"] .auth-showcase-track {
 }
 
 .search-result-info h2 {
-    font-weight: var(--text-normal);
+    font-weight: var(--text-regular);
     color: var(--text-primary);
     /* Если название слишком длинное — оно скроется в три точки */
     white-space: nowrap;
@@ -1312,12 +1417,12 @@ html[data-motion="reduced"] .auth-showcase-track {
 
 .search-box .clear-search-btn {
     flex: 0 0 auto;
-    width: 34px;
+    width: 42px;
     height: 100%;
     padding: 0;
     color: var(--text-secondary);
     background: transparent;
-    font-size: calc(26px * var(--font-scale, 1));
+    font-size: calc(24px * var(--font-scale, 1));
     line-height: 1;
     user-select: none;
     transition: color var(--transition);
@@ -1394,7 +1499,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: var(--title-gap);
 }
 
 .search-area h1 {
@@ -1440,9 +1545,14 @@ html[data-motion="reduced"] .auth-showcase-track {
    BUTTONS & BADGES
 ========================= */
 
+.cart-badge[hidden] {
+    display: none;
+}
+
 .cart-badge {
     background: var(--accent);
     color: white;
+    font-family: var(--font-display);
     font-size: calc(14px * var(--font-scale, 1));
     padding: 2px 10px;
     border-radius: var(--radius-pill);
@@ -1505,66 +1615,147 @@ html[data-motion="reduced"] .auth-showcase-track {
 }
 
 .search-box button:hover {
-    filter: brightness(1.15);
+    filter: brightness(1.1);
 }
 
-.nav-left.button {
-    display: flex;
-    align-items: center;
-    border: none;
-    background: none;
-    cursor: pointer;
-    transition: transform var(--transition);
-    text-decoration: none;
-}
-
-.buy-button {
-    border: none;
-    background: var(--accent);
-    color: white;
-    padding: 11px 27px;
-    border-radius: var(--radius-sm);
-    font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    cursor: pointer;
-    transition: transform var(--transition);
-    text-decoration: none;
-    margin: 5px;
-}
-
-.nav-left.button,
+/* ---------- Общая основа кнопок ----------
+   Все кнопки сайта берут размеры, шрифт и поведение отсюда. Размеров два: обычная (--btn-h)
+   и маленькая (--btn-h-sm); видов три: акцентная, второстепенная и опасная. Имена классов
+   прежние — их знают шаблоны, тесты и темы, — здесь они только разложены по группам.
+   Рамка 2px есть у всех (обычно прозрачная): кнопки с обводкой и без неё одной высоты.
+   Внешних отступов у кнопок нет: расстояние между ними задаёт gap родителя. */
 .buy-button,
+.checkout-button,
+.play-button,
+.stop-button,
 .install-btn,
 .btn-primary,
-.btn-secondary {
-    border: none;
-    background: var(--accent);
-    color: white;
-    padding: 11px 27px;
+.btn-secondary,
+.btn-danger,
+.btn-add-rec,
+.friend-add-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: var(--btn-h);
+    margin: 0;
+    padding: var(--space-1) var(--space-5);
+    border: 2px solid transparent;
     border-radius: var(--radius-sm);
+    background: var(--accent);
+    color: var(--text-primary);
+    font-family: inherit;
     font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
-    cursor: pointer;
-    transition: transform var(--transition);
+    line-height: 1.25;
+    text-align: center;
     text-decoration: none;
-    margin: 5px;
-    
-    outline: 1px solid transparent;
-    transition: transform 0.175s ease-out;
+    cursor: pointer;
+    outline: 1px solid transparent; /* заставляет Chrome сглаживать грани при увеличении */
+    transition: transform 0.175s ease-out, background-color var(--transition), border-color var(--transition);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-.install-btn {
-    border: none;
+/* Маленькие: формы настроек, поиск друзей, рекомендации в корзине */
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.btn-add-rec,
+.friend-add-btn {
+    min-height: var(--btn-h-sm);
+    padding: var(--space-1) var(--space-4);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.btn-add-rec,
+.friend-add-btn {
+    white-space: nowrap;
+}
+
+/* Второстепенные */
+.btn-secondary,
+.install-btn,
+.stop-button {
     background: var(--bg-card-hover);
+}
+
+/* Опасные: обводка, а при наведении — красноватая заливка (так же ведёт себя «Выйти из игры») */
+.btn-danger {
+    background: transparent;
+    border-color: var(--danger);
+    color: var(--danger-text);
+}
+
+.btn-danger:hover,
+.stop-button:hover {
+    background: color-mix(in srgb, var(--danger) 20%, transparent);
+    border-color: var(--danger);
+}
+
+.btn-danger:hover {
     color: var(--text-primary);
-    padding: 9px 14px;
-    border-radius: var(--radius-sm);
-    font-weight: var(--text-semibold);
-    font-size: calc(16px * var(--font-scale, 1));
-    cursor: pointer;
-    transition: transform var(--transition);
+}
+
+/* Наведение и нажатие — лёгкое увеличение и «вдавливание» */
+:is(.buy-button, .checkout-button, .play-button, .install-btn, .btn-primary, .btn-secondary,
+    .btn-add-rec, .friend-add-btn):hover {
+    transform: scale(var(--btn-hover-scale));
+}
+
+:is(.buy-button, .checkout-button, .play-button, .install-btn, .btn-primary, .btn-secondary,
+    .btn-add-rec, .friend-add-btn):active {
+    transform: scale(0.96);
+}
+
+/* На сенсорном экране «наведение» залипает после нажатия: кнопка во всю ширину оставалась
+   увеличенной и вылезала за край */
+@media (hover: none) {
+    :is(.buy-button, .checkout-button, .play-button, .install-btn, .btn-primary, .btn-secondary,
+        .btn-add-rec, .friend-add-btn):hover {
+        transform: none;
+    }
+}
+
+:is(.buy-button, .checkout-button, .play-button, .stop-button, .btn-primary, .btn-secondary,
+    .btn-danger, .btn-add-rec, .friend-add-btn):disabled {
+    opacity: 0.6;
+    cursor: wait;
+    transform: none;
+}
+
+/* Варианты к основе. !important у цвета текста: сезонная тема перекрашивает текст всех
+   .buy-button в тёмный под оранжевый фон, а у этих кнопок фон свой */
+
+/* «В корзине ➜» — уже добавлено, второстепенная: ведёт в корзину, а не зовёт к покупке */
+.buy-button.in-cart {
+    background: var(--bg-card-hover);
+    color: var(--text-primary) !important;
+}
+
+/* Подтвердить: «Сохранить», «Принять». Зелёный затемнён до контраста текста 4.5:1 */
+.btn-success {
+    background: color-mix(in srgb, var(--success) 65%, black);
+    color: var(--text-primary) !important;
+}
+
+.btn-success:hover {
+    background: color-mix(in srgb, var(--success) 55%, black);
+}
+
+/* Отказаться: «Отмена», «Отклонить» — красная заливка */
+.btn-danger-solid {
+    background: var(--danger);
+    color: var(--text-primary) !important;
+}
+
+.btn-danger-solid:hover {
+    background: color-mix(in srgb, var(--danger) 85%, black);
+}
+
+.install-btn {
+    gap: 6px;
 }
 
 .zoom-btn {
@@ -1586,22 +1777,6 @@ html[data-motion="reduced"] .auth-showcase-track {
  
 .zoom-btn:hover {
     background: rgba(255, 255, 255, .14);
-}
-
-.nav-left.button:hover,
-.buy-button:hover,
-.install-btn:hover,
-.btn-primary:hover,
-.btn-secondary:hover {
-    transform: scale(1.1);
-}
-
-.nav-left.button:active,
-.buy-button:active,
-.install-btn:active,
-.btn-primary:active,
-.btn-secondary:active {
-    transform: scale(0.9);
 }
 
 /* =========================
@@ -1759,10 +1934,17 @@ html[data-motion="reduced"] .auth-showcase-track {
     color: var(--text-primary);
 }
 
+/* Пустая подпись у таймера не занимает места */
+.timer-label:empty {
+    display: none;
+}
+
 .timer-label {
-    font-size: calc(14px * var(--font-scale, 1));
+    font-size: calc(12px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
     color: var(--text-muted);
     text-transform: uppercase;
+    letter-spacing: 0.3px;
     white-space: nowrap;
 }
 
@@ -1782,9 +1964,8 @@ html[data-motion="reduced"] .auth-showcase-track {
     padding: 7px 6px;
     font-size: calc(14px * var(--font-scale, 1));
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.04em; /* надпись заглавными — единственное место, где Unbounded нужен интервал */
     backdrop-filter: blur(5px);
-    margin-left: 100px;
 }
 
 .gotw-header {
@@ -1796,11 +1977,15 @@ html[data-motion="reduced"] .auth-showcase-track {
 }
 
 .timer-container {
-    justify-self: center;
+    grid-column: -2; /* всегда последняя колонка: при выключенных подсказках «?» таймер не съезжает к центру */
+    justify-self: end;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    white-space: nowrap;
+    flex-wrap: wrap; /* на узком экране подпись встаёт над таймером, а не вылезает за карточку */
+    justify-content: flex-end;
+    gap: 4px var(--space-2);
+    min-width: 0;
+    margin-left: var(--space-3);
 }
 
 /* Строка: Дата слева, Название сразу за ней */
@@ -1829,19 +2014,34 @@ html[data-motion="reduced"] .auth-showcase-track {
     width: 100%;
     max-width: 1300px;
     margin: 0 auto;
-    padding: 20px 50px;
+    padding: 20px 0; /* без боковых отступов: левый край как на остальных страницах */
     box-sizing: border-box;
     align-items: flex-start;
 }
 
 .profile-card {
+    position: relative;
     background: var(--bg-surface);
-    border: 2px solid var(--border);
+    /* Рамка нарисована слоем ::after поверх баннера: картинка доходит до края и просвечивает сквозь рамку */
     border-radius: var(--radius-md);
     padding: 0; /* Убираем отступы у самой карточки */
     overflow: hidden; /* Обрезает верхние углы баннера по форме карточки */
-    margin-bottom: 30px;
+    margin-bottom: var(--section-gap);
 }
+.profile-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 4; /* над баннером и его фотоаппаратом */
+    border: 2px solid var(--border);
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+html[data-design="glass"] .profile-card::after {
+    border-color: transparent; /* у стеклянного оформления своя кромка */
+}
+
 .profile-banner {
     width: 100%;
     height: 200px; /* Высота баннера */
@@ -1894,6 +2094,9 @@ html[data-motion="reduced"] .auth-showcase-track {
 .profile-main {
     padding: 0 30px 30px 30px; /* Левый, правый и нижний отступы */
     display: flex;
+    /* На планшете рядом с боковым меню места мало: кнопка переносится под имя,
+       а не уезжает за край карточки */
+    flex-wrap: wrap;
     align-items: center;
     gap: 20px;
 }
@@ -1914,8 +2117,6 @@ html[data-motion="reduced"] .auth-showcase-track {
     color: var(--text-primary);
     background: var(--bg-surface);
 
-    border: 4px solid var(--border); 
-    transition: border-color 0.3s ease;
     box-sizing: border-box;
 }
 .profile-avatar-wrapper {
@@ -1968,6 +2169,19 @@ html[data-motion="reduced"] .auth-showcase-track {
     display: none;
 }
 
+/* Режим правки профиля: фотоаппарат на аватарке и баннере приглушённо виден сразу,
+   чтобы было понятно, что картинки можно сменить; при наведении — в полную силу */
+.profile-card.is-editing .avatar-overlay,
+.profile-card.is-editing .banner-overlay {
+    opacity: 0.5;
+    pointer-events: auto;
+}
+
+.profile-card.is-editing .profile-avatar-wrapper:hover .avatar-overlay,
+.profile-card.is-editing .profile-banner:hover .banner-overlay {
+    opacity: 1;
+}
+
 .profile-actions {
     display: flex;
     align-items: center;
@@ -1979,7 +2193,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     margin: 0 0 var(--space-2);
     font-size: calc(24px * var(--font-scale, 1));
     font-family: var(--font-display);
-    font-weight: var(--text-semibold);
+    font-weight: var(--text-normal);
 }
 .profile-status {
     margin: 0 0 var(--space-2);
@@ -1993,6 +2207,15 @@ html[data-motion="reduced"] .auth-showcase-track {
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+/* Не влезший в 3 строки текст раскрывается по нажатию (store.js) */
+.profile-status.is-clamped {
+    cursor: pointer;
+}
+
+.profile-status.is-clamped.is-expanded {
+    -webkit-line-clamp: unset;
 }
 
 .profile-stats {
@@ -2017,6 +2240,37 @@ html[data-motion="reduced"] .auth-showcase-track {
 .profile-stat strong {
     font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
+    white-space: nowrap; /* дата «Участник с» не разрывается на две строки */
+}
+
+/* На телефоне полная дата не помещается при крупных отступах — сжимаем их и цифры */
+@media (max-width: 480px) {
+    .profile-stats {
+        gap: var(--padding-sm2);
+        padding: var(--padding-sm2) var(--padding-sm);
+    }
+
+    .profile-stats {
+        justify-content: center;
+    }
+
+    .profile-stat {
+        align-items: center;
+    }
+
+    .profile-stat:not(:last-child) {
+        padding-right: var(--padding-sm2);
+    }
+
+    .profile-stat strong {
+        font-size: calc(20px * var(--font-scale, 1));
+    }
+}
+
+@media (max-width: 360px) {
+    .profile-stat strong {
+        font-size: calc(18px * var(--font-scale, 1));
+    }
 }
 .profile-stat span {
     color: var(--text-muted);
@@ -2024,13 +2278,13 @@ html[data-motion="reduced"] .auth-showcase-track {
 }
 
 .profile-section {
-    margin-bottom: 30px;
+    margin-bottom: var(--section-gap);
 }
 
 .activity-list {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: var(--grid-gap);
 }
 .activity-item {
     position: relative; /* Обязательно: делает карточку точкой отсчета для ::after */
@@ -2038,11 +2292,11 @@ html[data-motion="reduced"] .auth-showcase-track {
     align-items: center;
     padding: var(--padding-sm2);
     border-radius: var(--radius-md);
-    background: var(--bg-surface);
+    background: var(--bg-card); /* как у карточек каталога */
     transition: 0.2s;
     min-height: 130px;
     max-height: 130px;
-    transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+    transition: background 0.3s, box-shadow 0.3s; /* как у карточек корзины */
 }
 
 .activity-item-link {
@@ -2050,7 +2304,18 @@ html[data-motion="reduced"] .auth-showcase-track {
     text-decoration: none;
 }
 
+/* Без filter на всей карточке (см. .cart-item:hover): светлеет только обложка или аватар */
 .activity-item:hover {
+    background: var(--bg-card-hover);
+    box-shadow: var(--shadow-md);
+}
+
+.activity-cover img,
+.activity-cover-2 img {
+    transition: filter 0.3s;
+}
+
+.activity-item:hover :is(.activity-cover, .activity-cover-2) img {
     filter: brightness(1.10);
 }
 
@@ -2095,6 +2360,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     flex-shrink: 0;
     overflow: hidden;
     background-color: var(--bg-primary);
+    font-weight: var(--text-semibold); /* буква вместо аватара */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2121,7 +2387,7 @@ html[data-motion="reduced"] .auth-showcase-track {
 .activity-info-t {
     font-size: calc(16px * var(--font-scale, 1));
     color: var(--text-muted);
-    font-weight: var(--text-normal);
+    font-weight: var(--text-regular);
 }
 .activity-info-game h3 {
     margin: 0 0 var(--space-2);
@@ -2132,7 +2398,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     font-family: var(--font-display);
     margin: 0 0 var(--space-2);
     font-size: calc(18px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
+    font-weight: var(--text-normal);
 }
 .empty-activity {
     margin: 0;
@@ -2166,6 +2432,64 @@ html[data-motion="reduced"] .auth-showcase-track {
     margin: 0;
     color: var(--text-muted);
 }
+/* Пустое состояние (store/_empty_state.html) — одинаковое по всему сайту */
+.empty-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 40px var(--space-5);
+    text-align: center;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.empty-block-icon {
+    display: grid;
+    place-items: center;
+    width: 56px; /* один размер везде, и в компактном варианте тоже */
+    height: 56px;
+    margin-bottom: var(--space-1);
+    color: var(--accent-text);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border-radius: 50%;
+}
+
+.empty-block-icon .ui-icon,
+.empty-block-icon .heart-icon {
+    width: 28px;
+    height: 28px;
+}
+
+.empty-block-title {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: calc(18px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.empty-block-text {
+    max-width: 420px;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+    line-height: 1.5;
+}
+
+.empty-block .buy-button {
+    margin-top: var(--space-2);
+}
+
+/* Компактное — для блоков внутри страницы (недавняя активность, друзья, отзывы) */
+.empty-block-compact {
+    padding: var(--space-5);
+}
+
+.empty-block-compact .empty-block-title {
+    font-size: calc(16px * var(--font-scale, 1));
+}
+
 .profile-placeholder {
     color: var(--text-muted);
     font-size: calc(16px * var(--font-scale, 1));
@@ -2186,7 +2510,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     border: 2px solid var(--border);
     border-radius: var(--radius-sm);
     font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-normal);
+    font-weight: var(--text-regular);
 }
 .achievement.locked {
     opacity: 0.5;
@@ -2210,6 +2534,23 @@ body.no-blur * {
     justify-content: center;
     gap: var(--padding-sm2);
     margin-top: var(--padding-sm2);
+}
+
+/* «Другой аккаунт Google» — мелкая ссылка под кнопками входа через соцсети */
+.social-login-alt {
+    margin-top: var(--padding-sm);
+    text-align: center;
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.social-login-alt a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.social-login-alt a:hover {
+    color: var(--accent-text);
 }
 
 .color-dot {
@@ -2345,30 +2686,13 @@ body.no-blur * {
 }
 
 .btn-primary {
-    border: none;
-    background: var(--accent);
-    color: var(--text-primary);
-    padding: 9px 14px;
-    border-radius: var(--radius-sm);
     align-self: flex-start;
     flex-shrink: 0;
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    cursor: pointer;
 }
 
 .btn-secondary {
-    border: none;
-    background: var(--bg-card-hover);
-    color: var(--text-primary);
-    padding: 9px 14px;
-    border-radius: var(--radius-sm);
-    font-weight: var(--text-semibold);
-    font-size: calc(14px * var(--font-scale, 1));
-    cursor: pointer;
-    flex-shrink: 0;
     align-self: flex-start;
-    transition: transform var(--transition);
+    flex-shrink: 0;
 }
 
 .profile-sidebar {
@@ -2399,15 +2723,15 @@ body.no-blur * {
     border-left: 3px solid transparent;
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     text-decoration: none;
-    font-weight: var(--text-semibold);
+    font-weight: var(--text-regular);
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
 .settings-nav-link .nav-icon {
-    width: 22.5px;
-    height: 22.5px;
+    width: var(--icon-md);
+    height: var(--icon-md);
     flex-shrink: 0; /* Не дает иконке сжиматься */
     border-radius: 0; /* Круглая маска от .nav-icon обрезает значки без полей, например лупу */
     transition: transform 0.2s ease;
@@ -2496,7 +2820,7 @@ body.no-blur * {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
+    font-weight: var(--text-semibold);
     color: var(--text-primary);
     border-radius: 50%;
 }
@@ -2582,7 +2906,7 @@ body.no-blur * {
     align-items: center;
     justify-content: center;
     background: var(--bg-secondary);
-    font-weight: 700;
+    font-weight: var(--text-semibold);
     font-size: calc(16px * var(--font-scale, 1));
 }
 
@@ -2597,7 +2921,7 @@ body.no-blur * {
     overflow: hidden;
     color: var(--text-primary);
     font-size: calc(14px * var(--font-scale, 1));
-    font-weight: 600;
+    font-weight: var(--text-semibold);
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -2699,7 +3023,7 @@ body.no-blur * {
     justify-content: center;
     color: var(--text-primary);
     font-size: calc(16px * var(--font-scale, 1));
-    font-weight: 700;
+    font-weight: var(--text-semibold);
 }
 
 .search-result-info {
@@ -2722,7 +3046,7 @@ body.no-blur * {
 .search-title {
     color: var(--text-primary);
     font-size: calc(18px * var(--font-scale, 1));
-    font-weight: 600;
+    font-weight: var(--text-semibold);
 }
 
 .search-sub {
@@ -2739,20 +3063,9 @@ body.no-blur * {
 
 .friend-add-btn {
     flex-shrink: 0;
-    padding: 9px 14px;
-    color: var(--text-primary);
-    background: var(--accent);
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: 600;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: filter .15s, opacity .15s;
 }
 
 .friend-add-btn:hover { filter: brightness(1.1); }
-.friend-add-btn:disabled { opacity: .55; cursor: wait; }
 
 .search-badge-muted {
     color: var(--text-muted);
@@ -2795,13 +3108,13 @@ body.no-blur * {
     min-width: 0;
     max-width: 100%;
     height: auto;
-    min-height: 0;
+    min-height: var(--btn-h-sm);
 
-    padding: 9px 14px;
+    padding: var(--space-1) var(--space-4);
     font-family: inherit;
     font-size: calc(14px * var(--font-scale, 1));
-    line-height: 1.4;
-    font-weight: 600;
+    line-height: 1.25;
+    font-weight: var(--text-semibold);
     white-space: nowrap;
 
     box-sizing: border-box;
@@ -2835,7 +3148,6 @@ body.no-blur * {
         flex-direction: column;
         align-items: stretch;
         gap: 12px;
-        margin-bottom: 40px;
     }
 
     .search-area h1 {
@@ -2856,7 +3168,6 @@ body.no-blur * {
         grid-template-columns: 1fr;
         min-height: 0;
         max-height: none;
-        margin-bottom: 35px;
     }
 
     .featured > img {
@@ -2883,7 +3194,6 @@ body.no-blur * {
     /* Карточки */
     .games-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
     }
 
     a.game-card {
@@ -2910,13 +3220,21 @@ body.no-blur * {
         font-size: 24px;
     }
 
-    .search-box {
-        height: 40px;
+    /* поиск на телефоне той же высоты 42px, что и на компьютере */
+
+    /* Страница игры: подпись уже, чтобы длинный жанр помещался в строку */
+    .detail-label {
+        min-width: 96px;
     }
 
-    .search-box button {
-        width: 40px;
-        height: 40px;
+    /* на самых узких экранах жанры переходят под подпись, а не вылезают за край */
+    .detail-row:has(.detail-genres) {
+        flex-wrap: wrap;
+    }
+
+    .detail-genres {
+        flex: 1 1 180px;
+        min-width: 0;
     }
 
     .search-box input {
@@ -2973,7 +3291,7 @@ body.no-blur * {
     .gotw-header {
         display: flex;
         flex-wrap: wrap;
-        justify-content: space-between;
+        justify-content: flex-start;
         align-items: center;
         gap: 8px;
     }
@@ -2982,8 +3300,18 @@ body.no-blur * {
         font-size: 14px;
     }
 
+    /* Таймер — в той же строке, что «Игра недели ?», прижат к правому краю
+       (на отдельную строку уходит, только если совсем не помещается) */
     .timer-container {
         justify-self: auto;
+        flex: 0 0 auto;
+        justify-content: flex-end;
+        margin-left: auto;
+    }
+
+    .timer-label {
+        font-size: 11px;
+        letter-spacing: 0;
     }
 
     .timer-box {
@@ -3029,19 +3357,9 @@ body.no-blur * {
     .featured .buy-button,
     .js-add-to-cart {
         width: 100%;
-        margin: 0;
-        padding: 12px 20px;
     }
 
     /* ----- Секции ----- */
-    .games-section {
-        margin-bottom: 35px !important;
-    }
-
-    .section-header {
-        margin-bottom: 10px;
-    }
-
     .section-header h2 {
         font-size: 24px;
     }
@@ -3053,7 +3371,6 @@ body.no-blur * {
     /* ----- Сетка карточек: 1 колонка ----- */
     .games-grid {
         grid-template-columns: 1fr;
-        gap: 15px;
     }
 
     .game-image {
@@ -3108,7 +3425,18 @@ body.no-blur * {
     }
 
     .timer-box {
-        font-size: 12px;
+        font-size: 11px;
+        padding: 6px 4px;
+        letter-spacing: 0;
+    }
+
+    /* На самых узких экранах таймер помещается в строку «Игра недели ?» */
+    .gotw-header {
+        gap: 6px;
+    }
+
+    .featured-label {
+        font-size: 13px;
     }
 }
 
@@ -3135,9 +3463,9 @@ body.no-blur * {
 .review-form {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 15px;
-    margin-bottom: 20px;
+    gap: var(--space-3);
+    padding: var(--padding-sm2);
+    margin-bottom: var(--grid-gap);
     background: var(--bg-surface);
     border: 2px solid var(--border);
     border-radius: var(--radius-md);
@@ -3155,7 +3483,7 @@ body.no-blur * {
     outline: none;
 }
 .review-form textarea:focus { border-color: var(--accent); }
-.review-form-actions { display: flex; gap: 10px; }
+.review-form-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); } /* на узком экране «Удалить» переходит на вторую строку */
 
 /* Выбор звёзд */
 .star-input {
@@ -3180,7 +3508,7 @@ body.no-blur * {
 .star-input input:focus-visible + label { outline: 2px solid var(--accent); border-radius: var(--radius-sm); }
 
 /* Список отзывов */
-.reviews { display: flex; flex-direction: column; gap: 15px; }
+.reviews { display: flex; flex-direction: column; gap: var(--grid-gap); }
 .review {
     position: relative;
     display: flex;
@@ -3229,8 +3557,10 @@ body.no-blur * {
 }
 .review-header {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    gap: 4px var(--space-3);
     margin-bottom: var(--padding-sm);
 }
 .review-author-block {
@@ -3251,8 +3581,8 @@ body.no-blur * {
     line-height: 1.25;
     white-space: nowrap;
 }
-.review-author { color: inherit; font-weight: var(--text-semibold); text-decoration: none; font-size: calc(18px * var(--font-scale, 1));}
-.review-rating { color: var(--rating); letter-spacing: 3px; font-size: calc(22px * var(--font-scale, 1));}
+.review-author { color: inherit; font-weight: var(--text-normal); text-decoration: none; font-size: calc(16px * var(--font-scale, 1)); font-family: var(--font-display);}
+.review-rating { flex-shrink: 0; color: var(--rating); letter-spacing: 3px; font-size: calc(22px * var(--font-scale, 1)); white-space: nowrap; }
 .review-date { color: var(--text-muted); font-size: calc(14px * var(--font-scale, 1)); }
 /* =========================
    КАТАЛОГ, ЧИПЫ, УВЕДОМЛЕНИЯ
@@ -3260,7 +3590,11 @@ body.no-blur * {
 
 .chip {
     display: inline-block;
+    max-width: 100%;
     padding: 9px 14px;
+    overflow: hidden;
+    text-overflow: ellipsis; /* совсем длинный жанр на узкой карточке — с многоточием */
+    white-space: nowrap; /* длинный жанр не переносится на вторую строку и не делает плашку выше */
     color: var(--text-secondary);
     background: var(--bg-secondary);
     border: 2px solid var(--border-accent);
@@ -3293,7 +3627,7 @@ body.no-blur * {
     align-items: baseline;
     flex-wrap: wrap;
     gap: 12px;
-    margin-bottom: 20px;
+    margin-bottom: var(--title-gap);
 }
 
 .catalog-header h1 {
@@ -3311,7 +3645,7 @@ body.no-blur * {
 .catalog-reset {
     margin-left: auto;
     color: var(--accent-text);
-    font-size: calc(14px * var(--font-scale, 1));
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     text-decoration: none;
 }
@@ -3392,7 +3726,7 @@ a.filter-option {
     border-left: 3px solid transparent;
     border-radius: var(--radius-verysm);
     font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
+    font-weight: var(--text-regular);
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
@@ -3451,6 +3785,32 @@ a.filter-option {
 
 .filter-option:has(input[type="checkbox"]:checked) {
     color: var(--text-primary);
+}
+
+/* Жанры: первые 8 видны всегда (и все отмеченные), остальные — по кнопке «Ещё N» */
+.filter-group:not(.show-all) .filter-option-extra {
+    display: none;
+}
+
+.filter-more {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    padding: 8px 10px;
+    color: var(--accent-text);
+    background: none;
+    border: none;
+    border-radius: var(--radius-verysm);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.filter-more:hover {
+    background-color: var(--bg-card);
 }
 
 .filter-count {
@@ -3624,6 +3984,7 @@ html[data-motion="reduced"] *::after {
 
 /* Шапка: на средних экранах все пункты должны помещаться без прокрутки страницы */
 .user-name {
+    
     display: inline-block;
     max-width: 150px;
     overflow: hidden;
@@ -3632,14 +3993,45 @@ html[data-motion="reduced"] *::after {
     white-space: nowrap;
 }
 
-@media (min-width: 901px) and (max-width: 1500px) {
+/* Пункты шапки не переносятся на вторую строку и не сжимаются: если места не хватает,
+   первым укорачивается имя пользователя (у него многоточие) */
+.logo,
+.nav-link {
+    white-space: nowrap;
+}
+
+.nav-left,
+.nav-right > * {
+    flex-shrink: 0;
+}
+
+.nav-right {
+    min-width: 0;
+}
+
+.nav-right > .user-dropdown {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.nav-cart-link {
+    display: inline-flex;
+    align-items: center;
+}
+
+@media (min-width: 1101px) and (max-width: 1500px) {
     .navbar { padding: 0 2%; }
     .nav-left, .nav-right { gap: 16px; }
     .logo { margin-right: 10px; }
 }
 
-@media (max-width: 1150px) {
+/* «Установить» — первое, чем шапка жертвует на ноутбуках: с переключателем сезонной темы
+   на ширине 1280–1366px пункты упирались друг в друга, а «Корзина» переносилась */
+@media (max-width: 1400px) {
     .install-btn { display: none; }
+}
+
+@media (max-width: 1250px) {
     .nav-link { font-size: calc(14px * var(--font-scale, 1)); }
     .nav-left, .nav-right { gap: 12px; }
     .logo { font-size: calc(18px * var(--font-scale, 1)); margin-right: 0; }
@@ -3647,8 +4039,10 @@ html[data-motion="reduced"] *::after {
 }
 
 /* Телефоны и планшеты: в шапке одна строка — логотип, корзина и кнопка ☰.
-   Разделы, переключатель темы и меню пользователя раскрываются по кнопке */
-@media (max-width: 768px) {
+   Разделы, переключатель темы и меню пользователя раскрываются по кнопке.
+   Порог 1100px, а не 768px: полная шапка на планшете не помещалась — меню пользователя
+   уезжало за край экрана */
+@media (max-width: 1100px) {
     .navbar {
         height: auto;
         min-height: 64px;
@@ -3763,6 +4157,12 @@ html[data-motion="reduced"] *::after {
         margin: var(--space-2) 0;
     }
 
+    /* У гостя «Вход» отделён той же полоской, что у вошедшего меню пользователя */
+    .nav-right > .nav-login {
+        margin-top: var(--space-2);
+        border-top: 1px solid var(--border-subtle);
+    }
+
     /* меню пользователя сразу раскрыто списком, без второго выпадающего окна */
     .user-dropdown {
         margin-top: var(--space-2);
@@ -3800,6 +4200,14 @@ html[data-motion="reduced"] *::after {
     }
 }
 
+/* На планшетах строка шапки остаётся высотой 75px, как на компьютере: под эту высоту
+   подогнаны липкие блоки страниц (список игр в библиотеке, меню настроек) */
+@media (min-width: 769px) and (max-width: 1100px) {
+    .navbar {
+        min-height: 75px;
+    }
+}
+
 /* Баннер по умолчанию, пока пользователь не загрузил свой */
 .profile-banner {
     background-color: var(--bg-card);
@@ -3834,7 +4242,8 @@ html[data-motion="reduced"] *::after {
    ЖЕЛАЕМОЕ И ИЗБРАННОЕ
 ========================= */
 
-/* !important: сезонная тема перекрашивает текст всех .buy-button в тёмный под оранжевый фон */
+/* Серая второстепенная для .buy-button: «Редактировать профиль», «Вы друзья», «Удалить» отзыв…
+   !important: сезонная тема перекрашивает текст всех .buy-button в тёмный под оранжевый фон */
 .btn-muted {
     background: var(--bg-card-hover);
     color: var(--text-primary) !important;
@@ -3842,9 +4251,10 @@ html[data-motion="reduced"] *::after {
 
 .purchase-actions {
     display: flex;
-    flex-wrap: wrap;
+    margin-left: auto; /* и под ценой кнопки остаются справа */
     justify-content: flex-end;
     align-items: center;
+    gap: var(--space-3);
 }
 
 /* ♡ и ♥ берутся из разных шрифтов с разной высотой: без фиксированной высоты строки
@@ -3853,15 +4263,15 @@ html[data-motion="reduced"] *::after {
     line-height: 1.25;
 }
 
-.wishlist-wide {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-2);
-    min-width: 10.5em;
+/* Квадратная кнопка с одной иконкой рядом с «В корзину»: «В желаемое», «Подарить другу» */
+.purchase-icon-btn {
+    width: var(--btn-h);
+    min-width: var(--btn-h);
+    padding: 0;
+    flex-shrink: 0;
 }
 
-.wishlist-wide.active {
+.purchase-icon-btn.active {
     background: var(--bg-card-hover);
     background: color-mix(in srgb, var(--accent) 22%, var(--bg-card-hover));
     box-shadow: inset 0 0 0 2px var(--accent);
@@ -3876,8 +4286,8 @@ html[data-motion="reduced"] *::after {
     top: var(--padding-sm);
     right: var(--padding-sm);
     z-index: 3;
-    width: 36px;
-    height: 36px;
+    width: 42px;   /* как остальные кнопки-значки */
+    height: 42px;
     padding: 0;
     color: var(--text-primary);
     background: rgba(0, 0, 0, 0.6);
@@ -3902,8 +4312,8 @@ html[data-motion="reduced"] *::after {
 /* Сердце «В желаемое» — одна форма во всех местах; закрашено, когда игра в желаемом */
 .heart-icon {
     display: inline-block;
-    width: 22.5px;
-    height: 22.5px;
+    width: var(--icon-md);
+    height: var(--icon-md);
     flex-shrink: 0;
     vertical-align: middle;
     fill: none;
@@ -3957,7 +4367,7 @@ html[data-motion="reduced"] *::after {
 }
 
 .fav-dragging .favorites-zone {
-    outline-color: var(--border);
+    outline-color: var(--border-accent);
 }
 
 .favorites-zone.is-drag-over {
@@ -3967,19 +4377,21 @@ html[data-motion="reduced"] *::after {
 .fav-card {
     position: relative;
     display: block;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 2 / 1; /* как обложки в каталоге: при 16:9 края обложки обрезались */
     overflow: hidden;
     color: var(--text-primary);
-    background: var(--bg-surface);
+    background: var(--bg-card); /* как у карточек каталога */
     border-radius: var(--radius-md);
     text-decoration: none;
-    transition: transform 0.3s, box-shadow 0.3s;
+    /* Яркость и фон тоже меняются плавно: без них свет при наведении вспыхивал рывком */
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s, filter 0.3s;
 }
 
 .fav-card::after {
     content: '';
     position: absolute;
     inset: 0;
+    z-index: 1; /* поверх обложки и подписи, как рамка у карточек каталога */
     border: 2px solid transparent;
     border-radius: var(--radius-md);
     transition: border-color 0.3s;
@@ -3988,6 +4400,9 @@ html[data-motion="reduced"] *::after {
 
 .fav-card:hover {
     box-shadow: var(--shadow-md);
+    transform: translateY(-8px); /* как у карточек каталога */
+    background: var(--bg-card-hover);
+    filter: brightness(1.10);
 }
 
 .fav-card:hover::after {
@@ -4060,7 +4475,7 @@ html[data-motion="reduced"] *::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 2 / 1;
     padding: var(--padding-sm2);
     color: var(--text-muted);
     background: var(--bg-secondary);
@@ -4088,20 +4503,82 @@ html[data-motion="reduced"] *::after {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 10px;
+    padding: 6px 8px; /* + рамка 2px — та же высота, что и раньше */
     color: var(--text-secondary);
-    background: var(--bg-surface);
+    background: var(--bg-card);
+    border: 2px solid transparent;
     border-radius: var(--radius-sm);
     font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     text-decoration: none;
     cursor: grab;
-    transition: filter 0.2s, color 0.2s;
+    transition: background-color 0.2s, border-color 0.2s;
 }
 
 .owned-game:hover {
-    color: var(--text-primary);
-    filter: brightness(1.1);
+    background: var(--bg-card-hover);
+    border-color: var(--border);
+}
+
+/* Меню «Вы друзья ▾» в профиле друга */
+.friend-menu {
+    position: relative;
+}
+
+.friend-menu-list {
+    position: absolute;
+    top: calc(100% + var(--space-2));
+    right: 0;
+    z-index: 20;
+    min-width: 100%;
+    padding: var(--space-1);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+}
+
+.friend-menu-list[hidden] {
+    display: none;
+}
+
+.friend-menu-danger {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    color: var(--danger-text);
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    white-space: nowrap;
+    text-align: left;
+    cursor: pointer;
+}
+
+.friend-menu-danger:hover {
+    background: var(--bg-card-hover);
+}
+
+/* Игра, которую ведут пальцем в «Избранное» (favorites.js) */
+.fav-touch-ghost {
+    position: fixed;
+    z-index: 3000;
+    margin: 0;
+    pointer-events: none;
+    opacity: 0.92;
+    transform: scale(1.04);
+    box-shadow: var(--shadow-lg);
+}
+
+@media (hover: none) {
+    [data-fav-source],
+    [data-fav-id] {
+        -webkit-touch-callout: none; /* долгое нажатие поднимает игру, а не открывает меню ссылки */
+        -webkit-user-select: none;
+        user-select: none;
+    }
 }
 
 .owned-game img {
@@ -4187,8 +4664,8 @@ html[data-motion="reduced"] *::after {
 
 .news-badge .news-icon {
     flex: none;
-    width: 1.15em;
-    height: 1.15em;
+    width: var(--icon-md);   /* 22.5px — как остальные мелкие значки */
+    height: var(--icon-md);
 }
 
 .news-results {
@@ -4264,6 +4741,11 @@ html[data-motion="reduced"] *::after {
     color: var(--accent-text);
 }
 
+.news-pin svg {
+    width: var(--icon-md);
+    height: var(--icon-md);
+}
+
 .news-card-title {
     margin: 0 0 var(--padding-sm);
     font-family: var(--font-display);
@@ -4294,7 +4776,7 @@ html[data-motion="reduced"] *::after {
 
 .news-more {
     color: var(--accent-text);
-    font-size: calc(14px * var(--font-scale, 1));
+    font-size: calc(16px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
 }
 
@@ -4351,7 +4833,7 @@ html[data-motion="reduced"] *::after {
 
 .news-neighbours {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr)); /* две кнопки в ряд и на телефоне, вплоть до 320px */
     gap: var(--padding-sm2);
     margin-top: var(--padding-md);
 }
@@ -4405,6 +4887,16 @@ html[data-motion="reduced"] *::after {
 
     .purchase-actions {
         justify-content: stretch;
+        flex-wrap: nowrap;
+    }
+
+    /* На телефоне квадратные кнопки остаются квадратными, «В корзину» занимает остаток строки */
+    .purchase-actions .buy-button:not(.purchase-icon-btn) {
+        flex: 1;
+    }
+
+    .purchase-actions .purchase-icon-btn {
+        width: var(--btn-h);
     }
 }
 
@@ -4446,7 +4938,7 @@ html[data-motion="reduced"] *::after {
     max-width: 36ch;
     margin: var(--space-3) 0 0;
     color: var(--text-muted);
-    font-weight: var(--text-normal);
+    font-weight: var(--text-regular);
     font-size: calc(14px * var(--font-scale, 1));
     line-height: 1.5;
 }
@@ -4542,12 +5034,32 @@ html[data-motion="reduced"] *::after {
         margin: 0;
     }
 
-    /* Недавняя активность: обложка поменьше, время — под названием, а не узкой колонкой справа */
+    /* Недавняя активность: обложка поменьше слева, справа от неё — название, время в игре
+       и «… назад» одной колонкой (раньше «… назад» уезжало отдельной строкой под обложку) */
     .activity-item {
-        flex-wrap: wrap;
-        gap: var(--space-2) var(--space-3);
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 2px var(--space-3);
         min-height: 0;
         max-height: none;
+    }
+
+    .activity-item > .activity-cover {
+        grid-row: span 2;
+    }
+
+    .activity-item > .activity-info-game,
+    .activity-item > .activity-time {
+        grid-column: 2;
+    }
+
+    .activity-item > .activity-info-game {
+        align-self: end;
+    }
+
+    .activity-item > .activity-time {
+        align-self: start;
     }
 
     .activity-cover {
@@ -4571,7 +5083,6 @@ html[data-motion="reduced"] *::after {
     }
 
     .activity-time {
-        flex-basis: 100%;
         margin-left: 0;
     }
 }
@@ -4598,12 +5109,88 @@ html[data-motion="reduced"] *::after {
     position: relative;
 }
 
-.main-image-box.is-buffering::after {
-    content: '';
+/* =========================
+   НЕПРИЯТНЫЙ КОНТЕНТ (жестокость, нагота — отмечается в админке)
+   Кадр размыт, пока посетитель сам не нажмёт «Показать»
+========================= */
+.main-image-box.is-sensitive > img,
+.main-image-box.is-sensitive > video {
+    filter: blur(25px) brightness(0.5);
+    transform: scale(1.15); /* размытые края не просвечивают фоном по краям рамки */
+}
+
+.sensitive-cover {
     position: absolute;
     inset: 0;
-    background: var(--media-loader) center / 30px 30px no-repeat;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--padding-md);
+    text-align: center;
+}
+
+.sensitive-cover[hidden] {
+    display: none;
+}
+
+.sensitive-cover-title {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: calc(18px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.sensitive-cover-text {
+    margin: 0 0 var(--space-2);
+    color: var(--text-secondary);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.sensitive-cover .btn-secondary {
+    align-self: center; /* у .btn-secondary по умолчанию flex-start */
+}
+
+/* Миниатюры на странице игры: размыта картинка внутри обёртки, рамка остаётся чёткой */
+:is(.video-thumb, .media-thumb)[data-sensitive]:not(.is-revealed) img {
+    filter: blur(5px) brightness(0.75);
+    transform: scale(1.15); /* размытые края не просвечивают у рамки */
+}
+
+/* Скриншоты-ссылки (библиотека) */
+.sensitive-media {
+    position: relative;
+    overflow: hidden;
+}
+
+.sensitive-media.sensitive-media:not(.is-revealed) img { /* двойной класс: сильнее эффекта наведения в library.css */
+    filter: blur(25px) brightness(0.5);
+    transform: scale(1.15);
+}
+
+.sensitive-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2);
+    color: var(--text-primary);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    line-height: 1.4;
+    text-align: center;
     pointer-events: none;
+}
+
+.sensitive-media.is-revealed .sensitive-label {
+    display: none;
+}
+
+.main-image-box.is-buffering::after {
+    background: var(--media-loader) center / 30px 30px no-repeat;
 }
 
 /* =========================
@@ -4623,6 +5210,25 @@ html[data-motion="reduced"] *::after {
 
 .game-detail-title h1 {
     flex: 0 1 auto;
+}
+
+/* Длинные слова без пробелов (ссылка в описании, ник или «О себе» из одних букв) переносятся,
+   а не растягивают страницу и не обрезаются краем карточки */
+:is(.game-short-description, .library-about-text, .description-box, .featured-info p,
+    .news-article, .news-card, .profile-title, .profile-status, .review) {
+    overflow-wrap: anywhere;
+}
+
+/* Имя и описание в шапке профиля могут сжиматься рядом с аватаром */
+.profile-info {
+    min-width: 0;
+}
+
+/* Плашка жанра не шире своего блока: длинное название обрезается многоточием */
+.chip {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .game-detail-title .badge,
@@ -4723,12 +5329,12 @@ html[data-motion="reduced"] *::after {
     display: inline-grid;
     flex: 0 0 22.5px;          /* в flex-строке не сжимается и не растягивается */
     place-items: center;
-    width: 22.5px;
-    min-width: 22.5px;
-    max-width: 22.5px;
-    height: 22.5px;
-    min-height: 22.5px;
-    max-height: 22.5px;
+    width: var(--icon-md);
+    min-width: var(--icon-md);
+    max-width: var(--icon-md);
+    height: var(--icon-md);
+    min-height: var(--icon-md);
+    max-height: var(--icon-md);
     aspect-ratio: 1;
     padding: 0;
     margin-left: 8px;
@@ -4737,24 +5343,39 @@ html[data-motion="reduced"] *::after {
     vertical-align: middle;
     color: #fff;
     background: var(--accent);
-    border: var(accent) 2px solid;
     border-radius: 50%;
-    font-family: var(--font-body, inherit);
+    font-family: var(--font-display, inherit);
     font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
+    font-weight: var(--text-normal);
     font-style: normal;
     line-height: 1;
     letter-spacing: 0;
     text-transform: none;
     cursor: help;
     user-select: none;
-    transition: filter 0.2s;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.175s ease-out;
 }
 
+/* Тёмный знак на белом браузер рисует тоньше светлого на тёмном — «?» казался меньше.
+   Тонкая обводка возвращает ему ту же толщину, что в покое. Жирность не меняем:
+   более жирный «?» шире, и при наведении он заметно сдвигался */
 .hint:hover,
 .hint:focus-visible,
 .hint.hint-open {
-    filter: brightness(1.2);
+    color: var(--accent);
+    background: #fff;
+    -webkit-text-stroke: 0.3px currentColor;
+}
+
+.hint:hover {
+    transform: scale(1.1);
+}
+
+/* Строка роли в профиле обрезает лишнее (для многоточия) и ровно по высоте «?» —
+   запас в 3px сверху и снизу, чтобы увеличенный при наведении кружок не срезался */
+.profile-status:has(> .hint) {
+    padding-block: 3px;
+    margin-block: -3px;
 }
 
 html[data-hints="off"] .hint {
@@ -4774,7 +5395,7 @@ html[data-hints="off"] .hint {
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
     font-size: calc(14px * var(--font-scale, 1));
-    font-weight: 500;
+    font-weight: var(--text-regular);
     line-height: 1.5;
     opacity: 0;
     visibility: hidden;
@@ -4795,7 +5416,7 @@ html[data-hints="off"] .hint {
     background: var(--bg-card);
     border-bottom: 1px solid var(--border-subtle);
     font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
+    font-weight: var(--text-normal);
     text-align: center;
 }
 
@@ -4828,7 +5449,9 @@ html[data-hints="off"] .hint {
     color: var(--text-primary);
     background: var(--accent);
     border-radius: 50%;
-    font-family: var(--font-display);
+    /* Буква вместо аватара — везде основным шрифтом и одной толщины (раньше было шесть
+       вариантов: от 400 до 800, то Inter, то Unbounded) */
+    font-weight: var(--text-semibold);
     font-size: calc(20px * var(--font-scale, 1));
     text-decoration: none;
 }
@@ -4869,7 +5492,8 @@ html[data-hints="off"] .hint {
 
 .profile-edit-name {
     font-family: var(--font-display);
-    font-size: calc(18px * var(--font-scale, 1));
+    font-weight: var(--text-normal);
+    font-size: calc(16px * var(--font-scale, 1));
 }
 
 .profile-edit-bio {
@@ -5003,18 +5627,51 @@ html[data-hints="off"] .hint {
     margin: 0 0 2px;
 }
 
+/* Свои значки вместо эмодзи (store/_icon.html): размер по шрифту, цвет — цвет текста */
+.ui-icon {
+    display: inline-block;
+    flex: none;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+}
+
+/* Фотоаппарат поверх аватарки и баннера при смене картинки: один размер и цвет в профиле и настройках */
+.avatar-overlay .ui-icon,
+.banner-overlay .ui-icon {
+    width: var(--icon-lg);
+    height: var(--icon-lg);
+    color: var(--text-muted);
+}
+
+/* Значки в кнопках и шапке: шестерёнка в библиотеке, лупа поиска, корзина на телефоне, устройства */
+.settings-btn .ui-icon,
+.search-btn-icon,
+.nav-cart-mobile svg,
+.device-icon svg {
+    width: var(--icon-md);
+    height: var(--icon-md);
+}
+
+/* Геймпад вместо обложки в недавних играх профиля */
+.activity-cover .ui-icon {
+    width: var(--icon-lg);
+    height: var(--icon-lg);
+}
+
 /* Значки ролей (спрайт _role_icons.html) */
 .role-icon {
     display: inline-block;
     flex: none;
-    width: 1.25em;   /* на ~13% крупнее прежних 1.1em */
-    height: 1.25em;
+    width: var(--icon-inline);   /* 20px, как остальные значки внутри текста */
+    height: var(--icon-inline);
     margin-right: 0.35em;
     vertical-align: -0.25em;
 }
 
 .role-icon-creator { color: var(--rating); }
 .role-icon-admin { color: var(--role-admin); }
+.role-icon-developer { color: var(--role-developer); }
 .role-icon-user { color: var(--accent-text); }
 
 /* Поле ника и описания: фокус показывает своя рамка, вторая обводка не нужна */
@@ -5035,7 +5692,7 @@ html[data-hints="off"] .hint {
     padding: 0 15px 12px;
     color: var(--text-secondary);
     font-size: calc(13px * var(--font-scale, 1));
-    line-height: 1.4;
+    line-height: 1.25;
 }
 
 .hint-bubble-cols > div {
@@ -5046,7 +5703,581 @@ html[data-hints="off"] .hint {
 
 .hint-bubble-cols strong {
     display: block;
-    margin-bottom: 2px;
+    margin-bottom: 5px;
+    color: var(--text-primary);
+    font-weight: var(--text-regular);
+}
+
+/* =========================
+   ЗАГОЛОВКИ СТРАНИЦ НА ТЕЛЕФОНЕ
+   Один размер на всех страницах: раньше «Магазин игр» был 24px, а «Каталог», «Корзина»
+   и «Настройки» — 32px. Селекторы с main — чтобы перекрыть правила страниц (cart.css и др.)
+========================= */
+@media (max-width: 600px) {
+    main .search-area h1,
+    main .catalog-header h1,
+    main .game-detail-title h1,
+    main .cart-title h1,
+    main .news-title,
+    main.settings-page > h1 {
+        font-size: calc(28px * var(--font-scale, 1));
+    }
+}
+
+/* Окно «Подарить другу» на странице игры */
+.gift-dialog {
+    width: min(440px, calc(100% - 32px));
+    max-height: calc(100dvh - 32px);
+    padding: var(--padding-md);
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+}
+
+.gift-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.gift-dialog h2 {
+    margin: 0 0 var(--padding-sm2);
+    font-size: calc(20px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    overflow-wrap: anywhere;
+}
+
+.gift-label {
+    display: block;
+    margin: 0 0 6px;
+    color: var(--text-secondary);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.gift-friends {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 260px;
+    margin-bottom: var(--padding-sm2);
+    overflow-y: auto;
+}
+
+.gift-friend {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--bg-card);
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.gift-friend:hover {
+    background: var(--bg-card-hover);
+}
+
+/* Сама радиокнопка скрыта: выбранного друга показывает рамка карточки */
+.gift-friend input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.gift-friend:has(input:checked) {
+    border-color: var(--accent);
+}
+
+.gift-friend:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.gift-friend.is-disabled {
+    cursor: not-allowed;
+}
+
+.gift-friend.is-disabled:hover {
+    background: var(--bg-card);
+}
+
+.gift-friend.is-disabled .gift-friend-name {
+    color: var(--text-muted);
+}
+
+.gift-friend-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
     color: var(--text-primary);
     font-weight: var(--text-semibold);
+    background: var(--bg-card-hover);
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.gift-friend-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gift-friend-note {
+    color: var(--text-muted);
+    font-size: calc(13px * var(--font-scale, 1));
+}
+
+.gift-dialog textarea {
+    width: 100%;
+    resize: vertical;
+    padding: 9px 14px;
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    outline: none;
+}
+
+.gift-dialog textarea:focus {
+    border-color: var(--accent);
+}
+
+.gift-empty {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.gift-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--padding-sm2);
+}
+
+.gift-actions .buy-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Окно «Вам подарили игру» у получателя */
+.gift-popup {
+    width: min(440px, calc(100% - 32px));
+    max-height: calc(100dvh - 32px);
+    padding: var(--padding-md);
+    color: var(--text-primary);
+    text-align: center;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    animation: gift-popup-in 0.35s ease-out;
+}
+
+/* При открытии фокус встаёт на само окно (а не на ник дарителя), рамка вокруг окна не нужна */
+.gift-popup:focus {
+    outline: none;
+}
+
+.gift-popup::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+@keyframes gift-popup-in {
+    from { opacity: 0; transform: translateY(16px) scale(0.96); }
+    to { opacity: 1; transform: none; }
+}
+
+.gift-popup-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    margin-bottom: var(--padding-sm);
+    color: var(--accent-text);
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    border-radius: 50%;
+}
+
+.gift-popup-icon .heart-icon {
+    width: 28px;
+    height: 28px;
+}
+
+.gift-popup h2 {
+    margin: 0 0 var(--padding-sm2);
+    font-size: calc(22px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.gift-popup-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--padding-sm2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.gift-popup-item {
+    position: relative;
+    overflow: hidden;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+}
+
+/* Полупрозрачная рамка при наведении, как у карточек игр в магазине и каталоге */
+.gift-popup-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid transparent;
+    border-radius: inherit;
+    transition: border-color 0.3s;
+    pointer-events: none;
+}
+
+.gift-popup-item:hover::after {
+    border-color: var(--border);
+}
+
+.gift-popup-cover-link {
+    display: block;
+}
+
+.gift-popup-cover {
+    transition: filter 0.3s;
+}
+
+.gift-popup-cover-link:hover .gift-popup-cover {
+    filter: brightness(1.1);
+}
+
+.gift-popup-cover {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 1;
+    object-fit: cover;
+}
+
+.gift-popup-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--padding-sm2);
+}
+
+.gift-popup-game {
+    font-size: calc(18px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    overflow-wrap: anywhere;
+}
+
+.gift-popup-from {
+    color: var(--text-secondary);
+}
+
+.gift-popup-message {
+    margin: 6px 0 0;
+    padding: 10px 14px;
+    color: var(--text-secondary);
+    background: var(--bg-card-hover);
+    border-radius: var(--radius-sm);
+    font-style: italic;
+    overflow-wrap: anywhere;
+}
+
+.gift-popup .gift-actions {
+    justify-content: center;
+}
+
+/* Точка на кнопке меню: в меню есть новые игры библиотеки */
+.nav-toggle-dot {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .nav-toggle {
+        position: relative;
+    }
+
+    .nav-toggle-dot:not([hidden]) {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        display: block;
+        width: 10px;
+        height: 10px;
+        background: var(--accent);
+        border: 2px solid var(--bg-primary);
+        border-radius: 50%;
+    }
+}
+
+/* Обводка аватарок — как у карточек игр: полупрозрачная светлая рамка отдельным слоем (::after)
+   лежит поверх края фото, фото просвечивает сквозь неё */
+:is(.profile-avatar, .settings-avatar, .activity-cover-2, .review-avatar, span.library-friend-avatar,
+    span.gift-friend-avatar, .search-avatar-ph) {
+    position: relative;
+}
+
+:is(.profile-avatar, .settings-avatar, .activity-cover-2, .review-avatar, span.library-friend-avatar,
+    span.gift-friend-avatar, .search-avatar-ph)::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid var(--border);
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+/* У <img> нет ::after — та же рамка через outline внутрь картинки */
+:is(img.library-friend-avatar, img.gift-friend-avatar, img.search-avatar) {
+    outline: 2px solid var(--border);
+    outline-offset: -2px;
+}
+
+/* Затемнение с фотоаппаратом на 1px шире аватарки: иначе сглаженный край фото
+   выглядывал из-под размытия тонкой светлой линией */
+:is(.profile-avatar-wrapper, .avatar-wrapper) > .avatar-overlay {
+    inset: -1px;
+    width: auto;
+    height: auto;
+}
+
+/* Кнопка «Удалить аватарку» в режиме правки профиля */
+.avatar-remove {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    color: var(--text-primary);
+    background: var(--danger);
+    border: 2px solid var(--bg-surface);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.avatar-remove:hover {
+    transform: scale(1.08);
+}
+
+.avatar-remove[hidden] {
+    display: none;
+}
+
+/* Переключатель со счётчиком: лайк новости, «Полезно» у отзыва. Выглядит как кнопка «В желаемое» в каталоге */
+.count-toggle {
+    position: relative;
+    z-index: 2; /* над растянутой ссылкой карточки новости */
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 12px;
+    color: var(--text-primary);
+    font: inherit;
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    line-height: 1;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: transform 0.175s ease-out, color 0.2s, border-color 0.2s;
+}
+
+.count-toggle:hover:not(:disabled) {
+    transform: scale(1.1);
+    border-color: var(--accent);
+}
+
+.count-toggle:active:not(:disabled) {
+    transform: scale(0.9);
+}
+
+.count-toggle.active {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.count-toggle.active .js-count,
+.count-toggle.active span {
+    color: var(--text-primary); /* закрашен только значок, число остаётся белым и читаемым */
+}
+
+.count-toggle .heart-icon,
+.count-toggle .ui-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.count-toggle:disabled {
+    cursor: default;
+}
+
+.news-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+.news-article-footer {
+    display: flex;
+    margin-top: var(--padding-md);
+}
+
+/* Отзывы: порядок и нижняя строка (дата, часы в игре, «Полезно») */
+.reviews-sort {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--padding-md);
+}
+
+.review-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-3);
+}
+
+/* Срок скидки: короткая дата в карточке и окошко под ценой на странице игры и у игры недели */
+.discount-until {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-regular);
+    white-space: nowrap;
+}
+
+.purchase-price-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+}
+
+/* Окошко как у подсказки «?»: плашка-заголовок шрифтом заголовков и строка под ней */
+.discount-deadline {
+    overflow: hidden;
+    min-width: 200px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-accent);
+    border-radius: var(--radius-md);
+    font-size: calc(14px * var(--font-scale, 1));
+    line-height: 1.5;
+}
+
+.discount-deadline-title {
+    padding: 2px 15px;
+    color: var(--success);
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-subtle);
+    font-family: var(--font-display);
+    font-weight: var(--text-normal);
+    text-align: center;
+}
+
+.discount-deadline-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 15px;
+    color: var(--text-primary);
+    font-weight: var(--text-regular);
+}
+
+.discount-deadline-icon {
+    flex-shrink: 0;
+    color: var(--accent-text);
+}
+
+@media (max-width: 600px) {
+    .purchase-price-col {
+        align-items: stretch; /* на телефоне цена и окошко срока — во всю ширину, как кнопки */
+    }
+}
+
+/* Восстановление пароля */
+.auth-forgot {
+    display: inline-block;
+    margin-top: var(--space-2);
+    color: var(--accent-text);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+}
+
+.auth-forgot:hover {
+    text-decoration: underline;
+}
+
+.auth-text {
+    margin: 0 0 var(--space-4);
+    color: var(--text-secondary);
+    font-size: calc(15px * var(--font-scale, 1));
+    line-height: 1.5;
+}
+
+.auth-text-muted {
+    margin-top: var(--space-5);
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.auth-box .form-errors {
+    margin-bottom: var(--space-4);
+    color: var(--danger-text);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+a.auth-submit {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+}
+
+/* Стена профиля: форма и записи оформлены как отзывы на странице игры */
+.wall-form .buy-button {
+    align-self: flex-start;
+}
+
+.wall-delete-form {
+    position: relative;
+    z-index: 3; /* над рамкой карточки (::after) */
+    margin: 0;
+}
+
+/* Крестик — как «Убрать из избранного», только чуть меньше: карточка комментария невысокая */
+.wall-delete {
+    width: 30px;
+    height: 30px;
+    font-size: calc(20px * var(--font-scale, 1));
+}
+
+/* Аватарку в профиле можно открыть на весь экран (store.js) */
+.profile-card:not(.is-editing) .profile-avatar img {
+    cursor: zoom-in;
 }

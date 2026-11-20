@@ -31,6 +31,7 @@
                 <div class="form-group">
                     <label for="id_password">Пароль</label>
                     <input type="password" name="password" id="id_password" required placeholder="Введите пароль">
+                    <a href="{% url 'mfs:password_reset' %}" class="auth-forgot">Забыли пароль?</a>
                 </div>
                 
                 <button type="submit" class="buy-button auth-submit">Войти</button>
@@ -47,6 +48,12 @@
                     </a>
 {% endif %}
                 </div>
+{% if 'google' in social_providers %}
+                <!-- Обычная кнопка входит в последний аккаунт Google, эта ссылка открывает выбор аккаунта -->
+                <div class="social-login-alt">
+                    <a href="{% provider_login_url 'google' auth_params='prompt=select_account' %}">Другой аккаунт Google</a>
+                </div>
+{% endif %}
                 <div class="section-header-2">
                     Нет аккаунта? <a href="{% url 'mfs:register' %}">Регистрация</a>
                 </div>

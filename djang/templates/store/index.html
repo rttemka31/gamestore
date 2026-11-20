@@ -21,7 +21,7 @@
                 <button type="button" id="clear-search" class="clear-search-btn" aria-label="Очистить поиск" hidden>&times;</button>
 
                 <button type="submit" aria-label="Найти">
-                    <img src="{% static 'img/icons/search.png' %}" width="22" height="22" alt="">
+                    <img src="{% static 'img/icons/search.png' %}" class="search-btn-icon" width="22" height="22" alt="">
                 </button>
             </form>
 
@@ -37,6 +37,11 @@
             <section class="featured">
                 {% if featured_game.get_cover_url %}
                     <img src="{{ featured_game.cover_hd|default:featured_game.cover|thumb:'1440' }}" alt="{{ featured_game.title }}" fetchpriority="high" decoding="async">
+                    {% if featured_game.trailer_file and not featured_game.trailer_sensitive %}
+                        <!-- Трейлер без звука: включается после долгого наведения (скрипт ниже), файл грузится только тогда -->
+                        <video class="featured-trailer" muted loop playsinline preload="none" aria-hidden="true"
+                               data-src="{{ featured_game.trailer_file.url }}"></video>
+                    {% endif %}
                 {% else %}
                     <div class="no-cover">Нет обложки</div>
                 {% endif %}
@@ -47,6 +52,7 @@
                         <span class="featured-label">Игра недели</span>{% include 'store/_hint.html' with title="Игра недели" text="Каждую неделю одна игра магазина становится игрой недели и стоит здесь первой. Смена — в понедельник в 0:00 по Киеву, таймер показывает, сколько осталось. Игры идут по кругу, так что одна и та же не повторится две недели подряд." %}
 
                         <div class="timer-container">
+                            <span class="timer-label"></span>
                             <span id="countdown-timer" class="timer-box">
                                 <span id="days">0</span>д  : 
                                 <span id="hours">00</span>ч  : 
@@ -66,6 +72,7 @@
                     {% endif %}
                     
                     <div class="featured-bottom">
+                        <div class="purchase-price-col">
                         <div class="price-group">
                             {% if featured_game.discount > 0 %}
                                 <span class="badge badge-discount">-{{ featured_game.discount }}%</span>
@@ -81,6 +88,8 @@
                                 {% endif %}
                             </div>
                         </div>
+                        {% include 'store/_discount_deadline.html' with game=featured_game %}
+                        </div>
                         {% include 'store/_buy_button.html' with game=featured_game %}
                     </div>
                 </div>
@@ -90,7 +99,7 @@
 
         <!-- Секции подборок -->
         {% for collection in collections %}
-        <section class="games-section" style="margin-bottom: 40px;">
+        <section class="games-section">
             <div class="section-header">
                 <h2>{{ collection.title }}</h2>
                 <a href="{% url 'mfs:catalog' %}?category={{ collection.slug }}">Смотреть все ➜</a>
@@ -103,7 +112,7 @@
             </div>
         </section>
         {% empty %}
-            <div class="empty-news">Игр не найдено.</div>
+            {% include 'store/_empty_state.html' with icon='gamepad' title='Игр пока нет' text='Скоро здесь появятся игры магазина.' %}
         {% endfor %} <!-- Закрываем цикл по коллекциям -->
     </main>
 
@@ -149,5 +158,29 @@
 
     const timerId = setInterval(updateTimer, 1000);
     updateTimer();
+
+    // Трейлер игры недели: если задержать курсор на карточке ~1.2 с, поверх обложки тихо
+    // запускается трейлер; курсор ушёл — видео гаснет и встаёт на паузу. Только там, где есть
+    // наведение мышью, и не при «Уменьшить анимацию»
+    const featured = document.querySelector('.featured');
+    const trailer = featured && featured.querySelector('.featured-trailer');
+    const canHover = window.matchMedia('(hover: hover)').matches;
+    const reduced = document.documentElement.dataset.motion === 'reduced';
+    if (trailer && canHover && !reduced) {
+        let hoverTimer = null;
+        featured.addEventListener('mouseenter', () => {
+            hoverTimer = setTimeout(() => {
+                if (!trailer.src) trailer.src = trailer.dataset.src;
+                trailer.play()
+                    .then(() => trailer.classList.add('is-playing'))
+                    .catch(() => {});
+            }, 1200);
+        });
+        featured.addEventListener('mouseleave', () => {
+            clearTimeout(hoverTimer);
+            trailer.classList.remove('is-playing');
+            trailer.pause();
+        });
+    }
 </script>
 {% endblock %}

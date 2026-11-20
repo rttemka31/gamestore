@@ -57,10 +57,10 @@ def device_info(request, started=True):
 
 
 def describe_user_agent(user_agent):
-    """Название устройства из User-Agent («Chrome · Windows») и признак телефона или планшета."""
+    """Название устройства из User-Agent («Chrome • Windows») и признак телефона или планшета."""
     browser = next((name for name, pattern in BROWSERS if re.search(pattern, user_agent or '')), None)
     system = next((name for name, pattern in SYSTEMS if re.search(pattern, user_agent or '')), None)
-    name = ' · '.join(part for part in (browser, system) if part) or 'Неизвестное устройство'
+    name = ' • '.join(part for part in (browser, system) if part) or 'Неизвестное устройство'
     return name, system in MOBILE_SYSTEMS
 
 

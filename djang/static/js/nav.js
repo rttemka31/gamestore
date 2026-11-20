@@ -1,4 +1,4 @@
-// Меню-«бургер» шапки на телефонах: открывается кнопкой ☰, закрывается по Esc,
+// Меню-«бургер» шапки на телефонах и планшетах (до 1100px, как в style.css): открывается кнопкой ☰, закрывается по Esc,
 // по нажатию мимо меню, при переходе по ссылке и при расширении окна до размеров компьютера.
 document.addEventListener('DOMContentLoaded', () => {
     const header = document.querySelector('.navbar');
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (link && !link.matches('#userMenuBtn')) setOpen(false);
     });
 
-    window.matchMedia('(min-width: 769px)').addEventListener('change', e => {
+    window.matchMedia('(min-width: 1101px)').addEventListener('change', e => {
         if (e.matches) setOpen(false);
     });
 });

@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="ru"{% if user.is_authenticated %} data-font="{{ user.profile.font_size }}" data-radius="{{ user.profile.radius_size }}"{% if user.profile.reduce_motion %} data-motion="reduced"{% endif %}{% if not user.profile.show_hints %} data-hints="off"{% endif %}{% if user.profile.accent_color %} data-accent="custom"{% endif %}{% endif %}>
+<html lang="ru"{% if user.is_authenticated %} data-font="{{ user.profile.font_size }}" data-radius="{{ user.profile.radius_size }}"{% if user.profile.reduce_motion %} data-motion="reduced"{% endif %}{% if not user.profile.show_hints %} data-hints="off"{% endif %}{% if user.profile.accent_color %} data-accent="custom"{% endif %}{% if user.profile.design == 'glass' %} data-design="glass"{% endif %}{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GameStore{% endblock %}</title>
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=66">
-    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=9">
-    <script src="{% static 'js/event/halloween.js' %}?v=2"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=122">
+    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=14">
+    <script src="{% static 'js/event/halloween.js' %}?v=3"></script>
+    <link rel="stylesheet" href="{% static 'css/design/liquid-glass.css' %}?v=18">
     <link id="siteIcon" rel="icon"
         href="{% static 'img/icons/gamestore.png' %}?v=2"
         data-default="{% static 'img/icons/gamestore.png' %}?v=2"
@@ -34,6 +35,7 @@
 
 <body class="{% if request.user.is_authenticated and request.user.profile.disable_blur %}no-blur{% endif %}">
     {% include '_role_icons.html' %}
+    {% include '_liquid_glass.html' %}
 
     <!-- Общий Navbar для всего сайта -->
     <header class="navbar">
@@ -67,7 +69,7 @@
                 {% if request.resolver_match.url_name == 'login' %}
                     <a href="{% url 'mfs:register' %}" class="nav-link">РЕГИСТРАЦИЯ</a>
                 {% else %}
-                    <a href="{% url 'mfs:login' %}" class="nav-link">ВХОД</a>
+                    <a href="{% url 'mfs:login' %}" class="nav-link nav-login">ВХОД</a>
                 {% endif %}
             {% endif %}
         </div>
@@ -133,6 +135,6 @@
     <div id="installToast" class="toast-notification">
     Приложение пока недоступно для установки
     </div>
-    <script src="{% static 'js/nav.js' %}?v=1"></script>
+    <script src="{% static 'js/nav.js' %}?v=2"></script>
 </body>
 </html>

@@ -48,6 +48,9 @@
                         {{ game.discounted_price|floatformat:0 }}₴
                     </span>
                 </div>
+                {% if game.discount_until %}
+                    <span class="discount-until" title="Скидка действует до {{ game.discount_until|date:'j E, H:i' }}">до {{ game.discount_until|date:"d.m" }}</span>
+                {% endif %}
             {% else %}
                 <div class="price-block">
                 {% if game.price == 0 %}

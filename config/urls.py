@@ -15,6 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+import re
+
+from allauth.socialaccount import providers
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -23,8 +26,19 @@ from django.conf import settings
 from django.views.static import serve
 from django.urls import re_path
 
+from mfs import views
+
+# От allauth нужен только вход через соцсети: адреса провайдеров (accounts/google/...) и общие
+# страницы соцвхода (accounts/3rdparty/...). Всё остальное в accounts/ — встроенные вход,
+# регистрация и сброс пароля allauth — перехватывается и ведёт на страницы сайта.
+SOCIAL_LOGIN_PREFIXES = '|'.join(
+    ['3rdparty', 'social'] + [re.escape(provider.get_slug()) for provider in providers.registry.get_class_list()]
+)
+
 urlpatterns = [
+    path('admin/stats/', views.admin_stats, name='admin_stats'),  # раньше admin/: иначе адрес заберёт админка
     path('admin/', admin.site.urls),
+    re_path(rf'^accounts/(?!(?:{SOCIAL_LOGIN_PREFIXES})/)(?P<page>.*)$', views.allauth_page_redirect),
     path('accounts/', include('allauth.urls')), # Маршруты авторизации
     path('', include('mfs.urls')),
 ]

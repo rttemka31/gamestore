@@ -1,9 +1,10 @@
 """Корзина и покупка."""
 from decimal import Decimal
 
+from django.contrib.auth.models import User
 from django.urls import reverse
 
-from ..models import UserLibrary
+from ..models import Friendship, Game, Genre, Gift, UserLibrary, Wishlist
 from .base import StoreTestCase
 
 
@@ -36,6 +37,18 @@ class CartTests(StoreTestCase):
         )
         self.assertRedirects(response, reverse('mfs:index'), fetch_redirect_response=False)
 
+    def test_cart_shows_genres_as_chips(self):
+        genres = [Genre.objects.create(name=name, slug=slug) for name, slug in
+                  (('Шутер', 'shooter'), ('Экшен', 'action'), ('Сложная', 'hard'))]
+        self.game.genres.set(genres)
+        self.client.force_login(self.user)
+        self.ajax_add(self.game)
+        response = self.client.get(reverse('mfs:cart_detail'))
+        # Две плашки-ссылки в каталог и «+1» вместо остальных — как в рекомендациях
+        self.assertContains(response, f'href="{reverse("mfs:catalog")}?genre=shooter" class="chip"')
+        self.assertContains(response, '>+1</a>')
+        self.assertContains(response, '<h2>Ваш заказ</h2>')
+
     def test_checkout_then_remove_keeps_library_consistent(self):
         self.client.force_login(self.user)
         self.ajax_add(self.game)
@@ -51,3 +64,88 @@ class CartTests(StoreTestCase):
 
         self.client.post(reverse('mfs:remove_from_library', args=[self.game.pk]))
         self.assertFalse(UserLibrary.objects.filter(user=self.user, game=self.game).exists())
+
+
+class GiftTests(StoreTestCase):
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.user)
+        Friendship.objects.create(sender=self.user.profile, receiver=self.other.profile, status=Friendship.Status.ACCEPTED)
+        self.url = reverse('mfs:gift_game', args=[self.game.pk])
+
+    def test_gift_goes_to_friend_library_and_wishlist(self):
+        Wishlist.objects.create(user=self.other).games.add(self.game)
+        response = self.client.post(self.url, {'friend': self.other.pk, 'message': '  С днём рождения!  '})
+        self.assertRedirects(response, reverse('mfs:game_detail', args=[self.game.pk]))
+        self.assertTrue(self.game.owners.filter(pk=self.other.pk).exists())
+        self.assertTrue(UserLibrary.objects.filter(user=self.other, game=self.game).exists())
+        self.assertFalse(Wishlist.objects.get(user=self.other).games.exists())
+        gift = Gift.objects.get()
+        self.assertEqual((gift.sender, gift.receiver, gift.message, gift.seen), (self.user, self.other, 'С днём рождения!', False))
+        # Даритель игру не получает
+        self.assertFalse(self.game.owners.filter(pk=self.user.pk).exists())
+
+    def test_only_friends_paid_games_and_not_twice(self):
+        stranger = User.objects.create_user('carol', password='Str0ng-pass-123')
+        self.client.post(self.url, {'friend': stranger.pk})
+        self.client.post(self.url, {'friend': 'abc'})
+        free = Game.objects.create(author=self.other, title='Free', price=0)
+        self.client.post(reverse('mfs:gift_game', args=[free.pk]), {'friend': self.other.pk})
+        self.assertFalse(Gift.objects.exists())
+
+        # Заявка в друзья ещё не принята — тоже нельзя
+        Friendship.objects.create(sender=self.user.profile, receiver=stranger.profile)
+        self.client.post(self.url, {'friend': stranger.pk})
+        self.assertFalse(Gift.objects.exists())
+
+        self.game.owners.add(self.other)
+        self.client.post(self.url, {'friend': self.other.pk})
+        self.assertFalse(Gift.objects.exists())
+
+    def test_gift_needs_login_and_post(self):
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+        self.client.logout()
+        self.client.post(self.url, {'friend': self.other.pk})
+        self.assertFalse(Gift.objects.exists())
+
+    def test_game_page_lists_friends_and_marks_owners(self):
+        detail = reverse('mfs:game_detail', args=[self.game.pk])
+        response = self.client.get(detail)
+        self.assertContains(response, 'id="giftDialog"')
+        self.assertContains(response, f'name="friend" value="{self.other.pk}" required')
+
+        self.game.owners.add(self.other)
+        response = self.client.get(detail)
+        self.assertContains(response, 'Уже есть')
+        self.assertContains(response, f'name="friend" value="{self.other.pk}" disabled')
+
+        free = Game.objects.create(author=self.other, title='Free', price=0)
+        self.assertNotContains(self.client.get(reverse('mfs:game_detail', args=[free.pk])), 'id="giftOpen"')
+        self.client.logout()
+        self.assertNotContains(self.client.get(detail), 'id="giftOpen"')
+
+    def test_receiver_sees_gift_popup_on_any_page_until_closed(self):
+        self.client.post(self.url, {'friend': self.other.pk, 'message': 'Держи'})
+        gift = Gift.objects.get()
+        self.client.force_login(self.other)
+        # Окно появляется на любой странице, а не только в библиотеке
+        response = self.client.get(reverse('mfs:index'))
+        self.assertContains(response, 'id="giftPopup"')
+        self.assertContains(response, 'Вам подарили игру!')
+        self.assertContains(response, f'data-gift-id="{gift.pk}"')
+        self.assertContains(response, '«Держи»')
+
+        response = self.client.get(reverse('mfs:library'))
+        self.assertContains(response, 'id="giftPopup"')
+        self.assertContains(response, '<dt>Подарок от</dt>')
+
+        # Чужой подарок отметить нельзя, свой — можно; после этого окно больше не показывается
+        self.client.force_login(self.user)
+        self.client.post(reverse('mfs:gifts_seen'), {'ids': [gift.pk]})
+        self.assertFalse(Gift.objects.get().seen)
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.get(reverse('mfs:gifts_seen')).status_code, 405)
+        self.client.post(reverse('mfs:gifts_seen'), {'ids': [gift.pk, 'x']})
+        self.assertTrue(Gift.objects.get().seen)
+        self.assertNotContains(self.client.get(reverse('mfs:index')), 'id="giftPopup"')
+        self.assertContains(self.client.get(reverse('mfs:library')), '<dt>Подарок от</dt>')

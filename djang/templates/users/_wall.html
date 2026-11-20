@@ -1,0 +1,49 @@
+{% load store_extras %}
+{# Комментарии в профиле: пишут владелец и его друзья. Удалить комментарий могут автор, владелец профиля и администратор #}
+<section class="profile-section" id="wall">
+    <div class="section-header">
+        <h2>Комментарии</h2>
+    </div>
+
+    {% if can_post_wall %}
+    <form method="post" action="{% url 'mfs:wall_post' wall_owner.user.username %}" class="review-form wall-form">
+        {% csrf_token %}
+        <textarea name="text" rows="2" maxlength="150" required aria-label="Текст комментария"
+                  placeholder="{% if wall_owner.user_id == user.pk %}Напишите что-нибудь в своём профиле{% else %}Напишите что-нибудь {{ wall_owner.user.username }}{% endif %}"></textarea>
+        <button type="submit" class="buy-button">Опубликовать</button>
+    </form>
+    {% endif %}
+
+    <div class="reviews">
+        {% for comment in wall_comments %}
+            <div class="review wall-post">
+                <a href="{% url 'mfs:user_profile' comment.author.username %}" class="review-avatar" tabindex="-1" aria-hidden="true">
+                    {% if comment.author.profile.avatar %}
+                        <img src="{{ comment.author.profile.avatar.url }}" alt="" data-letter="{{ comment.author.username|first|upper }}" loading="lazy" decoding="async">
+                    {% else %}
+                        <span>{{ comment.author.username|first|upper }}</span>
+                    {% endif %}
+                </a>
+                <div class="review-body">
+                    <div class="review-header">
+                        <a href="{% url 'mfs:user_profile' comment.author.username %}" class="review-author">{{ comment.author.username }}</a>
+                        {% if comment.author_id == user.pk or wall_owner.user_id == user.pk or user.is_staff %}
+                        <form method="post" action="{% url 'mfs:wall_delete' comment.pk %}" class="wall-delete-form">
+                            {% csrf_token %}
+                            <button type="submit" class="fav-remove wall-delete" title="Удалить комментарий" aria-label="Удалить комментарий">&times;</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    <p class="profile-status">{{ comment.text }}</p>
+                    <span class="release-date">{{ comment.created_at|date:"d b. Yг., H:i" }}</span>
+                </div>
+            </div>
+        {% empty %}
+            {% if can_post_wall %}
+                {% include 'store/_empty_state.html' with icon='chat' compact=True title='Комментариев пока нет' text='Оставьте первый комментарий.' %}
+            {% else %}
+                {% include 'store/_empty_state.html' with icon='chat' compact=True title='Комментариев пока нет' text='Оставлять комментарии могут друзья пользователя.' %}
+            {% endif %}
+        {% endfor %}
+    </div>
+</section>

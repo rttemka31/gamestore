@@ -31,8 +31,20 @@ class Collection(models.Model):
 
 
 # 2. ИГРЫ И МЕДИА
+class SensitiveContent(models.TextChoices):
+    """Пометка скриншота или трейлера, который может быть неприятен: на сайте он размыт,
+    пока посетитель сам не нажмёт «Показать»."""
+    NONE = '', 'Нет'
+    VIOLENCE = 'violence', 'Жестокость'
+    NUDITY = 'nudity', 'Нагота'
+
+
 class BaseMediaProduct(models.Model):
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    # SET_NULL, а не CASCADE: удаление аккаунта автора не должно стирать игру из магазина
+    # и из библиотек всех, кто её купил
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Автор",
+    )
     # Длины ограничены, чтобы название и описание помещались в карточки и страницы игры
     title = models.CharField(max_length=60, verbose_name="Название", help_text="До 60 символов.")
     description = models.TextField(
@@ -46,8 +58,17 @@ class BaseMediaProduct(models.Model):
     cover = models.ImageField(upload_to='covers/', verbose_name="Обложка", blank=True, null=True)
     cover_hd = models.ImageField(upload_to='covers_hd/', verbose_name="HD Обложка", blank=True, null=True)
     trailer_file = models.FileField(upload_to='trailers/', blank=True, null=True, verbose_name="Файл трейлера")
+    trailer_sensitive = models.CharField(
+        max_length=10, choices=SensitiveContent.choices, default=SensitiveContent.NONE, blank=True,
+        verbose_name="Неприятный контент в трейлере",
+        help_text="Трейлер будет размыт, пока посетитель сам не нажмёт «Показать».",
+    )
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена")
     discount = models.IntegerField(default=0, verbose_name="Скидка (%)")
+    discount_until = models.DateTimeField(
+        null=True, blank=True, verbose_name="Скидка до",
+        help_text="Пусто — скидка без срока. Когда срок пройдёт, скидка снимется сама.",
+    )
     release_date = models.DateField(verbose_name="Дата выхода", default=timezone.now)
 
     @property
@@ -65,7 +86,21 @@ class BaseMediaProduct(models.Model):
 
 
 class Game(BaseMediaProduct):
+    class AgeRating(models.TextChoices):
+        NONE = '', 'Не указан'
+        AGE_0 = '0+', '0+'
+        AGE_3 = '3+', '3+'
+        AGE_7 = '7+', '7+'
+        AGE_12 = '12+', '12+'
+        AGE_16 = '16+', '16+'
+        AGE_18 = '18+', '18+'
+
     genres = models.ManyToManyField(Genre, related_name='games', verbose_name="Жанры", blank=True)
+    # Показывается справа от названия на странице игры
+    age_rating = models.CharField(
+        max_length=3, choices=AgeRating.choices, default=AgeRating.NONE, blank=True,
+        verbose_name="Возрастной рейтинг",
+    )
     collections = models.ManyToManyField(Collection, related_name='game_products', verbose_name="Подборки", blank=True)
     is_game_of_the_week = models.BooleanField(default=False, verbose_name="Игра недели")
     is_not_on_steam = models.BooleanField(default=False, verbose_name="Нет в Steam")
@@ -100,6 +135,10 @@ class Game(BaseMediaProduct):
 class Screenshot(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='screenshots')
     image = models.ImageField(upload_to='screenshots/', max_length=250)
+    sensitive = models.CharField(
+        max_length=10, choices=SensitiveContent.choices, default=SensitiveContent.NONE, blank=True,
+        verbose_name="Неприятный контент",
+    )
 
     def __str__(self):
         return f"Скриншот для {self.game.title}"
@@ -109,6 +148,28 @@ class Dlc(BaseMediaProduct):
     class Meta:
         verbose_name = "DLC"
         verbose_name_plural = "DLC"
+
+
+def expire_discounts(now=None):
+    """Снимает скидки, у которых прошёл срок «Скидка до». Обновляет базу, а не только показ:
+    сортировка и фильтр по цене в каталоге считают цену запросом по полю discount."""
+    now = now or timezone.now()
+    for model in (Game, Dlc):
+        model.objects.filter(discount_until__lte=now).update(discount=0, discount_until=None)
+
+
+class DiscountExpiryMiddleware:
+    """Проверяет сроки скидок не чаще раза в минуту, чтобы не тратить запрос на каждую страницу."""
+    CACHE_KEY = 'discounts-checked'
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        from django.core.cache import cache
+        if cache.add(self.CACHE_KEY, True, 60):
+            expire_discounts()
+        return self.get_response(request)
 
 
 # 3. ПРОФИЛЬ И СИГНАЛЫ
@@ -130,8 +191,22 @@ class Profile(models.Model):
     reduce_motion = models.BooleanField(default=False)
     show_hints = models.BooleanField(default=True)  # значки «?» с пояснениями на сайте
 
+    class Design(models.TextChoices):
+        DEFAULT = 'default', 'Обычный'
+        GLASS = 'glass', 'Liquid Glass'
+
+    # Дизайн сайта: обычный или «стеклянный» (демо). Включается атрибутом data-design на <html>
+    design = models.CharField(max_length=10, choices=Design.choices, default=Design.DEFAULT)
+
     hide_owned_in_catalog = models.BooleanField(default=False)
     default_catalog_sort = models.CharField(max_length=20, default='new')
+
+    class GenreSort(models.TextChoices):
+        POPULAR = 'popular', 'По популярности'
+        NAME = 'name', 'По алфавиту'
+
+    # Порядок жанров в фильтре каталога: сначала жанры с большим числом игр или по алфавиту
+    genre_sort = models.CharField(max_length=10, choices=GenreSort.choices, default=GenreSort.POPULAR)
 
     class Visibility(models.TextChoices):
         EVERYONE = 'everyone', 'Все'
@@ -177,6 +252,8 @@ class Review(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # Время в игре на момент отзыва (или его правки); пусто у отзывов, написанных до появления поля
+    playtime_seconds = models.PositiveIntegerField(null=True, blank=True, verbose_name="Время в игре на момент отзыва")
 
     class Meta:
         ordering = ['-created_at']
@@ -186,6 +263,18 @@ class Review(models.Model):
 
     def __str__(self):
         return f'{self.user} → {self.game} ({self.rating}★)'
+
+
+class ReviewVote(models.Model):
+    """Отметка «Полезно» на чужом отзыве."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='review_votes')
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='votes')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'review'], name='one_vote_per_user_review'),
+        ]
 
 
 class Wishlist(models.Model):
@@ -216,10 +305,16 @@ class Cart(models.Model):
 
 
 class ProfileComment(models.Model):
+    """Запись на стене профиля. Писать могут владелец и его друзья."""
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField(max_length=150)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Запись на стене'
+        verbose_name_plural = 'Записи на стенах'
+        ordering = ['-created_at', '-pk']
 
 
 class Message(models.Model):
@@ -277,6 +372,17 @@ class News(models.Model):
         return reverse('mfs:news_detail', args=[self.pk])
 
 
+class NewsLike(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='news_likes')
+    news = models.ForeignKey(News, on_delete=models.CASCADE, related_name='likes')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'news'], name='one_like_per_user_news'),
+        ]
+
+
 class UserLibrary(models.Model):
     # ИСПРАВЛЕНО: Заменено User на settings.AUTH_USER_MODEL
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='library')
@@ -286,6 +392,12 @@ class UserLibrary(models.Model):
     playtime_seconds = models.PositiveIntegerField(default=0, verbose_name="Время в игре (секунд)")
     # Начало текущего сеанса; пусто, пока игра не запущена
     session_started_at = models.DateTimeField(null=True, blank=True, verbose_name="Запущена в")
+    # Игру купили или подарили, но ещё не открывали в библиотеке — её считает счётчик у «Библиотеки»
+    is_new = models.BooleanField(default=True, verbose_name="Новая игра")
+    # Сколько заплатили (со скидкой) — для статистики продаж; пусто у покупок до появления поля
+    price_paid = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Цена покупки",
+    )
 
     class Meta:
         verbose_name = 'Игра пользователя'
@@ -296,3 +408,28 @@ class UserLibrary(models.Model):
 
     def __str__(self):
         return f"{self.user.username} — {self.game.title}"
+
+class Gift(models.Model):
+    """Игра, подаренная другу: получатель видит в библиотеке, от кого она."""
+    # SET_NULL: удаление аккаунта дарителя не должно стирать запись о подарке у получателя
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='gifts_sent', verbose_name="От кого",
+    )
+    receiver = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='gifts_received', verbose_name="Кому",
+    )
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='gifts', verbose_name="Игра")
+    message = models.CharField(max_length=200, blank=True, verbose_name="Сообщение")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Подарено")
+    # Получатель ещё не видел уведомление о подарке
+    seen = models.BooleanField(default=False, verbose_name="Просмотрен")
+
+    class Meta:
+        verbose_name = 'Подарок'
+        verbose_name_plural = 'Подарки'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        sender = self.sender.username if self.sender else 'удалённый пользователь'
+        return f'{sender} → {self.receiver.username}: {self.game.title}'

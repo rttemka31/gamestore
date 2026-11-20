@@ -1,12 +1,16 @@
 """Вход, регистрация, свой профиль, настройки и экспорт данных."""
 import re
 
+from allauth.account.models import EmailAddress
 from allauth.socialaccount.adapter import get_adapter as get_social_adapter
+from allauth.socialaccount.models import SocialAccount
 from django import forms
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.conf import settings as django_settings
+from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, SetPasswordForm, UserCreationForm
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
@@ -15,14 +19,18 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
 
 from ..models import Friendship, Game, News, Profile, Review, UserLibrary
 from ..security import (
-    LOCK_SECONDS, login_locked, password_check_locked, record_password_check_failure,
-    record_registration, registration_limited,
+    LOCK_SECONDS, login_locked, password_check_locked, password_reset_limited, record_password_check_failure,
+    record_password_reset, record_registration, registration_limited,
 )
 from ..sessions import end_device_session, end_other_sessions, list_devices
-from .common import MAX_FAVORITES, _favorites, _library_stats, _safe_url, _user_game_state, _wishlist_games
+from .common import (
+    MAX_FAVORITES, _favorites, _library_stats, _safe_url, _user_game_state, _wall_context, _wishlist_games,
+)
 from .store import CATALOG_SORTS
 
 
@@ -84,6 +92,13 @@ def _account_error(user, username, email):
             validate_email(email)
         except ValidationError:
             return 'Укажите корректный email.'
+        # Адрес занят, если он указан в профиле другого пользователя или пришёл к нему из соцсети
+        taken = (
+            get_user_model().objects.filter(email__iexact=email).exclude(pk=user.pk).exists()
+            or EmailAddress.objects.filter(email__iexact=email).exclude(user=user).exists()
+        )
+        if taken:
+            return 'Эта почта уже используется другим аккаунтом.'
     return None
 
 
@@ -116,6 +131,9 @@ def settings_view(request):
             for field in ('avatar', 'banner'):
                 if field in request.FILES:
                     setattr(profile, field, request.FILES[field])
+            # «Удалить аватарку»: старый файл стирает сигнал при сохранении профиля
+            if request.POST.get('avatar_clear') and 'avatar' not in request.FILES:
+                profile.avatar = None
 
             profile.save()
             return JsonResponse({'status': 'success'})
@@ -132,6 +150,8 @@ def settings_view(request):
             profile.radius_size = _step(request.POST.get('radius_size'))
             profile.reduce_motion = 'reduce_motion' in request.POST
             profile.show_hints = 'show_hints' in request.POST
+            # Тумблер дизайна: включён — «стекло» (демо), выключен — обычный дизайн
+            profile.design = Profile.Design.GLASS if 'liquid_glass' in request.POST else Profile.Design.DEFAULT
             profile.save()
             return JsonResponse({'status': 'success'})
 
@@ -141,6 +161,9 @@ def settings_view(request):
             sort = request.POST.get('default_catalog_sort')
             if sort in CATALOG_SORTS:
                 profile.default_catalog_sort = sort
+            genre_sort = request.POST.get('genre_sort')
+            if genre_sort in Profile.GenreSort.values:
+                profile.genre_sort = genre_sort
             profile.save()
             return JsonResponse({'status': 'success'})
 
@@ -220,13 +243,38 @@ def settings_view(request):
     return render(request, 'users/settings.html', {
         'profile': profile,
         'sort_options': [(key, value[0]) for key, value in CATALOG_SORTS.items()],
+        'genre_sort_options': Profile.GenreSort.choices,
         'devices': list_devices(user, request.session.session_key),
+        'social_list': _social_list(request, user),
         'site_version': _site_version(),
         'site_stats': {
             'games': Game.objects.count(),
             'players': get_user_model().objects.filter(is_active=True).count(),
         },
     })
+
+
+SOCIAL_NAMES = (('discord', 'Discord'), ('google', 'Google'))
+
+
+def _social_list(request, user):
+    """Соцсети для блока «Вход через соцсети»: привязана ли каждая и под каким именем."""
+    accounts = {account.provider: account for account in SocialAccount.objects.filter(user=user)}
+    available = _social_providers(request)
+    result = []
+    for provider, name in SOCIAL_NAMES:
+        account = accounts.get(provider)
+        if account is None and provider not in available:
+            continue
+        label = ''
+        if account is not None:
+            try:
+                label = account.get_provider_account().to_str()
+            except Exception:  # провайдер выключен в настройках — имя аккаунта узнать не у кого
+                label = ''
+        result.append({'id': provider, 'name': name, 'icon': f'img/icons/{provider}.png',
+                       'account': account, 'label': label})
+    return result
 
 
 def _site_version():
@@ -313,6 +361,72 @@ def login_view(request):
     return render(request, 'users/login.html', {'form': form, 'social_providers': _social_providers(request)})
 
 
+def password_reset(request):
+    """«Забыли пароль?»: письмо со ссылкой на смену пароля на почту из настроек профиля.
+
+    Ответ одинаковый, есть такая почта на сайте или нет: иначе по форме можно было бы
+    проверять, кто здесь зарегистрирован.
+    """
+    if request.user.is_authenticated:
+        return redirect('mfs:settings')
+
+    email_enabled = django_settings.EMAIL_ENABLED
+    sent = False
+    form = PasswordResetForm(request.POST or None)
+    if request.method == 'POST' and email_enabled:
+        if password_reset_limited(request):
+            messages.error(request, 'Слишком много запросов сброса пароля. Попробуйте через час.')
+        elif form.is_valid():
+            record_password_reset(request)
+            form.save(
+                request=request,
+                use_https=request.is_secure(),
+                # адрес сайта — тот, по которому открыли страницу (туннель меняет его), а не запись Site в базе
+                domain_override=request.get_host(),
+                subject_template_name='users/password_reset_subject.txt',
+                email_template_name='users/password_reset_email.txt',
+            )
+            sent = True
+
+    return render(request, 'users/password_reset.html', {
+        'form': form,
+        'sent': sent,
+        'email_enabled': email_enabled,
+        'social_providers': _social_providers(request),
+    })
+
+
+def password_reset_confirm(request, uidb64, token):
+    """Новый пароль по ссылке из письма. Ссылка одноразовая: после смены пароля токен перестаёт подходить."""
+    try:
+        user = get_user_model().objects.get(pk=force_str(urlsafe_base64_decode(uidb64)))
+    except (ValueError, OverflowError, get_user_model().DoesNotExist):
+        user = None
+
+    if user is None or not default_token_generator.check_token(user, token):
+        return render(request, 'users/password_reset_confirm.html', {'invalid': True})
+
+    form = SetPasswordForm(user, request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Пароль изменён. Войдите с новым паролем.')
+        return redirect('mfs:login')
+
+    return render(request, 'users/password_reset_confirm.html', {'form': form, 'reset_user': user})
+
+
+def allauth_page_redirect(request, page=''):
+    """Встроенные страницы allauth (/accounts/signup/, /accounts/password/reset/ и другие) закрыты.
+
+    У сайта свои вход и регистрация с ограничением попыток, а страницы allauth их обходили;
+    сброс пароля к тому же падал с ошибкой — почта на сайте не настроена. От allauth остаётся
+    только вход через соцсети, поэтому все прочие адреса ведут на страницы сайта.
+    """
+    if request.user.is_authenticated:
+        return redirect('mfs:settings')
+    return redirect('mfs:register' if page.startswith('signup') else 'mfs:login')
+
+
 def logout_view(request):
     # Только POST: иначе разлогинить можно обычной ссылкой или картинкой с чужого сайта
     if request.method == 'POST':
@@ -373,6 +487,11 @@ def profile(request):
                 setattr(profile, field, request.FILES[field])
                 changed = True
 
+        # Аватарку удалили кнопкой в режиме правки; новая выбранная аватарка важнее
+        if request.POST.get('avatar_clear') and 'avatar' not in request.FILES and profile.avatar:
+            profile.avatar = None
+            changed = True
+
         if changed:
             profile.save()
 
@@ -412,6 +531,7 @@ def profile(request):
         'friends': friends,
         'incoming_requests': incoming,
         'outgoing_requests': outgoing,
+        **_wall_context(profile, True),
     }
 
     return render(request, 'users/profile.html', context)

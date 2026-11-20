@@ -49,7 +49,7 @@
         btn.className = 'season-toggle';
         btn.title = 'Хэллоуин-тема';
         btn.setAttribute('aria-label', 'Хэллоуин-тема');
-        btn.innerHTML = '<span aria-hidden="true">🎃</span><span class="season-switch" aria-hidden="true"></span>';
+        btn.innerHTML = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#ff7a1a" d="M12 7.2c-1.1-.6-2.5-.8-3.8-.5C5 7.4 3 10.2 3 13.6S5 19.9 8.2 20.6c1.4.3 2.7 0 3.8-.6 1.1.6 2.4.9 3.8.6C19 19.9 21 17 21 13.6s-2-6.2-5.2-6.9c-1.3-.3-2.7-.1-3.8.5Z"/><path fill="none" stroke="#b34700" stroke-width="1.2" stroke-linecap="round" d="M12 8v11.5M8.6 7.6c-1.6 1.6-2 9.4 0 12.4M15.4 7.6c1.6 1.6 2 9.4 0 12.4"/><path fill="#4caf50" d="M11.3 7.4c0-2 .6-3.5 2-4.5l1.1 1c-1.1.9-1.5 2-1.5 3.5Z"/></svg><span class="season-switch" aria-hidden="true"></span>';
 
         function sync() { btn.setAttribute('aria-pressed', isOn() ? 'true' : 'false'); }
         btn.addEventListener('click', function () {

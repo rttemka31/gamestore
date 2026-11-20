@@ -1,0 +1,96 @@
+{% extends "admin/base_site.html" %}
+{% load store_extras %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Цвета — из темы админки (admin_custom.css), как у остальных страниц */
+    .stats-periods { display: flex; gap: 8px; margin: 0 0 20px; }
+    .stats-periods a { padding: 6px 12px; border: 1px solid var(--admin-border); border-radius: 6px; }
+    .stats-periods a.active { color: #fff !important; background: var(--admin-accent); border-color: var(--admin-accent); }
+    .stats-totals { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stats-total { padding: 14px; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 8px; }
+    .stats-total strong { display: block; font-size: 24px; line-height: 1.2; color: var(--admin-text); }
+    .stats-total span { color: var(--admin-text-muted); }
+    .stats-block { margin-bottom: 28px; }
+    .stats-block h2 { margin: 0 0 10px; color: var(--admin-text); }
+    .stats-chart { display: flex; align-items: flex-end; gap: 2px; height: 160px; padding: 8px; background: var(--admin-surface);
+        border: 1px solid var(--admin-border); border-radius: 8px; }
+    .stats-bar { flex: 1; min-width: 2px; height: 100%; display: flex; align-items: flex-end; }
+    .stats-bar span { display: block; width: 100%; min-height: 1px; background: var(--admin-accent); border-radius: 3px 3px 0 0; }
+    .stats-bar.empty span { background: var(--admin-border); }
+    .stats-axis { display: flex; justify-content: space-between; margin-top: 4px; color: var(--admin-text-muted); font-size: 12px; }
+    .stats-note { color: var(--admin-text-muted); }
+    .stats-table, .stats-table tr, .stats-table td { background: var(--admin-surface) !important; }
+    .stats-table { border: 1px solid var(--admin-border); }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs"><a href="{% url 'admin:index' %}">Начало</a> › Статистика</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <nav class="stats-periods" aria-label="Период">
+        {% for period in periods %}
+            <a href="?days={{ period }}" class="{% if period == days %}active{% endif %}">{{ period }} {{ period|ru_plural:"день,дня,дней" }}</a>
+        {% endfor %}
+    </nav>
+
+    <div class="stats-totals">
+        <div class="stats-total"><strong>{{ totals.purchases }}</strong><span>игр получено (покупки, подарки, бесплатные)</span></div>
+        <div class="stats-total"><strong>{{ totals.paid }}</strong><span>платных покупок</span></div>
+        <div class="stats-total"><strong>{{ totals.revenue|floatformat:0 }}₴</strong><span>выручка</span></div>
+        <div class="stats-total"><strong>{{ totals.users }}</strong><span>новых пользователей</span></div>
+        <div class="stats-total"><strong>{{ totals.reviews }}</strong><span>новых отзывов</span></div>
+    </div>
+    {% if totals.unknown_price %}
+        <p class="stats-note">У {{ totals.unknown_price }} из полученных игр цена неизвестна: их купили до того, как сайт начал записывать цену покупки, поэтому в выручку они не входят.</p>
+    {% endif %}
+
+    <section class="stats-block">
+        <h2>Получено игр по дням</h2>
+        <div class="stats-chart">
+            {% for item in sales %}
+                <div class="stats-bar{% if not item.count %} empty{% endif %}" title="{{ item.day|date:'j E' }}: {{ item.count }} {{ item.count|ru_plural:'игра,игры,игр' }}, {{ item.revenue|floatformat:0 }}₴">
+                    <span style="height: {{ item.bar }}%"></span>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="stats-axis"><span>{{ sales.0.day|date:"j E" }}</span><span>сегодня</span></div>
+    </section>
+
+    <section class="stats-block">
+        <h2>Новые пользователи по дням</h2>
+        <div class="stats-chart">
+            {% for item in signups %}
+                <div class="stats-bar{% if not item.count %} empty{% endif %}" title="{{ item.day|date:'j E' }}: {{ item.count }}">
+                    <span style="height: {{ item.bar }}%"></span>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="stats-axis"><span>{{ signups.0.day|date:"j E" }}</span><span>сегодня</span></div>
+    </section>
+
+    <section class="stats-block">
+        <h2>Популярные игры</h2>
+        {% if top_games %}
+        <table class="stats-table">
+            <thead><tr><th>Игра</th><th>Получили</th><th>Выручка</th></tr></thead>
+            <tbody>
+                {% for game in top_games %}
+                <tr>
+                    <td><a href="{% url 'admin:mfs_game_change' game.game_id %}">{{ game.game__title }}</a></td>
+                    <td>{{ game.count }}</td>
+                    <td>{{ game.revenue|default:0|floatformat:0 }}₴</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <p class="stats-note">За этот период игр не получали.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

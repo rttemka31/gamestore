@@ -1,11 +1,32 @@
 """Общие константы и вспомогательные функции для всех разделов."""
-from django.db.models import Count, Sum
+from django.db.models import Count, Q, Sum
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from ..models import FavoriteGame, Game, Profile, UserLibrary
+from ..models import FavoriteGame, Friendship, Game, NewsLike, Profile, ProfileComment, UserLibrary
 
 
 MAX_FAVORITES = 6
+WALL_LIMIT = 30  # записей стены на странице профиля
+
+
+def _wall_context(owner, can_post):
+    """Последние записи на стене профиля owner и можно ли текущему пользователю писать на ней."""
+    comments = ProfileComment.objects.filter(profile=owner).select_related('author__profile')[:WALL_LIMIT]
+    return {'wall_comments': comments, 'wall_owner': owner, 'can_post_wall': can_post}
+
+
+def _with_likes(request, items):
+    """Проставляет новостям likes_count и liked (лайкнул ли текущий пользователь) — двумя запросами на все."""
+    items = list(items)
+    ids = [item.pk for item in items]
+    counts = dict(NewsLike.objects.filter(news_id__in=ids).values_list('news_id').annotate(Count('id')))
+    liked = set()
+    if request.user.is_authenticated:
+        liked = set(NewsLike.objects.filter(user=request.user, news_id__in=ids).values_list('news_id', flat=True))
+    for item in items:
+        item.likes_count = counts.get(item.pk, 0)
+        item.liked = item.pk in liked
+    return items
 
 
 def _is_ajax(request):
@@ -59,6 +80,14 @@ def _library_stats(user):
     # Часы с десятыми, как и время в отдельных играх: 12,6 ч, а не 12
     stats['total_hours'] = round((stats.pop('total_seconds') or 0) / 3600, 1)
     return stats
+
+
+def _friend_profiles(profile):
+    """Профили друзей (принятые заявки в обе стороны) вместе с пользователями, одним запросом."""
+    friendships = Friendship.objects.filter(
+        Q(sender=profile) | Q(receiver=profile), status=Friendship.Status.ACCEPTED,
+    ).select_related('sender__user', 'receiver__user')
+    return [f.receiver if f.sender_id == profile.pk else f.sender for f in friendships]
 
 
 def _my_profile(request):

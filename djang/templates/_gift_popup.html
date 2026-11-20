@@ -1,0 +1,54 @@
+{% load store_extras %}
+<!-- Окно «Вам подарили игру»: появляется на любой странице, пока получатель не закроет его -->
+<dialog class="gift-popup" id="giftPopup" aria-labelledby="giftPopupTitle" data-seen-url="{% url 'mfs:gifts_seen' %}" tabindex="-1">
+    <div class="gift-popup-icon" aria-hidden="true">
+        <svg class="heart-icon" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>
+    </div>
+    <h2 id="giftPopupTitle">{% if gifts|length > 1 %}Вам подарили игры!{% else %}Вам подарили игру!{% endif %}</h2>
+
+    <ul class="gift-popup-list">
+        {% for gift in gifts %}
+            <li class="gift-popup-item" data-gift-id="{{ gift.pk }}">
+                {% if gift.game.cover %}
+                    <a href="{% url 'mfs:library' %}?active={{ gift.game_id }}" class="gift-popup-cover-link" aria-label="Открыть «{{ gift.game.title }}» в библиотеке">
+                        <img src="{{ gift.game.cover|thumb:'480x240' }}" alt="" class="gift-popup-cover">
+                    </a>
+                {% endif %}
+                <div class="gift-popup-info">
+                    <span class="gift-popup-game">{{ gift.game.title }}</span>
+                    <span class="gift-popup-from">Подарок от {% if gift.sender %}<a href="{% url 'mfs:user_profile' gift.sender.username %}" class="detail-author-link">{{ gift.sender.username }}</a>{% else %}удалённого пользователя{% endif %}</span>
+                    {% if gift.message %}<p class="gift-popup-message">«{{ gift.message }}»</p>{% endif %}
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <div class="gift-actions">
+        <button type="button" class="buy-button btn-muted" data-gift-popup-close>Позже</button>
+        <a href="{% url 'mfs:library' %}?active={{ gifts.0.game_id }}" class="buy-button">Открыть в библиотеке</a>
+    </div>
+</dialog>
+<script>
+    (() => {
+        const popup = document.getElementById('giftPopup');
+        if (!popup || !popup.showModal) return;
+        let sent = false;
+        // Подарок отмечается просмотренным, когда окно закрыли любым способом или перешли в библиотеку
+        const markSeen = () => {
+            if (sent) return;
+            sent = true;
+            const body = new FormData();
+            popup.querySelectorAll('[data-gift-id]').forEach(item => body.append('ids', item.dataset.giftId));
+            fetch(popup.dataset.seenUrl, {
+                method: 'POST', body, keepalive: true,
+                headers: {'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content},
+            });
+        };
+        popup.addEventListener('close', markSeen);
+        popup.querySelectorAll('a').forEach(link => link.addEventListener('click', markSeen));
+        popup.querySelector('[data-gift-popup-close]').addEventListener('click', () => popup.close());
+        popup.addEventListener('click', e => { if (e.target === popup) popup.close(); });
+        popup.showModal();
+        popup.focus();  // иначе фокус встаёт на ник дарителя и вокруг него рисуется рамка
+    })();
+</script>

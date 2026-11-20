@@ -7,14 +7,15 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.defaultfilters import date as date_filter
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from ..models import FavoriteGame, Friendship, Game, News, Profile, Review, UserLibrary, Wishlist
+from ..models import FavoriteGame, Friendship, Game, Gift, News, Profile, Review, UserLibrary, Wishlist
 from ..templatetags.store_extras import playtime
-from .common import MAX_FAVORITES, _favorites, _is_ajax, _my_profile
+from .common import MAX_FAVORITES, _favorites, _is_ajax, _my_profile, _with_likes
 
 
 LIBRARY_NEWS_COUNT = 3
@@ -60,13 +61,15 @@ def _friends_by_game(request, games):
 @login_required
 def library(request):
     user_games = list(
-        request.user.purchased_games.prefetch_related('genres', 'screenshots').order_by('title')
+        request.user.purchased_games.select_related('author')
+        .prefetch_related('genres', 'screenshots').order_by('title')
     )
 
     now = timezone.now()
     entries = {entry.game_id: entry for entry in UserLibrary.objects.filter(user=request.user)}
     reviews = {review.game_id: review for review in Review.objects.filter(user=request.user)}
     news_by_game = _library_news(user_games)
+    _with_likes(request, [item for items in news_by_game.values() for item in items])
     friends_by_game = _friends_by_game(request, user_games)
 
     running = None
@@ -76,6 +79,12 @@ def library(request):
         elif entry.session_started_at:
             running = {'game_id': entry.game_id, 'seconds': int((now - entry.session_started_at).total_seconds())}
 
+    # Последний подарок на каждую игру — для строки «Подарок от» в панели игры.
+    # О новых подарках сообщает окно «Вам подарили игру» на любой странице (base.html)
+    gifts = {}
+    for gift in Gift.objects.filter(receiver=request.user).select_related('sender'):
+        gifts.setdefault(gift.game_id, gift)
+
     for g in user_games:
         entry = entries.get(g.id)
         g.user_last_played = entry.last_played if entry else None
@@ -84,12 +93,17 @@ def library(request):
         g.user_review = reviews.get(g.id)
         g.game_news = news_by_game.get(g.id, [])
         g.friends_with_game = friends_by_game.get(g.id, [])
+        g.user_gift = gifts.get(g.id)
+        g.user_is_new = entry.is_new if entry else False
 
+    # Без ?active открывается запущенная игра, иначе первая новая — её и хочется посмотреть
     active_id = request.GET.get('active')
     if active_id and active_id.isdigit():
         active_id = int(active_id)
+    elif running:
+        active_id = running['game_id']
     else:
-        active_id = running['game_id'] if running else None
+        active_id = next((g.id for g in user_games if g.user_is_new), None)
 
     context = {
         'games': user_games,
@@ -192,13 +206,14 @@ def launch_game(request, game_id):
         if entry.session_started_at is None:
             entry.session_started_at = now
         entry.last_played = now
-        entry.save(update_fields=['session_started_at', 'last_played'])
+        entry.is_new = False
+        entry.save(update_fields=['session_started_at', 'last_played', 'is_new'])
 
     if _is_ajax(request):
         return JsonResponse({
             'status': 'success',
             'game_id': game.id,
-            'last_played_display': timezone.localtime(now).strftime('%d.%m.%Y в %H:%M'),
+            'last_played_display': date_filter(timezone.localtime(now), 'd b. Yг.'),  # как в шаблонах: 05 ноя. 2024г.
             'session_seconds': int((now - entry.session_started_at).total_seconds()),
             'closed': closed,
         })
@@ -224,3 +239,14 @@ def stop_game(request, game_id):
         })
 
     return redirect(f"{reverse('mfs:library')}?active={game_id}")
+
+
+@login_required
+@require_POST
+def library_seen(request, game_id):
+    """Игру открыли в библиотеке: она больше не новая. Возвращает, сколько новых игр осталось."""
+    UserLibrary.objects.filter(user=request.user, game_id=game_id, is_new=True).update(is_new=False)
+    return JsonResponse({
+        'status': 'success',
+        'new_count': UserLibrary.objects.filter(user=request.user, is_new=True).count(),
+    })

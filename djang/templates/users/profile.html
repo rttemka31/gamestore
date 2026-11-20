@@ -37,7 +37,7 @@
  
                     <section class="profile-card" id="profileCard">
                         <div class="profile-banner" id="bannerPreview"{% if user.profile.banner %} style="background-image: url('{{ user.profile.banner.url }}');"{% endif %}>
-                            <label for="bannerInput" class="banner-overlay" id="bannerOverlay" style="display: none;">📷</label>
+                            <label for="bannerInput" class="banner-overlay" id="bannerOverlay" style="display: none;" aria-label="Сменить баннер">{% include 'store/_icon.html' with name='camera' %}</label>
                         </div>
                         <input type="file" name="banner" id="bannerInput" accept="image/*" style="display: none;">
  
@@ -54,9 +54,13 @@
                                 </div>
  
                                 <input type="file" name="avatar" id="avatarInput" accept="image/*" style="display: none;">
-                                <label for="avatarInput" class="avatar-overlay" id="avatarOverlay" style="display: none;">
-                                    📷
+                                <label for="avatarInput" class="avatar-overlay" id="avatarOverlay" style="display: none;" aria-label="Сменить аватарку">
+                                    {% include 'store/_icon.html' with name='camera' %}
                                 </label>
+                                <!-- Удалить аватарку: видна в режиме правки, если аватарка есть; удаляется при «Сохранить» -->
+                                <input type="hidden" name="avatar_clear" id="avatarClear" value="">
+                                <button type="button" class="avatar-remove" id="avatarRemove" data-letter="{{ user.username|first|upper }}"
+                                        title="Удалить аватарку" aria-label="Удалить аватарку" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
                             </div>
  
                             <div class="profile-info">
@@ -68,7 +72,7 @@
                                        maxlength="{{ max_username_length }}" autocomplete="username" aria-label="Имя пользователя" required hidden data-profile-edit>
                                 <p class="profile-status">
                                     {{ user|user_status }}
-                                    {% include 'store/_hint.html' with title="Роли на сайте" text="Роль показывает, кто человек на сайте.||{creator}Создатель — автор и владелец GameStore||{admin}Админ — добавляет игры и новости, следит за порядком||{user}Пользователь — игрок с библиотекой, друзьями и отзывами" %}
+                                    {% include 'store/_hint.html' with title="Роли на сайте" text="Роль показывает, кто человек на сайте.||{creator}Создатель — автор и владелец GameStore||{admin}Админ — добавляет игры и новости, следит за порядком||{developer}Разработчик — автор игр в магазине||{user}Пользователь — игрок с библиотекой, друзьями и отзывами" %}
                                 </p>
                                 <p class="profile-status" data-profile-view>
                                     {% if user.profile.bio and user.profile.bio != "None" %}
@@ -83,15 +87,15 @@
  
                             <!-- Блок с кнопками -->
                             <div class="profile-actions">
-                                <button type="button" id="editBtn" class="buy-button" style="background: var(--bg-card-hover);">
+                                <button type="button" id="editBtn" class="buy-button btn-muted">
                                     Редактировать профиль
                                 </button>
  
                                 <div id="editActions" style="display: none; gap: 10px;">
-                                    <button type="submit" class="buy-button" style="background: #28a745; color: white;">
+                                    <button type="submit" class="buy-button btn-success">
                                         Сохранить
                                     </button>
-                                    <button type="button" id="cancelBtn" class="buy-button" style="background: #e74c3c; color: white;">
+                                    <button type="button" id="cancelBtn" class="buy-button btn-danger-solid">
                                         Отмена
                                     </button>
                                 </div>
@@ -110,7 +114,7 @@
                                 <span>Часов</span>
                             </div>
                             <div class="profile-stat">
-                                <strong>{{ user.date_joined|date:"b. Yг."  }}</strong>
+                                <strong>{{ user.date_joined|date:"d b. Yг." }}</strong>
                                 <span>Участник с</span>
                             </div>
                         </div>
@@ -156,7 +160,7 @@
                                         {% if item.game.cover %}
                                             <img src="{{ item.game.cover.url }}" alt="{{ item.game.title }}" loading="lazy" decoding="async">
                                         {% else %}
-                                            <span>🎮</span>
+                                            <span>{% include 'store/_icon.html' with name='gamepad' %}</span>
                                         {% endif %}
                                     </div>
                                 
@@ -172,7 +176,8 @@
                                 </div>
                             </a>
                         {% empty %}
-                            <p class="empty-activity">Вы еще не запускали ни одной игры</p>
+                            {% url 'mfs:library' as library_url %}
+                            {% include 'store/_empty_state.html' with icon='gamepad' compact=True title='Вы ещё не запускали игры' text='Запустите игру в библиотеке — она появится здесь.' link_url=library_url link_text='Открыть библиотеку' %}
                         {% endfor %}
                     </div>
                 </section>
@@ -206,9 +211,12 @@
                             {% endfor %}
                         </div>
                     {% else %}
-                        <p class="empty-activity">В вашей библиотеке пока нет игр.</p>
+                        {% url 'mfs:index' as store_url %}
+                        {% include 'store/_empty_state.html' with icon='gamepad' compact=True title='В вашей библиотеке пока нет игр' text='Добавьте игру из магазина — бесплатные можно получить сразу.' link_url=store_url link_text='Перейти в магазин' %}
                     {% endif %}
                 </section>
+
+                {% include 'users/_wall.html' %}
             </div>
             <!-- ================= /ПРОФИЛЬ ================= -->
  
@@ -227,11 +235,7 @@
                             {% endfor %}
                         </div>
                     {% else %}
-                        <div class="profile-empty">
-                            <div class="profile-empty-icon">{% include 'store/_heart_icon.html' with heart_class='heart-icon-filled' %}</div>
-                            <h3>Список желаемого пуст</h3>
-                            <p>Нажмите на сердечко на карточке игры, чтобы сохранить её здесь.</p>
-                        </div>
+                        {% include 'store/_empty_state.html' with icon='heart' title='Список желаемого пуст' text='Нажмите на сердечко на карточке игры, чтобы сохранить её здесь.' %}
                     {% endif %}
                 </section>
             </div>
@@ -248,7 +252,7 @@
                             <input type="search" id="friendSearch" placeholder="Введите имя пользователя" aria-label="Имя пользователя" autocomplete="off">
                             <button type="button" class="clear-search-btn" aria-label="Очистить поиск" hidden>&times;</button>
                             <button type="button" data-search-trigger aria-label="Найти">
-                                <img src="{% static 'img/icons/search.png' %}" width="22" height="22" alt="">
+                                <img src="{% static 'img/icons/search.png' %}" class="search-btn-icon" width="22" height="22" alt="">
                             </button>
                         </div>
                         <div id="friendSearchResults" class="search-results" style="display: none;"></div>
@@ -267,13 +271,13 @@
                                     {% else %}<span>{{ f.sender.user.username|first|upper }}</span>{% endif %}
                                 </div>
                                 <div class="activity-info">
-                                    <h3><a href="{% url 'mfs:user_profile' f.sender.user.username %}" style="color:inherit;text-decoration:none;">{{ f.sender.user.username }}</a></h3>
+                                    <h3>{{ f.sender.user.username }}</h3>
                                     <p class="profile-status">{{ f.sender.user|user_status }}</p>
                                 </div>
                                 <div class="activity-time">
-                                    <button type="button" class="buy-button" style="background:#28a745;color:#fff;"
+                                    <button type="button" class="buy-button btn-success"
                                             data-friend-action="respond" data-id="{{ f.pk }}" data-value="accept">Принять</button>
-                                    <button type="button" class="buy-button" style="background:#e74c3c;color:#fff;"
+                                    <button type="button" class="buy-button btn-danger-solid"
                                             data-friend-action="respond" data-id="{{ f.pk }}" data-value="reject">Отклонить</button>
                                 </div>
                             </div>
@@ -294,17 +298,14 @@
                                     {% else %}<span>{{ item.profile.user.username|first|upper }}</span>{% endif %}
                                 </div>
                                 <div class="activity-info">
-                                    <h3><a href="{% url 'mfs:user_profile' item.profile.user.username %}" style="color:inherit;text-decoration:none;">{{ item.profile.user.username }}</a></h3>
+                                    <h3>{{ item.profile.user.username }}</h3>
                                     <p class="profile-status">{{ item.profile.user|user_status }}</p>
                                 </div>
-                                <div class="activity-time">
-                                    <button type="button" class="buy-button" style="background: var(--bg-card-hover);"
-                                            data-friend-action="remove" data-id="{{ item.id }}">Удалить</button>
-                                </div>
+                                <!-- Удалить из друзей — в профиле друга (кнопка «Вы друзья»), чтобы не нажать случайно -->
                             </div>
                         </a>
                         {% empty %}
-                        <p class="empty-activity">Пока нет друзей. Найдите кого-нибудь через поиск выше.</p>
+                        {% include 'store/_empty_state.html' with icon='users' compact=True title='Пока нет друзей' text='Найдите кого-нибудь через поиск выше и отправьте заявку.' %}
                         {% endfor %}
                     </div>
                 </section>
@@ -315,7 +316,7 @@
                     <div class="activity-list">
                         {% for f in outgoing_requests %}
                         <a href="{% url 'mfs:user_profile' f.receiver.user.username %}" class="activity-item-link">
-                            <div class="activity-item" href="{% url 'mfs:user_profile' f.receiver.user.username %}">
+                            <div class="activity-item">
                                 <div class="activity-cover-2">
                                     {% if f.receiver.avatar %}<img src="{{ f.receiver.avatar.url }}" alt="" data-letter="{{ f.receiver.user.username|first|upper }}">
                                     {% else %}
@@ -323,11 +324,11 @@
                                     {% endif %}
                                 </div>
                                 <div class="activity-info">
-                                    <h3><a style="color:inherit;text-decoration:none;">{{ f.receiver.user.username }}</a></h3>
+                                    <h3>{{ f.receiver.user.username }}</h3>
                                     <p class="profile-status">{{ f.receiver.user|user_status }}</p>
                                 </div>
                                 <div class="activity-time">
-                                    <button type="button" class="buy-button" style="background: var(--bg-card-hover);"
+                                    <button type="button" class="buy-button btn-muted"
                                             data-friend-action="remove" data-id="{{ f.pk }}">Отменить</button>
                                 </div>
                             </div>
@@ -346,7 +347,7 @@
 {% endblock %}
 {% block extra_js %}
 <script src="{% static 'js/avatar-crop.js' %}?v=1"></script>
-<script src="{% static 'js/favorites.js' %}?v=1"></script>
+<script src="{% static 'js/favorites.js' %}?v=2"></script>
 <script>
 (function () {
     const EXPORT_WIDTH = 1200; // ширина готовой обложки в пикселях
@@ -545,6 +546,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ДОБАВИТЬ: баннер
     const bannerOverlay = document.getElementById("bannerOverlay");
+    const profileCard = document.getElementById("profileCard");
+    const avatarRemove = document.getElementById("avatarRemove");
+    const avatarClear = document.getElementById("avatarClear");
+
+    // Кнопка «Удалить аватарку» — только в режиме правки и только когда аватарка есть
+    function syncAvatarRemove() {
+        avatarRemove.hidden = !profileCard.classList.contains("is-editing") || !avatarPreview.querySelector("img");
+    }
+
+    avatarRemove.addEventListener("click", () => {
+        avatarClear.value = "1";
+        avatarInput.value = "";
+        const letter = document.createElement("span");
+        letter.id = "avatarLetter";
+        letter.textContent = avatarRemove.dataset.letter;
+        avatarPreview.replaceChildren(letter);
+        syncAvatarRemove();
+    });
     const bannerInput = document.getElementById("bannerInput");
     const bannerPreview = document.getElementById("bannerPreview");
 
@@ -569,6 +588,8 @@ document.addEventListener("DOMContentLoaded", () => {
         editActions.style.display = "flex";
         avatarOverlay.style.display = "flex";
         bannerOverlay.style.display = "flex"; // ДОБАВИТЬ
+        profileCard.classList.add("is-editing");  // фотоаппараты на аватарке и баннере видны сразу
+        syncAvatarRemove();
         toggleTextEditing(true);
         document.querySelector(".profile-edit-name")?.focus();
     });
@@ -580,9 +601,12 @@ document.addEventListener("DOMContentLoaded", () => {
         editActions.style.display = "none";
         avatarOverlay.style.display = "none";
         bannerOverlay.style.display = "none"; // ДОБАВИТЬ
+        profileCard.classList.remove("is-editing");
 
         avatarPreview.innerHTML = originalAvatarHTML;
         avatarInput.value = "";
+        avatarClear.value = "";
+        syncAvatarRemove();
 
         // ДОБАВИТЬ: сброс баннера
         bannerPreview.style.backgroundImage = originalBannerBg;
@@ -602,59 +626,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 const img = new Image();
                 img.id = 'avatarImg';
                 img.alt = '';
-                img.onload = () => window.__setAvatarBorder?.(img);
                 img.src = url;
                 avatarPreview.replaceChildren(img);
+                avatarClear.value = "";  // выбрали новую — удалять больше нечего
+                syncAvatarRemove();
             },
             onCancel: () => { avatarInput.value = ''; },
         });
     });
-});
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const avatarPreview = document.getElementById("avatarPreview");
-    const avatarInput = document.getElementById("avatarInput");
-
-    // Функция вычисления среднего цвета картинки с затемнением
-    function setBorderFromImage(imgElement) {
-        if (!imgElement) return;
-
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        canvas.width = 1;
-        canvas.height = 1;
-
-        try {
-            ctx.drawImage(imgElement, 0, 0, 1, 1);
-            const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-
-            // Коэффициент затемнения: 0.6 = на 40% темнее
-            const factor = 0.6;
-
-            const darkR = Math.floor(r * factor);
-            const darkG = Math.floor(g * factor);
-            const darkB = Math.floor(b * factor);
-
-            // Устанавливаем затемненный цвет границы
-            avatarPreview.style.borderColor = `rgb(${darkR}, ${darkG}, ${darkB})`;
-        } catch (e) {
-            console.warn("Не удалось получить цвет аватарки:", e);
-        }
-    }
-
-    // 1. При загрузке страницы берем цвет текущего аватара
-    const currentImg = avatarPreview ? avatarPreview.querySelector("img") : null;
-    if (currentImg) {
-        if (currentImg.complete) {
-            setBorderFromImage(currentImg);
-        } else {
-            currentImg.addEventListener("load", () => setBorderFromImage(currentImg));
-        }
-    }
-
-    // 2. Для новой аватарки цвет рамки пересчитывает обработчик кропа
-    window.__setAvatarBorder = setBorderFromImage;
 });
 </script>
 <script>

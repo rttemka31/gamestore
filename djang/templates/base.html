@@ -1,15 +1,26 @@
 <!DOCTYPE html>
-{% load static %}
-<html lang="ru"{% if user.is_authenticated %} data-font="{{ user.profile.font_size }}" data-radius="{{ user.profile.radius_size }}"{% if user.profile.reduce_motion %} data-motion="reduced"{% endif %}{% if not user.profile.show_hints %} data-hints="off"{% endif %}{% if user.profile.accent_color %} data-accent="custom"{% endif %}{% endif %}>
+{% load static store_extras %}
+<html lang="ru"{% if user.is_authenticated %} data-font="{{ user.profile.font_size }}" data-radius="{{ user.profile.radius_size }}"{% if user.profile.reduce_motion %} data-motion="reduced"{% endif %}{% if not user.profile.show_hints %} data-hints="off"{% endif %}{% if user.profile.accent_color %} data-accent="custom"{% endif %}{% if user.profile.design == 'glass' %} data-design="glass"{% endif %}{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}GameStore{% endblock %}</title>
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=66">
-    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=9">
-    <script src="{% static 'js/event/halloween.js' %}?v=2"></script>
+    {# Превью ссылки в Discord, Telegram и мессенджерах. Страницы игры и новости переопределяют блоки og_* #}
+    <meta property="og:site_name" content="GameStore">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="{% block og_title %}GameStore{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Магазин и библиотека видеоигр: каталог, скидки, отзывы и друзья.{% endblock %}">
+    {% block og_image %}{% static 'img/icons/gamestore.png' as og_icon %}<meta property="og:image" content="{{ og_icon|absolute_url:request }}">{% endblock %}
+    <meta name="twitter:card" content="{% block twitter_card %}summary{% endblock %}">
+    <meta name="theme-color" content="#6c71fd">
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=122">
+    <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=14">
+    <script src="{% static 'js/event/halloween.js' %}?v=3"></script>
+    <link rel="stylesheet" href="{% static 'css/design/liquid-glass.css' %}?v=18">
     <link id="siteIcon" rel="icon"
         href="{% static 'img/icons/gamestore.png' %}?v=2"
         data-default="{% static 'img/icons/gamestore.png' %}?v=2"
@@ -40,6 +51,7 @@
       data-library-url="{% url 'mfs:library' %}"
       data-login-url="{% url 'mfs:login' %}">
     {% include '_role_icons.html' %}
+    {% include '_liquid_glass.html' %}
 
     <!-- Общий Navbar для всего сайта -->
     <header class="navbar">
@@ -48,7 +60,12 @@
             <nav class="nav-links" id="siteNav" aria-label="Разделы сайта">
                 <a href="{% url 'mfs:index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">МАГАЗИН</a>
                 <a href="{% url 'mfs:catalog' %}" class="nav-link {% if request.resolver_match.url_name == 'catalog' %}active{% endif %}">КАТАЛОГ</a>
-                <a href="{% url 'mfs:library' %}" class="nav-link {% if request.resolver_match.url_name == 'library' %}active{% endif %}">БИБЛИОТЕКА</a>
+                {% library_new_count as new_games %}
+                <a href="{% url 'mfs:library' %}" class="nav-link nav-library-link {% if request.resolver_match.url_name == 'library' %}active{% endif %}">
+                    БИБЛИОТЕКА
+                    <!-- Новые игры: куплены или подарены, но ещё не открыты в библиотеке -->
+                    <span class="cart-badge" data-library-badge title="Новых игр: {{ new_games }}"{% if not new_games %} hidden{% endif %}>{{ new_games }}</span>
+                </a>
                 <a href="{% url 'mfs:news' %}" class="nav-link {% if request.resolver_match.url_name == 'news' %}active{% endif %}">НОВОСТИ</a>
             </nav>
         </div>
@@ -81,7 +98,7 @@
                     </div>
                 </div>
             {% else %}
-                <a href="{% url 'mfs:login' %}" class="nav-link">ВХОД</a>
+                <a href="{% url 'mfs:login' %}" class="nav-link nav-login">ВХОД</a>
             {% endif %}
         </div>
 
@@ -92,6 +109,8 @@
         <!-- Телефоны: кнопка меню; разделы и меню пользователя раскрываются по ней -->
         <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="siteNav navRight" aria-label="Открыть меню">
             <span></span><span></span><span></span>
+            <!-- На телефоне счётчик спрятан в меню: точка на кнопке подсказывает, что там есть новые игры -->
+            <i class="nav-toggle-dot" data-library-badge-dot aria-hidden="true"{% if not new_games %} hidden{% endif %}></i>
         </button>
     </header>
 
@@ -106,6 +125,11 @@
             <div class="message-toast {{ message.tags }}">{{ message }}</div>
         {% endfor %}
     </div>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+        {% new_gifts as gifts %}
+        {% if gifts %}{% include '_gift_popup.html' %}{% endif %}
     {% endif %}
 
     <script>
@@ -154,8 +178,8 @@
             }
         });
     </script>
-    <script src="{% static 'js/store.js' %}?v=13"></script>
-    <script src="{% static 'js/nav.js' %}?v=1"></script>
+    <script src="{% static 'js/store.js' %}?v=22"></script>
+    <script src="{% static 'js/nav.js' %}?v=2"></script>
     {% block extra_js %}{% endblock %}
     <div id="installToast" class="toast-notification">
     Приложение пока недоступно для установки

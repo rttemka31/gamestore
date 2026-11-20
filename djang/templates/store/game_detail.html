@@ -3,13 +3,22 @@
 
 {% block title %}GameStore | {{ game.title }}{% endblock %}
 
+{% block og_title %}{{ game.title }} — {% if game.discounted_price == 0 %}бесплатно{% else %}{{ game.discounted_price|floatformat:0 }}₴{% if game.discount > 0 %} (−{{ game.discount }}%){% endif %}{% endif %}{% endblock %}
+{% block og_description %}{% if game.discount > 0 %}Скидка {{ game.discount }}%: {{ game.discounted_price|floatformat:0 }}₴ вместо {{ game.price|floatformat:0 }}₴{% if game.discount_until %}, до {{ game.discount_until|date:"j E" }}{% endif %}. {% endif %}{{ game.description|truncatechars:200 }}{% endblock %}
+{% block og_image %}{% if game.get_cover_url %}<meta property="og:image" content="{{ game.get_cover_url|absolute_url:request }}">{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block twitter_card %}{% if game.get_cover_url %}summary_large_image{% else %}summary{% endif %}{% endblock %}
+
 {% block content %}
 
 <main class="container">
 
     <!-- НАЗВАНИЕ -->
     <div class="game-detail-title">
-        <h1 title="{{ game.title }}">{{ game.title }}</h1>
+        <!-- Название и возрастной рейтинг всегда в одной строке, и на телефоне тоже -->
+        <div class="game-title-line">
+            <h1 title="{{ game.title }}">{{ game.title }}</h1>
+            {% if game.age_rating %}<span class="game-age-rating" title="Возрастной рейтинг">{{ game.age_rating }}</span>{% endif %}
+        </div>
         {% if game.is_not_on_steam %}
             <span class="badge-with-hint"><span class="badge badge-exclusive">Эксклюзив</span>{% include 'store/_hint.html' with title="Эксклюзив" text="Эксклюзив — игра, которой нет в Steam. Купить и запустить её можно только в GameStore. В каталоге такие игры отмечены этим же значком на обложке." %}</span>
         {% endif %}
@@ -20,7 +29,7 @@
 
         <!-- ОБЛОЖКА И ГАЛЕРЕЯ -->
         <div class="game-detail-cover">
-            <div class="main-image-box">
+            <div class="main-image-box{% if game.trailer_file and game.trailer_sensitive or not game.trailer_file and not game.cover and game.screenshots.all.0.sensitive %} is-sensitive{% endif %}">
                 {% if game.trailer_file %}
                     <video id="mainVideo" preload="metadata"{% if game.get_cover_url %} poster="{{ game.cover_hd|default:game.cover|thumb:'1280' }}"{% endif %} style="width: 100%; height: 100%; object-fit: cover;">
                         <source src="{{ game.trailer_file.url }}" type="video/mp4">
@@ -31,14 +40,21 @@
                     src="{% if game.cover %}{{ game.cover|thumb:'1280' }}{% elif game.screenshots.all %}{{ game.screenshots.all.0.image|thumb:'1280' }}{% endif %}" 
                     alt="{{ game.title }}" fetchpriority="high" decoding="async" title="Открыть на весь экран"
                     {% if game.trailer_file or not game.cover and not game.screenshots.all %}style="display: none;"{% endif %}>
+
+                <!-- Неприятный контент (отмечается в админке): кадр размыт, пока посетитель сам не нажмёт «Показать» -->
+                <div class="sensitive-cover" id="sensitiveCover"{% if not game.trailer_file or not game.trailer_sensitive %}{% if game.trailer_file or game.cover or not game.screenshots.all.0.sensitive %} hidden{% endif %}{% endif %}>
+                    <p class="sensitive-cover-title">Осторожно: <span id="sensitiveKind">{% if game.trailer_file %}{{ game.get_trailer_sensitive_display|lower }}{% else %}{{ game.screenshots.all.0.get_sensitive_display|lower }}{% endif %}</span></p>
+                    <p class="sensitive-cover-text">Этот материал может быть неприятен некоторым людям</p>
+                    <button type="button" class="btn-secondary" id="sensitiveShow">Показать</button>
                 </div>
+            </div>
 
             <!-- ЛЕНТА МИНИАТЮР -->
             <div class="thumbnails-list">
                 {% if game.trailer_file %}
-                    <div class="thumb video-thumb active" onclick="showVideo(this)">
-                        {% if game.cover %}
-                            <img src="{{ game.cover|thumb:'200x110' }}" alt="Трейлер" decoding="async">
+                    <div class="thumb video-thumb active"{% if game.trailer_sensitive %} data-sensitive="{{ game.get_trailer_sensitive_display|lower }}"{% endif %} onclick="showVideo(this)">
+                        {% if game.get_cover_url %}
+                            <img src="{{ game.cover_hd|default:game.cover|thumb:'200x110' }}" alt="Трейлер" decoding="async">
                         {% endif %}
                         <div class="play-badge">▶</div>
                     </div>
@@ -52,10 +68,20 @@
                 {% endif %}
                 
                 {% for s in game.screenshots.all %}
-                    <img src="{{ s.image|thumb:'200x110' }}" data-full="{{ s.image|thumb:'1280' }}"
-                         data-lightbox="game" data-original="{{ s.image|thumb:'1920' }}" alt="" loading="lazy" decoding="async"
-                         class="thumb {% if not game.trailer_file and not game.cover and forloop.first %}active{% endif %}" 
-                         onclick="showImage(this.dataset.full, this)">
+                    {% if s.sensitive %}
+                        <!-- Неприятный скриншот: рамка у обёртки, размыта только картинка внутри -->
+                        <div class="thumb media-thumb {% if not game.trailer_file and not game.cover and forloop.first %}active{% endif %}"
+                             data-full="{{ s.image|thumb:'1280' }}" data-sensitive="{{ s.get_sensitive_display|lower }}"
+                             data-lightbox="game" data-original="{{ s.image|thumb:'1920' }}"
+                             onclick="showImage(this.dataset.full, this)">
+                            <img src="{{ s.image|thumb:'200x110' }}" alt="" loading="lazy" decoding="async">
+                        </div>
+                    {% else %}
+                        <img src="{{ s.image|thumb:'200x110' }}" data-full="{{ s.image|thumb:'1280' }}"
+                             data-lightbox="game" data-original="{{ s.image|thumb:'1920' }}" alt="" loading="lazy" decoding="async"
+                             class="thumb {% if not game.trailer_file and not game.cover and forloop.first %}active{% endif %}"
+                             onclick="showImage(this.dataset.full, this)">
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>
@@ -74,26 +100,19 @@
                 <div class="stars-static" style="--percent: {{ avg_percent|floatformat:0 }}%;" aria-hidden="true">★★★★★</div>
                 {% if reviews_count %}
                     <strong>{{ avg_rating|floatformat:1 }}</strong>
-                    <span class="game-rating-count">· {{ reviews_count }} {{ reviews_count|ru_plural:"отзыв,отзыва,отзывов" }}</span>
+                    <span class="game-rating-count">• {{ reviews_count }} {{ reviews_count|ru_plural:"отзыв,отзыва,отзывов" }}</span>
                 {% else %}
                     <span class="game-rating-count">Пока нет оценок</span>
                 {% endif %}
             </div>
 
             <div class="detail-row">
-                <span class="detail-label">Жанры:</span>
-                <span class="detail-genres">
-                    {% for genre in game.genres.all %}
-                        <a href="{% url 'mfs:catalog' %}?genre={{ genre.slug }}" class="chip" title="Похожие игры в каталоге">{{ genre.name }}</a>
-                    {% empty %}
-                        Без жанра
-                    {% endfor %}
-                </span>
-            </div>
-
-            <div class="detail-row">
                 <span class="detail-label">Разработчик:</span>
-                <span>{{ game.author }}</span>
+                {% if game.author %}
+                    <a href="{% url 'mfs:user_profile' game.author.username %}" class="detail-author-link">{{ game.author.username }}</a>
+                {% else %}
+                    <span>Не указан</span>
+                {% endif %}
             </div>
 
             {% if game.collections.all %}
@@ -114,8 +133,21 @@
                 </div>
             {% endif %}
 
+            <div class="detail-row">
+                <span class="detail-label">Жанры:</span>
+                <span class="detail-genres">
+                    {% for genre in game.genres.all %}
+                        <a href="{% url 'mfs:catalog' %}?genre={{ genre.slug }}" class="chip" title="Похожие игры в каталоге">{{ genre.name }}</a>
+                    {% empty %}
+                        Без жанра
+                    {% endfor %}
+                </span>
+            </div>
+
             <!-- ПОКУПКА -->
             <div class="purchase-box">
+                <!-- Цена, а прямо под ней — срок скидки -->
+                <div class="purchase-price-col">
                 <div class="purchase-price">
                     {% if game.discount > 0 %}
                         <span class="badge badge-discount">-{{ game.discount }}%</span>
@@ -131,19 +163,70 @@
                         {% endif %}
                     </div>
                 </div>
+                {% include 'store/_discount_deadline.html' %}
+                </div>
 
                 <div class="purchase-actions">
                     {% if game.id not in owned_game_ids %}
-                        <button type="button" class="buy-button btn-muted wishlist-wide js-wishlist-toggle {% if game.id in wishlist_ids %}active{% endif %}"
-                                data-url="{% url 'mfs:wishlist_toggle' game.id %}" data-on="В желаемом" data-off="В желаемое"
+                        <!-- Только сердце, без надписи: подсказка и название для экранного диктора меняются скриптом -->
+                        <button type="button" class="buy-button btn-muted purchase-icon-btn js-wishlist-toggle {% if game.id in wishlist_ids %}active{% endif %}"
+                                data-url="{% url 'mfs:wishlist_toggle' game.id %}" data-on="Убрать из желаемого" data-off="Добавить в желаемое"
+                                title="{% if game.id in wishlist_ids %}Убрать из желаемого{% else %}Добавить в желаемое{% endif %}"
+                                aria-label="{% if game.id in wishlist_ids %}Убрать из желаемого{% else %}Добавить в желаемое{% endif %}"
                                 aria-pressed="{% if game.id in wishlist_ids %}true{% else %}false{% endif %}">
                             {% include 'store/_heart_icon.html' %}
-                            <span class="js-wishlist-label">{% if game.id in wishlist_ids %}В желаемом{% else %}В желаемое{% endif %}</span>
+                        </button>
+                    {% endif %}
+                    {% if can_gift %}
+                        <button type="button" class="buy-button btn-muted purchase-icon-btn" id="giftOpen"
+                                title="Подарить другу" aria-label="Подарить другу" aria-haspopup="dialog">
+                            <svg class="heart-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>
                         </button>
                     {% endif %}
                     {% include 'store/_buy_button.html' %}
                 </div>
             </div>
+
+            {% if can_gift %}
+            <!-- Окно «Подарить другу»: игра сразу попадает в библиотеку друга -->
+            <dialog class="gift-dialog" id="giftDialog" aria-labelledby="giftTitle">
+                <form method="post" action="{% url 'mfs:gift_game' game.id %}">
+                    {% csrf_token %}
+                    <h2 id="giftTitle">Подарить «{{ game.title }}»</h2>
+                    {% if gift_friends %}
+                        <p class="gift-label" id="giftFriendsLabel">Кому</p>
+                        <div class="gift-friends" role="radiogroup" aria-labelledby="giftFriendsLabel">
+                            {% for friend in gift_friends %}
+                                {% with profile=friend.profile %}
+                                <label class="gift-friend{% if friend.owns %} is-disabled{% endif %}">
+                                    <input type="radio" name="friend" value="{{ profile.user_id }}"{% if friend.owns %} disabled{% else %} required{% endif %}>
+                                    {% if profile.avatar %}
+                                        <img src="{{ profile.avatar.url }}" alt="" class="gift-friend-avatar" loading="lazy">
+                                    {% else %}
+                                        <span class="gift-friend-avatar" aria-hidden="true">{{ profile.user.username|first|upper }}</span>
+                                    {% endif %}
+                                    <span class="gift-friend-name">{{ profile.nickname|default:profile.user.username }}</span>
+                                    {% if friend.owns %}<span class="gift-friend-note">Уже есть</span>{% endif %}
+                                </label>
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+                        <label class="gift-label" for="giftMessage">Сообщение (необязательно)</label>
+                        <textarea name="message" id="giftMessage" rows="3" maxlength="200" placeholder="Например: «С днём рождения!»"></textarea>
+                        <div class="gift-actions">
+                            <button type="button" class="buy-button btn-muted" data-gift-close>Отмена</button>
+                            <button type="submit" class="buy-button"{% if not gift_available %} disabled{% endif %}>Подарить за {{ game.discounted_price|floatformat:0 }}₴</button>
+                        </div>
+                    {% else %}
+                        <p class="gift-empty">Подарить игру можно только другу, а у вас пока нет друзей. Найдите их в своём профиле.</p>
+                        <div class="gift-actions">
+                            <button type="button" class="buy-button btn-muted" data-gift-close>Закрыть</button>
+                            <a href="{% url 'mfs:profile' %}" class="buy-button">Найти друзей</a>
+                        </div>
+                    {% endif %}
+                </form>
+            </dialog>
+            {% endif %}
         </div>
     </section>
 
@@ -169,6 +252,13 @@
         <span>{{ reviews_count }} {{ reviews_count|ru_plural:"отзыв,отзыва,отзывов" }}</span>
     </div>
 
+    {% if reviews_count > 1 %}
+    <nav class="reviews-sort" aria-label="Порядок отзывов">
+        <a href="?reviews=helpful#reviews" class="chip {% if reviews_sort == 'helpful' %}active{% endif %}">Сначала полезные</a>
+        <a href="?reviews=new#reviews" class="chip {% if reviews_sort == 'new' %}active{% endif %}">Новые</a>
+    </nav>
+    {% endif %}
+
     {% if user.is_authenticated %}
     <form method="post" action="{% url 'mfs:review_submit' game.pk %}" class="review-form">
         {% csrf_token %}
@@ -192,7 +282,7 @@
                 {% if my_review %}Сохранить{% else %}Отправить{% endif %}
             </button>
             {% if my_review %}
-            <button type="submit" class="buy-button" style="background: var(--bg-card-hover);"
+            <button type="submit" class="buy-button btn-muted"
                     formaction="{% url 'mfs:review_delete' game.pk %}" formnovalidate>
                 Удалить
             </button>
@@ -227,11 +317,21 @@
                         </span>
                     </div>
                     {% if review.text %}<p class="profile-status">{{ review.text }}</p>{% endif %}
-                    <span class="release-date">{{ review.created_at|date:"d b. Yг." }}</span>
+                    <div class="review-footer">
+                        <span class="release-date">
+                            {{ review.created_at|date:"d b. Yг." }}{% if review.playtime_seconds is not None %} • {{ review.playtime_seconds|playtime_words }} в игре{% endif %}
+                        </span>
+                        {% url 'mfs:review_vote' review.pk as vote_url %}
+                        {% if review.user_id == user.pk %}
+                            {% include 'store/_count_toggle.html' with url=vote_url active=False count=review.helpful_count icon='thumb' text='Полезно' label='Столько людей отметили ваш отзыв полезным' disabled=True %}
+                        {% else %}
+                            {% include 'store/_count_toggle.html' with url=vote_url active=review.voted count=review.helpful_count icon='thumb' text='Полезно' label='Отзыв полезен' %}
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         {% empty %}
-            <div class="description-box"><p>Отзывов пока нет. Будьте первым!</p></div>
+            {% include 'store/_empty_state.html' with icon='chat' compact=True title='Отзывов пока нет' text='Будьте первым — поставьте оценку и поделитесь впечатлениями.' %}
         {% endfor %}
     </div>
 </section>
@@ -241,6 +341,16 @@
 {% block extra_js %}
 
 <script>
+    // Окно «Подарить другу»: закрывается кнопкой, клавишей Esc и нажатием мимо окна
+    (() => {
+        const dialog = document.getElementById('giftDialog');
+        const open = document.getElementById('giftOpen');
+        if (!dialog || !open) return;
+        open.addEventListener('click', () => dialog.showModal());
+        dialog.querySelectorAll('[data-gift-close]').forEach(btn => btn.addEventListener('click', () => dialog.close()));
+        dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
+    })();
+
     // Кнопки плеера показываем, когда видео подгрузило данные: иначе поверх нашего индикатора
     // загрузки крутится ещё и встроенный спиннер браузера
     (() => {
@@ -256,8 +366,29 @@
     })();
 
     // Нажатие на большую картинку открывает её на весь экран; листать можно все картинки ленты
+    // Неприятный контент: кадр размыт, пока посетитель сам не нажмёт «Показать»;
+    // открытый один раз остаётся открытым (и в ленте миниатюр) до перезагрузки страницы
+    const mediaBox = document.querySelector('.main-image-box');
+    const sensitiveCover = document.getElementById('sensitiveCover');
+    const isHiddenMedia = el => Boolean(el && el.dataset.sensitive && !el.classList.contains('is-revealed'));
+
+    function applySensitive(element) {
+        const hidden = isHiddenMedia(element);
+        mediaBox.classList.toggle('is-sensitive', hidden);
+        sensitiveCover.hidden = !hidden;
+        if (hidden) document.getElementById('sensitiveKind').textContent = element.dataset.sensitive;
+        return hidden;
+    }
+
+    document.getElementById('sensitiveShow').addEventListener('click', () => {
+        const active = document.querySelector('.thumbnails-list .active');
+        if (active) active.classList.add('is-revealed');
+        applySensitive(active);
+    });
+
     document.getElementById('currentImage')?.addEventListener('click', () => {
-        const items = [...document.querySelectorAll('.thumbnails-list [data-lightbox="game"]')];
+        const items = [...document.querySelectorAll('.thumbnails-list [data-lightbox="game"]')]
+            .filter(item => !isHiddenMedia(item));
         if (!items.length) return;
         const active = items.findIndex(item => item.classList.contains('active'));
         window.gsLightbox.open(items.map(item => item.dataset.original), Math.max(0, active));
@@ -269,7 +400,13 @@
 
         if (video) {
             video.pause();
-            video.style.display = 'none';
+            // Opera оставляет свою кнопку «Видео в отдельном окне» на месте спрятанного видео,
+            // и та уезжает влево. Новый, ещё не запущенный элемент вместо проигранного её убирает;
+            // место, где остановились, запоминаем, чтобы трейлер продолжился с него
+            const fresh = video.cloneNode(true);
+            fresh.dataset.time = video.currentTime;
+            fresh.style.display = 'none';
+            video.replaceWith(fresh);
         }
 
         if (img) {
@@ -279,6 +416,7 @@
 
         document.querySelectorAll('.thumb').forEach(thumb => thumb.classList.remove('active'));
         if (element) element.classList.add('active');
+        applySensitive(element);
     }
 
     function showVideo(element) {
@@ -289,15 +427,26 @@
             img.style.display = 'none';
         }
 
-        if (video) {
-            video.style.display = 'block';
-            video.play().catch(error => {
-                console.log("Автовоспроизведение было предотвращено браузером:", error);
-            });
-        }
-
         document.querySelectorAll('.thumb').forEach(thumb => thumb.classList.remove('active'));
         if (element) element.classList.add('active');
+        // Неоткрытый неприятный трейлер не запускается: сначала «Показать»
+        const hidden = applySensitive(element);
+
+        if (video) {
+            video.style.display = 'block';
+            if (video.dataset.time) {
+                // Время можно выставить только после загрузки сведений о видео
+                const time = Number(video.dataset.time);
+                delete video.dataset.time;
+                if (video.readyState >= 1) video.currentTime = time;
+                else video.addEventListener('loadedmetadata', () => { video.currentTime = time; }, {once: true});
+            }
+            if (!hidden) {
+                video.play().catch(error => {
+                    console.log("Автовоспроизведение было предотвращено браузером:", error);
+                });
+            }
+        }
     }
 </script>
 

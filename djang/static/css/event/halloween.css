@@ -72,15 +72,20 @@ html[data-season="halloween"] {
         left: 0;
         top: 0;
         width: 130px;
-        height: min(100%, 74px); /* только первая строка шапки: в открытом мобильном меню паутина не растягивается */
+        height: min(100%, 75px); /* только первая строка шапки: в открытом мобильном меню паутина не растягивается */
         opacity: 0.4;
         pointer-events: none;
         background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none' fill='none' stroke='%23ffb36b' stroke-width='1.2'%3E%3Cpath d='M0 0L100 0M0 0L92 38M0 0L72 72M0 0L38 92M0 0L0 100'/%3E%3Cpath d='M28 0Q22 22 0 28M52 0Q40 40 0 52M78 0Q58 58 0 78'/%3E%3C/svg%3E") no-repeat left top / 100% 100%;
     }
 
     & .logo::before {
-        content: "🎃";
-        margin-right: 15px;
+        content: "";
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        margin-right: 12px;
+        vertical-align: -0.12em;
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff7a1a' d='M12 7.2c-1.1-.6-2.5-.8-3.8-.5C5 7.4 3 10.2 3 13.6S5 19.9 8.2 20.6c1.4.3 2.7 0 3.8-.6 1.1.6 2.4.9 3.8.6C19 19.9 21 17 21 13.6s-2-6.2-5.2-6.9c-1.3-.3-2.7-.1-3.8.5Z'/%3E%3Cpath fill='none' stroke='%23b34700' stroke-width='1.2' stroke-linecap='round' d='M12 8v11.5M8.6 7.6c-1.6 1.6-2 9.4 0 12.4M15.4 7.6c1.6 1.6 2 9.4 0 12.4'/%3E%3Cpath fill='%234caf50' d='M11.3 7.4c0-2 .6-3.5 2-4.5l1.1 1c-1.1.9-1.5 2-1.5 3.5Z'/%3E%3C/svg%3E") center / contain no-repeat;
     }
 
     & .hero-title-container {
@@ -96,6 +101,12 @@ html[data-season="halloween"] {
     & .status-running,
     & .hint {
         color: #1a0d03;
+    }
+
+    & .hint:hover,
+    & .hint:focus-visible,
+    & .hint.hint-open {
+        -webkit-text-stroke: 0; /* знак тёмный и до наведения — утолщать не нужно */
     }
 
     & .btn-primary,
@@ -122,8 +133,13 @@ html[data-season="halloween"] {
     }
 
     & .section-header h2::after {
-        content: " 🦇";
-        font-size: 22px;
+        content: "";
+        display: inline-block;
+        width: 1.1em;
+        height: 1.1em;
+        margin-left: 0.3em;
+        vertical-align: -0.2em;
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffb36b' d='M12 9.2 12.7 8.6 13.3 7 13.7 9 14.6 9.5 17 8 22 7.8 20.4 9.8 20.8 12.4 18.8 11.5 17.2 13.2 15.6 12.6 14.3 14.6 13.2 13.6 12 16.2 10.8 13.6 9.7 14.6 8.4 12.6 6.8 13.2 5.2 11.5 3.2 12.4 3.6 9.8 2 7.8 7 8 9.4 9.5 10.3 9 10.7 7 11.3 8.6Z'/%3E%3C/svg%3E") center / contain no-repeat;
     }
 
     & .timer-box {
@@ -204,6 +220,12 @@ html[data-season="halloween"] {
     background: var(--bg-card);
     cursor: pointer;
     transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Тыква в тумблере — заметного размера, вровень с переключателем */
+.season-toggle .ui-icon {
+    width: var(--icon-md);
+    height: var(--icon-md);
 }
 
 .season-toggle:hover {

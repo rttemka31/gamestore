@@ -5,7 +5,7 @@
 {% block title %}GameStore | Корзина{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/cart.css' %}?v=27">
+    <link rel="stylesheet" href="{% static 'css/cart.css' %}?v=39">
 {% endblock %}
 
 {% block content %}
@@ -38,12 +38,16 @@
                         <div class="title-row">
                             <h2 title="{{ game.title }}">{{ game.title }}</h2>
                         </div>
+                        <!-- Жанры плашками, как в рекомендациях и на странице игры -->
                         <div class="cart-genres">
-                            {% for genre in game.genres.all %}
-                                {{ genre.name }}{% if not forloop.last %}, {% endif %}
+                            {% for genre in game.genres.all|slice:":2" %}
+                                <a href="{% url 'mfs:catalog' %}?genre={{ genre.slug }}" class="chip" title="Похожие игры в каталоге">{{ genre.name }}</a>
                             {% empty %}
-                                Без жанра
+                                <span class="cart-no-genre">Без жанра</span>
                             {% endfor %}
+                            {% if game.genres.all|length > 2 %}
+                                <a href="{% url 'mfs:game_detail' game.id %}" class="chip" title="Все жанры на странице игры">+{{ game.genres.all|length|add:"-2" }}</a>
+                            {% endif %}
                         </div>
 
                         <div class="cart-actions">
@@ -81,7 +85,7 @@
 
         <!-- ИТОГО -->
         <aside class="cart-summary">
-            <h2>ВАШ ЗАКАЗ</h2>
+            <h2>Ваш заказ</h2>
             <div class="summary-row2">
                 <span>Товаров</span>
                 <span>{{ cart_items|length }}</span>
@@ -111,14 +115,8 @@
         </aside>
     </div>
     {% else %}
-    <div class="empty-cart">
-        <div class="empty-icon">🛒</div>
-        <h2>Ваша корзина пуста</h2>
-        <p>Добавьте игры из магазина чтобы оформить покупку.</p>
-        <a href="{% url 'mfs:index' %}" class="buy-button" style="text-decoration: none;">
-            Перейти в магазин
-        </a>
-    </div>
+    {% url 'mfs:index' as store_url %}
+    {% include 'store/_empty_state.html' with icon='cart' title='Ваша корзина пуста' text='Добавьте игры из магазина, чтобы оформить покупку.' link_url=store_url link_text='Перейти в магазин' %}
     {% endif %}
 
 <!-- Секция рекомендаций -->

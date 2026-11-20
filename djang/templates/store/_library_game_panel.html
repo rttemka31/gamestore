@@ -23,9 +23,18 @@
             </div>
             <div class="library-screenshots">
                 {% for shot in game.screenshots.all|slice:":4" %}
-                    <a href="{{ shot.image|thumb:'1920' }}" data-lightbox="library-{{ game.id }}" data-original="{{ shot.image|thumb:'1920' }}" aria-label="Открыть скриншот на весь экран">
-                        <img src="{{ shot.image|thumb:'480x270' }}" alt="Скриншот {{ game.title }}" loading="lazy" decoding="async">
-                    </a>
+                    {% if shot.sensitive %}
+                        <!-- Неприятный скриншот: первое нажатие снимает размытие, второе открывает на весь экран -->
+                        <a href="{{ shot.image|thumb:'1920' }}" data-lightbox="library-{{ game.id }}" data-original="{{ shot.image|thumb:'1920' }}"
+                           data-sensitive="{{ shot.get_sensitive_display|lower }}" class="sensitive-media" aria-label="Показать скриншот: {{ shot.get_sensitive_display|lower }}">
+                            <img src="{{ shot.image|thumb:'480x270' }}" alt="Скриншот {{ game.title }}" loading="lazy" decoding="async">
+                            <span class="sensitive-label">Осторожно: {{ shot.get_sensitive_display|lower }}<br>Нажмите, чтобы показать</span>
+                        </a>
+                    {% else %}
+                        <a href="{{ shot.image|thumb:'1920' }}" data-lightbox="library-{{ game.id }}" data-original="{{ shot.image|thumb:'1920' }}" aria-label="Открыть скриншот на весь экран">
+                            <img src="{{ shot.image|thumb:'480x270' }}" alt="Скриншот {{ game.title }}" loading="lazy" decoding="async">
+                        </a>
+                    {% endif %}
                 {% endfor %}
             </div>
         </section>
@@ -34,10 +43,10 @@
         <details class="library-about">
             <summary>Об этой игре <span class="library-about-arrow" aria-hidden="true">➜</span></summary>
             <div class="library-about-text">
-                {% if game.description %}
-                    {{ game.description|linebreaks }}
-                {% elif game.long_description %}
+                {% if game.long_description %}
                     {{ game.long_description|linebreaks }}
+                {% elif game.description %}
+                    {{ game.description|linebreaks }}
                 {% else %}
                     <p>Описание игры пока не добавлено.</p>
                 {% endif %}
@@ -67,7 +76,20 @@
                     <dt>Дата выхода</dt>
                     <dd>{{ game.release_date|date:"d b. Yг."  }}</dd>
                 </div>
+                <div>
+                    <dt>Разработчик</dt>
+                    <dd>{% if game.author %}<a href="{% url 'mfs:user_profile' game.author.username %}" class="detail-author-link">{{ game.author.username }}</a>{% else %}<span class="library-muted">Не указан</span>{% endif %}</dd>
+                </div>
+                {% if game.user_gift %}
+                <div>
+                    <dt>Подарок от</dt>
+                    <dd>{% if game.user_gift.sender %}<a href="{% url 'mfs:user_profile' game.user_gift.sender.username %}" class="detail-author-link">{{ game.user_gift.sender.username }}</a>{% else %}<span class="library-muted">Удалённый пользователь</span>{% endif %}</dd>
+                </div>
+                {% endif %}
             </dl>
+            {% if game.user_gift.message %}
+                <p class="library-gift-message">«{{ game.user_gift.message }}»</p>
+            {% endif %}
             {% if game.genres.all %}
                 <div class="library-genres">
                     {% for genre in game.genres.all %}

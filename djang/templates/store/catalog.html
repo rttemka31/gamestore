@@ -32,15 +32,17 @@
                 {% endfor %}
             </fieldset>
 
-            <fieldset class="filter-group">
+            <fieldset class="filter-group" id="genreFilters">
                 <legend>Жанры</legend>
                 {% for genre in genres %}
-                    <label class="filter-option">
+                    <label class="filter-option{% if forloop.counter > 8 and genre.slug not in selected_genres %} filter-option-extra{% endif %}">
                         <input type="checkbox" name="genre" value="{{ genre.slug }}" {% if genre.slug in selected_genres %}checked{% endif %}>
                         <span>{{ genre.name }}</span>
                         <span class="filter-count">{{ genre.games_count }}</span>
                     </label>
                 {% endfor %}
+                <!-- Текст и число ставит скрипт ниже; без скрытых жанров кнопки нет -->
+                <button type="button" class="filter-more" id="genreMore" aria-expanded="false" hidden></button>
             </fieldset>
         </details>
 
@@ -50,7 +52,7 @@
                     <input type="search" name="q" value="{{ query }}" placeholder="Название игры..." aria-label="Название игры">
                     <button type="button" class="clear-search-btn" aria-label="Очистить поиск" hidden>&times;</button>
                     <button type="submit" aria-label="Найти">
-                        <img src="{% static 'img/icons/search.png' %}" width="22" height="22" alt="">
+                        <img src="{% static 'img/icons/search.png' %}" class="search-btn-icon" width="22" height="22" alt="">
                     </button>
                 </div>
 
@@ -80,10 +82,8 @@
                 </nav>
                 {% endif %}
             {% else %}
-                <div class="empty-news">
-                    По этим фильтрам ничего не нашлось.
-                    <a href="{% url 'mfs:catalog' %}">Сбросить фильтры</a>
-                </div>
+                {% url 'mfs:catalog' as catalog_url %}
+                {% include 'store/_empty_state.html' with icon='search' title='Ничего не нашлось' text='По этим фильтрам игр нет — попробуйте изменить запрос или жанры.' link_url=catalog_url link_text='Сбросить фильтры' %}
             {% endif %}
         </div>
     </form>
@@ -93,8 +93,27 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // «Ещё N жанров» / «Свернуть»: список не растягивает боковую панель на несколько экранов
+    const genreGroup = document.getElementById('genreFilters');
+    const genreMore = document.getElementById('genreMore');
+    const extra = genreGroup ? genreGroup.querySelectorAll('.filter-option-extra').length : 0;
+    if (genreMore && extra) {
+        const render = () => {
+            const open = genreGroup.classList.contains('show-all');
+            genreMore.textContent = open ? 'Свернуть ▴' : `Ещё ${extra} ▾`;
+            genreMore.setAttribute('aria-expanded', open);
+        };
+        genreMore.hidden = false;
+        genreMore.addEventListener('click', () => {
+            genreGroup.classList.toggle('show-all');
+            render();
+        });
+        render();
+    }
+
     const form = document.getElementById('catalogForm');
     const sidebar = document.getElementById('catalogSidebar');
+
     const desktop = window.matchMedia('(min-width: 901px)');
 
     // Фильтры применяются сразу; поиск — по Enter

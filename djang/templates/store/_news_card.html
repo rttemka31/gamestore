@@ -6,13 +6,17 @@
     <div class="news-card-body">
         <div class="news-card-meta">
             <span class="badge news-badge news-badge-{{ item.category }}">{% include 'store/_news_category_icon.html' with code=item.category %}{{ item.get_category_display }}</span>
-            {% if item.is_pinned %}<span class="news-pin" title="Закреплено" aria-label="Закреплено"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M15.5 2.5a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4l-1.3 1.3a1 1 0 0 1-1.1.2l-1.4-.6-3.5 3.5.5 3.3a1 1 0 0 1-.3.9l-1.1 1.1a1 1 0 0 1-1.4 0l-3.2-3.2-4.6 4.6a1 1 0 0 1-1.4-1.4l4.6-4.6-3.2-3.2a1 1 0 0 1 0-1.4l1.1-1.1a1 1 0 0 1 .9-.3l3.3.5 3.5-3.5-.6-1.4a1 1 0 0 1 .2-1.1z"/></svg></span>{% endif %}
-            <span class="news-date">{{ item.created_at|date:"d E Y" }}</span>
+            {% if item.is_pinned %}<span class="news-pin" title="Закреплено" aria-label="Закреплено"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M15.5 2.5a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4l-1.3 1.3a1 1 0 0 1-1.1.2l-1.4-.6-3.5 3.5.5 3.3a1 1 0 0 1-.3.9l-1.1 1.1a1 1 0 0 1-1.4 0l-3.2-3.2-4.6 4.6a1 1 0 0 1-1.4-1.4l4.6-4.6-3.2-3.2a1 1 0 0 1 0-1.4l1.1-1.1a1 1 0 0 1 .9-.3l3.3.5 3.5-3.5-.6-1.4a1 1 0 0 1 .2-1.1z"/></svg></span>{% endif %}
+            <span class="news-date">{{ item.created_at|date:"d b. Yг." }}</span>
         </div>
         <h3 class="news-card-title">
             <a href="{{ item.get_absolute_url }}" class="news-card-link">{{ item.title }}</a>
         </h3>
         <p class="news-excerpt">{{ item.description|news_plain|truncatechars:220 }}</p>
-        <span class="news-more">Читать полностью ▾</span>
+        <div class="news-card-footer">
+            <span class="news-more">Читать полностью ▾</span>
+            {% url 'mfs:news_like' item.pk as like_url %}
+            {% include 'store/_count_toggle.html' with url=like_url active=item.liked count=item.likes_count label='Нравится' %}
+        </div>
     </div>
 </article>

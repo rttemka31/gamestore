@@ -7,6 +7,11 @@
 <div id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></div>
 {% endblock %}
 
+{% block userlinks %}
+    {% if user.is_staff %}<a href="{% url 'admin_stats' %}">Статистика</a> /{% endif %}
+    {{ block.super }}
+{% endblock %}
+
 {% block extrastyle %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/admin_custom.css' %}">

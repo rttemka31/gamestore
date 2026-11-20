@@ -7,11 +7,16 @@ from zoneinfo import ZoneInfo
 from PIL import Image
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
+from django.utils import timezone
 
-from ..models import Collection, Game, Genre, News, Profile, Review, Screenshot
-from ..templatetags.store_extras import news_format, news_plain
+from ..models import (
+    Collection, DiscountExpiryMiddleware, Game, Genre, News, NewsLike, Profile, Review, ReviewVote, Screenshot,
+    UserLibrary, expire_discounts,
+)
+from ..templatetags.store_extras import news_format, news_plain, playtime_words
 from ..thumbnails import thumbnail_url
 from ..views.store import _pick_featured_game
 from .base import StoreTestCase
@@ -303,7 +308,7 @@ class FooterTests(StoreTestCase):
         News.objects.create(title='V1.1.0', description='x')
         response = self.client.get(reverse('mfs:index'))
         self.assertContains(response, 'site-footer')
-        self.assertContains(response, 'Версия 1.1.0')
+        self.assertContains(response, '>V1.1.0</a>')
         self.assertContains(response, reverse('mfs:register'))  # гостю — вход и регистрация
 
         self.client.force_login(self.user)
@@ -313,7 +318,7 @@ class FooterTests(StoreTestCase):
         News.objects.create(title='V1.1.0', description='x')
         self.client.get(reverse('mfs:index'))  # версия попадает в кэш
         News.objects.create(title='V1.2.0', description='x')
-        self.assertContains(self.client.get(reverse('mfs:index')), 'Версия 1.2.0')
+        self.assertContains(self.client.get(reverse('mfs:index')), '>V1.2.0</a>')
 
 
 class BadgeAndMenuTests(StoreTestCase):
@@ -385,3 +390,287 @@ class ThumbnailTests(StoreTestCase):
         response = self.client.get(reverse('mfs:game_detail', args=[self.game.pk]))
         self.assertContains(response, 'src="/media/thumbs/200x110/screenshots/')
         self.assertContains(response, 'data-full="/media/thumbs/1280/screenshots/')
+
+
+class Round5Tests(StoreTestCase):
+    def test_featured_game_has_muted_trailer_loaded_on_demand(self):
+        Game.objects.update(cover='covers/c.png', trailer_file='trailers/t.mp4')
+        response = self.client.get(reverse('mfs:index'))
+        # Видео без звука и без предзагрузки: файл подставляется скриптом только при долгом наведении
+        self.assertContains(response, 'class="featured-trailer" muted loop playsinline preload="none"')
+        self.assertContains(response, 'data-src="/media/trailers/t.mp4"')
+
+    def test_catalog_hides_genres_after_first_eight_except_selected(self):
+        genres = [Genre.objects.create(name=f'Жанр {i:02}', slug=f'g{i:02}') for i in range(12)]
+        self.game.genres.set(genres)
+        response = self.client.get(reverse('mfs:catalog'), {'genre': 'g11'})
+        html = response.content.decode()
+        self.assertEqual(html.count('class="filter-option filter-option-extra"'), 3)  # 12 жанров − 8 видимых − 1 отмеченный
+        self.assertContains(response, 'id="genreMore"')
+
+    def test_admin_preview_is_ready_before_saving(self):
+        admin = User.objects.create_superuser('root', password='Str0ng-pass-123')
+        self.client.force_login(admin)
+        response = self.client.get(reverse('admin:mfs_game_add'))
+        # Пустое превью уже на странице (скрытое), скрипт подставит в него выбранный файл
+        self.assertContains(response, 'data-preview-for="cover"')
+        self.assertContains(response, 'data-preview-for="icon"')
+        self.assertContains(response, 'js/admin-preview.js')
+
+
+class Round7Tests(StoreTestCase):
+    def genre_names(self):
+        return [g.name for g in self.client.get(reverse('mfs:catalog')).context['genres']]
+
+    def test_genres_sorted_by_popularity_or_name(self):
+        shooter = Genre.objects.create(name='Шутер', slug='shooter')
+        coop = Genre.objects.create(name='Для нескольких игроков', slug='coop')
+        arcade = Genre.objects.create(name='Аркада', slug='arcade')
+        self.game.genres.set([shooter, coop, arcade])
+        self.game2.genres.set([coop])
+        Game.objects.create(author=self.other, title='Gamma', price=1).genres.set([coop, shooter])
+        # По умолчанию — больше игр выше, при равенстве по алфавиту
+        self.assertEqual(self.genre_names(), ['Для нескольких игроков', 'Шутер', 'Аркада'])
+
+        self.client.force_login(self.user)
+        self.client.post(reverse('mfs:settings'), {'form': 'catalog', 'genre_sort': 'name', 'default_catalog_sort': 'new'})
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.genre_sort, 'name')
+        self.assertEqual(self.genre_names(), ['Аркада', 'Для нескольких игроков', 'Шутер'])
+
+        # Неизвестное значение не сохраняется
+        self.client.post(reverse('mfs:settings'), {'form': 'catalog', 'genre_sort': 'junk'})
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.genre_sort, 'name')
+        self.assertContains(self.client.get(reverse('mfs:settings')), 'name="genre_sort"')
+
+    def test_author_links_to_profile_and_has_developer_role(self):
+        response = self.client.get(reverse('mfs:game_detail', args=[self.game.pk]))
+        self.assertContains(response, f'href="{reverse("mfs:user_profile", args=["bob"])}" class="detail-author-link">bob</a>')
+        # bob — автор игр: роль «Разработчик»; alice без игр — «Пользователь»
+        self.client.force_login(self.user)
+        self.assertContains(self.client.get(reverse('mfs:user_profile', args=['bob'])), '#role-developer"></use></svg>Разработчик')
+        self.assertContains(self.client.get(reverse('mfs:profile')), '#role-user"></use></svg>Пользователь')
+
+        Game.objects.update(author=None)
+        self.assertContains(self.client.get(reverse('mfs:game_detail', args=[self.game.pk])), '<span>Не указан</span>')
+
+    def test_age_rating_next_to_title(self):
+        url = reverse('mfs:game_detail', args=[self.game.pk])
+        self.assertNotContains(self.client.get(url), 'class="game-age-rating"')
+        Game.objects.filter(pk=self.game.pk).update(age_rating='18+')
+        self.assertContains(self.client.get(url), '<span class="game-age-rating" title="Возрастной рейтинг">18+</span>')
+
+    def test_sensitive_screenshot_and_trailer_are_blurred(self):
+        Screenshot.objects.create(game=self.game, image='screenshots/a.png', sensitive='violence')
+        Screenshot.objects.create(game=self.game, image='screenshots/b.png')
+        url = reverse('mfs:game_detail', args=[self.game.pk])
+        response = self.client.get(url)
+        html = response.content.decode()
+        self.assertEqual(html.count('data-sensitive="жестокость"'), 1)
+        # Первый скриншот (обложки и трейлера нет) неприятный — большой кадр размыт сразу, без скрипта
+        self.assertContains(response, 'class="main-image-box is-sensitive"')
+        self.assertContains(response, '<span id="sensitiveKind">жестокость</span>')
+
+        Game.objects.filter(pk=self.game.pk).update(trailer_file='trailers/t.mp4', trailer_sensitive='nudity')
+        response = self.client.get(url)
+        self.assertContains(response, 'class="thumb video-thumb active" data-sensitive="нагота"')
+        self.assertContains(response, 'class="main-image-box is-sensitive"')
+
+        # Неприятный трейлер не включается сам на игре недели
+        Game.objects.update(cover='covers/c.png', trailer_file='trailers/t.mp4', trailer_sensitive='violence')
+        self.assertNotContains(self.client.get(reverse('mfs:index')), 'class="featured-trailer"')
+
+    def test_sensitive_screenshot_in_library_and_admin(self):
+        Screenshot.objects.create(game=self.game, image='screenshots/a.png', sensitive='nudity')
+        self.game.owners.add(self.user)
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('mfs:library'))
+        self.assertContains(response, 'data-sensitive="нагота" class="sensitive-media"')
+
+        admin = User.objects.create_superuser('root', password='Str0ng-pass-123')
+        self.client.force_login(admin)
+        response = self.client.get(reverse('admin:mfs_game_change', args=[self.game.pk]))
+        self.assertContains(response, 'name="screenshots-0-sensitive"')
+        self.assertContains(response, 'name="trailer_sensitive"')
+        self.assertContains(response, 'name="age_rating"')
+
+
+class Round8Tests(StoreTestCase):
+    def test_admin_shows_cover_previews_in_form_and_list(self):
+        admin = User.objects.create_superuser('root', password='Str0ng-pass-123')
+        self.client.force_login(admin)
+        response = self.client.get(reverse('admin:mfs_game_add'))
+        # Превью HD обложки есть сразу (пустое) — скрипт подставит выбранный файл до сохранения
+        self.assertContains(response, 'data-preview-for="cover_hd"')
+        response = self.client.get(reverse('admin:mfs_game_changelist'))
+        self.assertContains(response, 'column-cover_thumb')
+
+    def test_sensitive_thumb_is_wrapped_so_border_stays_sharp(self):
+        Screenshot.objects.create(game=self.game, image='screenshots/a.png', sensitive='violence')
+        response = self.client.get(reverse('mfs:game_detail', args=[self.game.pk]))
+        # Рамка у обёртки, размывается только картинка внутри
+        self.assertContains(response, 'class="thumb media-thumb active"')
+
+
+class Round10Tests(StoreTestCase):
+    def test_wishlist_button_is_icon_only_with_accessible_label(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('mfs:game_detail', args=[self.game.pk]))
+        self.assertContains(response, 'purchase-icon-btn js-wishlist-toggle')
+        self.assertContains(response, 'aria-label="Добавить в желаемое"')
+        self.assertNotContains(response, 'js-wishlist-label')
+
+
+class Round14Tests(StoreTestCase):
+    def test_trailer_thumb_uses_same_hd_cover_as_video(self):
+        Game.objects.filter(pk=self.game.pk).update(cover='covers/c.png', cover_hd='covers_hd/h.png', trailer_file='trailers/t.mp4')
+        response = self.client.get(reverse('mfs:game_detail', args=[self.game.pk]))
+        # Исходника нет на диске — превью отдаёт его же адрес; главное, что это HD обложка, как у постера видео
+        self.assertContains(response, '<img src="/media/covers_hd/h.png" alt="Трейлер"')
+
+    def test_admin_shows_covers_in_site_proportions(self):
+        admin = User.objects.create_superuser('root', password='Str0ng-pass-123')
+        self.client.force_login(admin)
+        Game.objects.filter(pk=self.game.pk).update(cover='covers/c.png')
+        response = self.client.get(reverse('admin:mfs_game_change', args=[self.game.pk]))
+        self.assertContains(response, 'data-cover-frames')
+        self.assertContains(response, 'Шапка библиотеки')
+        # Без HD обложки места для неё показывают обычную, как и сайт
+        self.assertContains(response, 'data-frame="hd" src="/media/covers/c.png"')
+        # При выборе файла обложку можно расположить в рамке, как баннер в профиле
+        self.assertContains(response, 'js/admin-cover-crop.js')
+
+
+class NewsLikeTests(StoreTestCase):
+    def setUp(self):
+        super().setUp()
+        self.news = News.objects.create(title='Патч', description='Текст')
+        self.url = reverse('mfs:news_like', args=[self.news.pk])
+
+    def test_like_toggles_and_returns_count(self):
+        self.client.force_login(self.user)
+        data = self.client.post(self.url).json()
+        self.assertEqual((data['active'], data['count']), (True, 1))
+        data = self.client.post(self.url).json()
+        self.assertEqual((data['active'], data['count']), (False, 0))
+
+    def test_guest_is_sent_to_login_and_draft_cannot_be_liked(self):
+        self.assertEqual(self.client.post(self.url).status_code, 401)
+        self.client.force_login(self.user)
+        draft = News.objects.create(title='Черновик', description='—', is_published=False)
+        self.assertEqual(self.client.post(reverse('mfs:news_like', args=[draft.pk])).status_code, 404)
+
+    def test_list_and_detail_show_count_and_my_like(self):
+        NewsLike.objects.create(user=self.other, news=self.news)
+        NewsLike.objects.create(user=self.user, news=self.news)
+        self.client.force_login(self.user)
+        for url in (reverse('mfs:news'), reverse('mfs:news_detail', args=[self.news.pk])):
+            response = self.client.get(url)
+            self.assertContains(response, 'count-toggle js-toggle-count active')
+            self.assertContains(response, '<span class="js-count">2</span>')
+
+
+class ReviewHelpfulTests(StoreTestCase):
+    def test_review_remembers_playtime_at_the_moment(self):
+        UserLibrary.objects.create(user=self.user, game=self.game, playtime_seconds=45000)
+        self.client.force_login(self.user)
+        self.client.post(reverse('mfs:review_submit', args=[self.game.pk]), {'rating': 5, 'text': 'Класс'})
+        UserLibrary.objects.filter(user=self.user).update(playtime_seconds=90000)  # играл дальше — в отзыве прежнее время
+        response = self.client.get(reverse('mfs:game_detail', args=[self.game.pk]))
+        self.assertContains(response, '12,5 часа в игре')
+
+    def test_playtime_in_words(self):
+        cases = {0: '0 минут', 61: '1 минута', 17 * 60: '17 минут', 22 * 60: '22 минуты',
+                 3600: '1 час', 3 * 3600: '3 часа', 5 * 3600: '5 часов', 45000: '12,5 часа'}
+        for seconds, text in cases.items():
+            self.assertEqual(playtime_words(seconds), text)
+
+    def test_review_without_game_in_library_has_no_playtime(self):
+        self.client.force_login(self.user)
+        self.client.post(reverse('mfs:review_submit', args=[self.game.pk]), {'rating': 4})
+        self.assertIsNone(Review.objects.get(user=self.user).playtime_seconds)
+
+    def test_vote_toggles_but_not_on_own_review(self):
+        review = Review.objects.create(user=self.other, game=self.game, rating=5)
+        mine = Review.objects.create(user=self.user, game=self.game, rating=3)
+        self.client.force_login(self.user)
+        url = reverse('mfs:review_vote', args=[review.pk])
+        self.assertEqual(self.client.post(url).json()['count'], 1)
+        self.assertEqual(self.client.post(url).json()['count'], 0)
+        response = self.client.post(reverse('mfs:review_vote', args=[mine.pk]))
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(ReviewVote.objects.exists())
+
+    def test_helpful_reviews_go_first_and_new_sort_by_date(self):
+        old = Review.objects.create(user=self.other, game=self.game, rating=5, text='Старый полезный')
+        Review.objects.filter(pk=old.pk).update(created_at=timezone.now() - timedelta(days=3))
+        Review.objects.create(user=self.user, game=self.game, rating=2, text='Свежий')
+        ReviewVote.objects.create(user=User.objects.create_user('carol'), review=old)
+        url = reverse('mfs:game_detail', args=[self.game.pk])
+
+        content = self.client.get(url).content.decode()
+        self.assertLess(content.index('Старый полезный'), content.index('Свежий'))
+        content = self.client.get(url + '?reviews=new').content.decode()
+        self.assertLess(content.index('Свежий'), content.index('Старый полезный'))
+
+
+class LinkPreviewTests(StoreTestCase):
+    def test_game_page_has_cover_title_and_price(self):
+        Game.objects.filter(pk=self.game.pk).update(cover_hd='covers_hd/h.png')
+        response = self.client.get(reverse('mfs:game_detail', args=[self.game.pk]))
+        self.assertContains(response, '<meta property="og:title" content="Alpha — 50₴ (−50%)">')
+        self.assertContains(response, '<meta property="og:image" content="http://testserver/media/covers_hd/h.png">')
+        self.assertContains(response, '<meta name="twitter:card" content="summary_large_image">')
+
+    def test_other_pages_have_site_preview(self):
+        response = self.client.get(reverse('mfs:catalog'))
+        self.assertContains(response, '<meta property="og:title" content="GameStore">')
+        self.assertContains(response, 'og:image" content="http://testserver/static/img/icons/gamestore.png')
+
+
+class DiscountDeadlineTests(StoreTestCase):
+    def test_expired_discount_is_removed(self):
+        Game.objects.filter(pk=self.game.pk).update(discount_until=timezone.now() - timedelta(minutes=1))
+        Game.objects.filter(pk=self.game2.pk).update(discount=10, discount_until=timezone.now() + timedelta(days=2))
+        expire_discounts()
+        self.game.refresh_from_db()
+        self.game2.refresh_from_db()
+        self.assertEqual((self.game.discount, self.game.discount_until), (0, None))
+        self.assertEqual(self.game2.discount, 10)
+
+    def test_pages_check_deadlines_and_show_countdown(self):
+        Game.objects.filter(pk=self.game.pk).update(discount_until=timezone.now() - timedelta(minutes=1))
+        Game.objects.filter(pk=self.game2.pk).update(discount=10, discount_until=timezone.now() + timedelta(days=2))
+        cache.delete(DiscountExpiryMiddleware.CACHE_KEY)
+        response = self.client.get(reverse('mfs:game_detail', args=[self.game2.pk]))
+        self.assertContains(response, 'js-deadline')
+        self.assertContains(response, 'Скидка до')
+        self.game.refresh_from_db()
+        self.assertEqual(self.game.discount, 0)  # сроки проверил middleware при открытии страницы
+
+
+class AdminStatsTests(StoreTestCase):
+    def test_stats_page_counts_sales_and_signups(self):
+        UserLibrary.objects.create(user=self.user, game=self.game, price_paid=50)
+        UserLibrary.objects.create(user=self.other, game=self.game, price_paid=50)
+        UserLibrary.objects.create(user=self.user, game=self.game2, price_paid=None)
+        admin = User.objects.create_superuser('root', password='Str0ng-pass-123')
+        self.client.force_login(admin)
+        response = self.client.get(reverse('admin_stats') + '?days=7')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['totals']['purchases'], 3)
+        self.assertEqual(response.context['totals']['revenue'], 100)
+        self.assertEqual(response.context['top_games'][0]['game__title'], 'Alpha')
+        self.assertEqual(len(response.context['sales']), 7)
+        self.assertEqual(response.context['signups'][-1]['count'], 3)  # alice, bob и root зарегистрированы сегодня
+
+    def test_stats_are_for_staff_only(self):
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.get(reverse('admin_stats')).status_code, 302)
+
+    def test_checkout_remembers_price_paid(self):
+        self.client.force_login(self.user)
+        self.ajax_add(self.game)
+        self.client.post(reverse('mfs:checkout'))
+        self.assertEqual(UserLibrary.objects.get(user=self.user, game=self.game).price_paid, 50)

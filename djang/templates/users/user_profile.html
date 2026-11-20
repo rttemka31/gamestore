@@ -64,11 +64,13 @@
                                 {{ target.nickname|default:target.user.username }}
                             </h1>
                             
+                            <!-- Роль видна всегда (она и так показана везде на сайте), описание — только если профиль открыт -->
+                            <p class="profile-status">
+                                {{ target.user|user_status }}
+                                {% include 'store/_hint.html' with title="Роли на сайте" text="Роль показывает, кто человек на сайте.||{creator}Создатель — автор и владелец GameStore||{admin}Админ — добавляет игры и новости, следит за порядком||{developer}Разработчик — автор игр в магазине||{user}Пользователь — игрок с библиотекой, друзьями и отзывами" %}
+                            </p>
+
                             {% if not restricted %}
-                                <p class="profile-status">
-                                    {{ target.user|user_status }}
-                                    {% include 'store/_hint.html' with title="Роли на сайте" text="Роль показывает, кто человек на сайте.||{creator}Создатель — автор и владелец GameStore||{admin}Админ — добавляет игры и новости, следит за порядком||{user}Пользователь — игрок с библиотекой, друзьями и отзывами" %}
-                                </p>
 
                                 <p class="profile-status">
                                     {% if target.bio and target.bio != "None" %}
@@ -96,7 +98,7 @@
                                     </a>
                                 {% elif state == 'none' and not target.allow_friend_requests %}
                                     <button type="button"
-                                            class="buy-button" style="background: var(--bg-card-hover);" disabled>
+                                            class="buy-button btn-muted" disabled>
                                         Не принимает заявки
                                     </button>
                                 {% elif state == 'none' %}
@@ -117,10 +119,18 @@
                                         Ответить на заявку
                                     </a>
                                 {% elif state == 'friends' %}
-                                    <button type="button"
-                                            class="buy-button" style="background: var(--bg-card-hover);" disabled>
-                                        Вы друзья
-                                    </button>
+                                    <!-- «Вы друзья ▾» открывает меню с удалением: так его не нажать случайно -->
+                                    <div class="friend-menu">
+                                        <button type="button" class="buy-button btn-muted friend-menu-toggle" id="friendMenuBtn"
+                                                aria-expanded="false" aria-controls="friendMenu">
+                                            Вы друзья ▾
+                                        </button>
+                                        <div class="friend-menu-list" id="friendMenu" hidden>
+                                            <button type="button" class="friend-menu-danger" id="removeFriendBtn"
+                                                    data-url="{% url 'mfs:friend_remove' friendship_id %}"
+                                                    data-name="{{ target.user.username }}">Удалить из друзей</button>
+                                        </div>
+                                    </div>
                                 {% endif %}
                             </div>
                         {% endif %}
@@ -141,7 +151,7 @@
                             {% endif %}
 
                             <div class="profile-stat">
-                                <strong>{{ target.user.date_joined|date:"b. Yг." }}</strong>
+                                <strong>{{ target.user.date_joined|date:"d b. Yг." }}</strong>
                                 <span>Участник с</span>
                             </div>
                         </div>
@@ -151,17 +161,11 @@
 
             {% if restricted %}
                 <section class="profile-section">
-                    <div class="profile-empty">
-                        <div class="profile-empty-icon">🔒</div>
-                        <h3>Профиль скрыт</h3>
-                        <p>
-                            {% if target.profile_visibility == 'friends' %}
-                                Этот профиль видят только друзья.
-                            {% else %}
-                                Пользователь закрыл свой профиль.
-                            {% endif %}
-                        </p>
-                    </div>
+                    {% if target.profile_visibility == 'friends' %}
+                        {% include 'store/_empty_state.html' with icon='lock' title='Профиль скрыт' text='Этот профиль видят только друзья.' %}
+                    {% else %}
+                        {% include 'store/_empty_state.html' with icon='lock' title='Профиль скрыт' text='Пользователь закрыл свой профиль.' %}
+                    {% endif %}
                 </section>
             {% else %}
 
@@ -180,7 +184,7 @@
                                             <img src="{{ item.game.cover.url }}"
                                                  alt="{{ item.game.title }}" loading="lazy" decoding="async">
                                             {% else %}
-                                            <span>🎮</span>
+                                            <span>{% include 'store/_icon.html' with name='gamepad' %}</span>
                                             {% endif %}
                                         </div>      
                                         <div class="activity-info-game">
@@ -195,13 +199,11 @@
                                     </div>
                                 </a>
                                 {% empty %}
-                                <p class="empty-activity">
-                                    Пользователь пока не запускал игры
-                                </p>
+                                {% include 'store/_empty_state.html' with icon='gamepad' compact=True title='Пользователь пока не запускал игры' %}
                                 {% endfor %}
                             </div>
                         {% else %}
-                            <p class="empty-activity">Пользователь скрыл свою библиотеку.</p>
+                            {% include 'store/_empty_state.html' with icon='lock' compact=True title='Пользователь скрыл свою библиотеку' %}
                         {% endif %}
                     </section>
 
@@ -214,11 +216,7 @@
                         {% if favorites %}
                             {% include 'users/_favorites.html' %}
                         {% else %}
-                            <div class="profile-empty">
-                                <div class="profile-empty-icon">★</div>
-                                <h3>Здесь появятся любимые игры</h3>
-                                <p>Пользователь пока не добавил игры в избранное.</p>
-                            </div>
+                            {% include 'store/_empty_state.html' with icon='star' title='Здесь появятся любимые игры' text='Пользователь пока не добавил игры в избранное.' %}
                         {% endif %}
                     </section>
 
@@ -236,6 +234,8 @@
                     </section>
                     {% endif %}
                     {% endif %}
+
+                    {% include 'users/_wall.html' %}
                 {% endif %}
             </div>
 
@@ -265,9 +265,7 @@
                                 </div>
                             </a>
                             {% empty %}
-                            <p class="empty-activity">
-                                У пользователя пока нет друзей.
-                            </p>
+                            {% include 'store/_empty_state.html' with icon='users' compact=True title='У пользователя пока нет друзей' %}
                             {% endfor %}
                         </div>
                     </section>
@@ -311,6 +309,48 @@ document.addEventListener('DOMContentLoaded', () => {
     switchSection(
         window.location.hash === '#friends' ? 'friends' : 'profile'
     );
+});
+</script>
+<script>
+// Меню «Вы друзья ▾»: удаление из друзей только после подтверждения
+document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('friendMenuBtn');
+    const menu = document.getElementById('friendMenu');
+    const remove = document.getElementById('removeFriendBtn');
+    if (!toggle || !menu || !remove) return;
+
+    const setOpen = open => {
+        menu.hidden = !open;
+        toggle.setAttribute('aria-expanded', open);
+    };
+    toggle.addEventListener('click', () => setOpen(menu.hidden));
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.friend-menu')) setOpen(false);
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') setOpen(false);
+    });
+
+    remove.addEventListener('click', async () => {
+        if (!confirm(`Удалить ${remove.dataset.name} из друзей?`)) return;
+        remove.disabled = true;
+        try {
+            const r = await fetch(remove.dataset.url, {
+                method: 'POST',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+            });
+            const res = await r.json();
+            if (res.status === 'success') {
+                location.reload();
+                return;
+            }
+            alert(res.message || 'Ошибка');
+        } catch (e) {
+            console.error(e);
+            alert('Не удалось удалить из друзей');
+        }
+        remove.disabled = false;
+    });
 });
 </script>
 <script>

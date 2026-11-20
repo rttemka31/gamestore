@@ -3,13 +3,14 @@ from datetime import date, datetime, time, timedelta
 import random
 
 from django.core.paginator import Paginator
-from django.db.models import Avg, Count, DecimalField, ExpressionWrapper, F, Prefetch, Q
+from django.db.models import Avg, Count, DecimalField, Exists, ExpressionWrapper, F, OuterRef, Prefetch, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
-from ..models import Collection, Game, Genre, News, Profile
-from .common import _user_game_state
+from ..models import Collection, Game, Genre, News, NewsLike, Profile, ReviewVote
+from .common import _friend_profiles, _my_profile, _user_game_state, _with_likes
 
 
 CATALOG_PAGE_SIZE = 12
@@ -147,6 +148,13 @@ def catalog(request):
 
     page = Paginator(games.order_by(*CATALOG_SORTS[sort][1]), CATALOG_PAGE_SIZE).get_page(request.GET.get('page'))
 
+    # Жанры: по умолчанию сначала самые популярные (больше игр), при равенстве — по алфавиту;
+    # в настройках каталога можно выбрать просто алфавитный порядок
+    genre_order = ('name',) if prefs and prefs.genre_sort == Profile.GenreSort.NAME else ('-games_count', 'name')
+    genres = Genre.objects.annotate(
+        games_count=Count('games', filter=~Q(games__in=hidden_ids)),
+    ).filter(games_count__gt=0).order_by(*genre_order)
+
     # Параметры фильтров без номера страницы — для ссылок пагинатора
     params = request.GET.copy()
     params.pop('page', None)
@@ -157,9 +165,7 @@ def catalog(request):
         'query': query,
         'category_options': _catalog_category_options(categories, category, hidden_ids),
         'selected_category': category,
-        'genres': Genre.objects.annotate(
-            games_count=Count('games', filter=~Q(games__in=hidden_ids)),
-        ).filter(games_count__gt=0).order_by('name'),
+        'genres': genres,
         'selected_genres': selected_genres,
         'owned_hidden': bool(hidden_ids),
         'has_filters': bool(query or category or selected_genres),
@@ -183,13 +189,41 @@ def game_detail(request, game_id):
     if request.user.is_authenticated:
         my_review = game.reviews.filter(user=request.user).first()
 
+    # Роль «Разработчик» у авторов отзывов и отметки «Полезно» узнаются тем же запросом, а не отдельным на каждого
+    reviews_sort = 'new' if request.GET.get('reviews') == 'new' else 'helpful'
+    reviews_qs = game.reviews.select_related('user__profile').annotate(  # профиль — для аватарки
+        user_is_developer=Exists(Game.objects.filter(author_id=OuterRef('user_id'))),
+        helpful_count=Count('votes'),
+        voted=Exists(ReviewVote.objects.filter(review=OuterRef('pk'), user_id=request.user.pk or 0)),
+    )
+    # Порядок задаём явно: в запросе с Count() Django не применяет ordering из Meta
+    order = ('-helpful_count', '-created_at') if reviews_sort == 'helpful' else ('-created_at',)
+    reviews = list(reviews_qs.order_by(*order))
+    for review in reviews:
+        review.user._is_developer = review.user_is_developer
+
+    # Подарить можно только платную игру; друзья, у которых она уже есть, показаны, но выбрать их нельзя
+    can_gift = request.user.is_authenticated and game.discounted_price > 0
+    gift_friends = []
+    if can_gift:
+        friends = _friend_profiles(_my_profile(request))
+        owners = set(game.owners.filter(pk__in=[p.user_id for p in friends]).values_list('pk', flat=True))
+        gift_friends = sorted(
+            ({'profile': p, 'owns': p.user_id in owners} for p in friends),
+            key=lambda f: (f['owns'], (f['profile'].nickname or f['profile'].user.username).casefold()),
+        )
+
     return render(request, 'store/game_detail.html', {
         'game': game,
-        'reviews': game.reviews.select_related('user__profile'),  # профиль — для аватарки
+        'reviews': reviews,
+        'reviews_sort': reviews_sort,
         'avg_rating': avg_rating,
         'avg_percent': avg_rating / 5 * 100,
         'reviews_count': stats['count'],
         'my_review': my_review,
+        'can_gift': can_gift,
+        'gift_friends': gift_friends,
+        'gift_available': any(not f['owns'] for f in gift_friends),
         **_user_game_state(request),
     })
 
@@ -224,6 +258,7 @@ def news(request):
         news_qs = [n for n in news_qs if needle in n.title.casefold() or needle in n.description.casefold()]
 
     page = Paginator(news_qs, NEWS_PAGE_SIZE).get_page(request.GET.get('page'))
+    page.object_list = _with_likes(request, page.object_list)
 
     counts = dict(published.order_by().values_list('category').annotate(Count('id')))
     categories = [(code, label, counts.get(code, 0)) for code, label in News.CATEGORY_CHOICES]
@@ -246,6 +281,7 @@ def news_detail(request, pk):
     # Черновик видят только администраторы: так его можно проверить перед публикацией
     queryset = News.objects.all() if request.user.is_staff else News.objects.filter(is_published=True)
     item = get_object_or_404(queryset, pk=pk)
+    _with_likes(request, [item])
     published = News.objects.filter(is_published=True)
     # pk различает новости, созданные в один и тот же момент
     same_moment = Q(created_at=item.created_at)
@@ -259,6 +295,18 @@ def news_detail(request, pk):
             Q(created_at__lt=item.created_at) | (same_moment & Q(pk__lt=item.pk))
         ).order_by('-created_at', '-pk').first(),
     })
+
+
+@require_POST
+def news_like(request, pk):
+    """Ставит или снимает лайк новости."""
+    if not request.user.is_authenticated:
+        return JsonResponse({'status': 'login_required'}, status=401)
+    item = get_object_or_404(News, pk=pk, is_published=True)
+    like, created = NewsLike.objects.get_or_create(user=request.user, news=item)
+    if not created:
+        like.delete()
+    return JsonResponse({'status': 'success', 'active': created, 'count': item.likes.count()})
 
 
 def game_search_ajax(request):

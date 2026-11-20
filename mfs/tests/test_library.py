@@ -38,6 +38,27 @@ class LibraryPanelTests(StoreTestCase):
         self.assertIn('<details class="library-about">', content)
         self.assertLess(content.index('Новости игры'), content.index('Рекламный текст'))
 
+    def test_about_shows_long_description_or_falls_back_to_short(self):
+        Game.objects.filter(pk=self.game.pk).update(description='Короткое', long_description='Полное описание')
+        response = self.client.get(self.url)
+        self.assertContains(response, 'Полное описание')
+        self.assertNotContains(response, 'Короткое')
+
+        Game.objects.filter(pk=self.game.pk).update(long_description='')
+        self.assertContains(self.client.get(self.url), 'Короткое')
+
+    def test_panel_links_to_developer_profile(self):
+        profile_url = reverse('mfs:user_profile', args=[self.other.username])
+        self.assertContains(self.client.get(self.url), f'<a href="{profile_url}" class="detail-author-link">bob</a>')
+
+    def test_last_played_uses_site_date_format(self):
+        played = timezone.make_aware(timezone.datetime(2026, 11, 8, 15, 30))
+        UserLibrary.objects.create(user=self.user, game=self.game, last_played=played)
+        self.assertContains(self.client.get(self.url), 'data-last-played="08 ноя. 2026г."')
+
+        response = self.client.post(reverse('mfs:launch_game', args=[self.game.pk]), headers={'x-requested-with': 'XMLHttpRequest'})
+        self.assertRegex(response.json()['last_played_display'], r'^\d{2} [а-я]{3}\. \d{4}г\.$')
+
     def test_only_published_news_of_this_game_are_shown(self):
         News.objects.create(title='Новость магазина', description='Текст')
         News.objects.create(title='Про другую игру', description='Текст').games.add(self.game2)
@@ -85,6 +106,49 @@ class LibraryPanelTests(StoreTestCase):
     def test_empty_library_still_renders(self):
         self.game.owners.remove(self.user)
         self.assertContains(self.client.get(self.url), 'В вашей библиотеке пока нет игр')
+
+
+class NewGamesBadgeTests(StoreTestCase):
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.user)
+
+    def buy(self, game):
+        self.client.post(reverse('mfs:add_to_cart', args=[game.pk]))
+        self.client.post(reverse('mfs:checkout'))
+
+    def test_bought_games_are_counted_until_opened(self):
+        self.assertContains(self.client.get(reverse('mfs:index')), 'data-library-badge title="Новых игр: 0" hidden')
+        self.buy(self.game)
+        self.buy(self.game2)
+        response = self.client.get(reverse('mfs:index'))
+        self.assertContains(response, 'data-library-badge title="Новых игр: 2">2</span>')
+
+        # Без ?active библиотека открывает первую новую игру, у новых есть метка
+        response = self.client.get(reverse('mfs:library'))
+        self.assertEqual(response.context['active_id'], self.game.pk)
+        self.assertContains(response, 'class="sidebar-new"', count=2)
+
+        data = self.client.post(reverse('mfs:library_seen', args=[self.game.pk])).json()
+        self.assertEqual(data['new_count'], 1)
+        self.assertContains(self.client.get(reverse('mfs:index')), 'title="Новых игр: 1">1</span>')
+
+        # Запуск тоже снимает признак
+        self.client.post(reverse('mfs:launch_game', args=[self.game2.pk]), headers={'x-requested-with': 'XMLHttpRequest'})
+        self.assertFalse(UserLibrary.objects.filter(user=self.user, is_new=True).exists())
+
+    def test_gift_is_new_for_receiver_and_seen_only_by_owner(self):
+        Friendship.objects.create(sender=self.user.profile, receiver=self.other.profile, status=Friendship.Status.ACCEPTED)
+        self.client.post(reverse('mfs:gift_game', args=[self.game.pk]), {'friend': self.other.pk})
+        self.assertTrue(UserLibrary.objects.get(user=self.other, game=self.game).is_new)
+
+        # Чужую новую игру отметить нельзя; GET не меняет ничего
+        self.client.post(reverse('mfs:library_seen', args=[self.game.pk]))
+        self.assertTrue(UserLibrary.objects.get(user=self.other, game=self.game).is_new)
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.get(reverse('mfs:library_seen', args=[self.game.pk])).status_code, 405)
+        self.client.post(reverse('mfs:library_seen', args=[self.game.pk]))
+        self.assertFalse(UserLibrary.objects.get(user=self.other, game=self.game).is_new)
 
 
 class WishlistTests(StoreTestCase):

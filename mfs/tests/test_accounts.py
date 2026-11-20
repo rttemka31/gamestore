@@ -1,11 +1,15 @@
 """Вход, профиль, настройки и приватность."""
+import re
+
+from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.models import User
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client
+from django.test import Client, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from ..models import FavoriteGame, Friendship, Genre, News, Profile, Review, UserLibrary, Wishlist
+from ..models import FavoriteGame, Friendship, Genre, News, Profile, ProfileComment, Review, UserLibrary, Wishlist
 from .base import make_png, StoreTestCase
 
 
@@ -26,6 +30,18 @@ class AuthTests(StoreTestCase):
         self.client.logout()
         response = self.client.post(reverse('mfs:login') + '?next=https://evil.example/', data)
         self.assertRedirects(response, reverse('mfs:index'))
+
+    def test_other_google_account_link_opens_account_chooser(self):
+        from allauth.socialaccount.models import SocialApp
+        SocialApp.objects.create(provider='google', name='Google', client_id='id', secret='secret')
+        for name in ('mfs:login', 'mfs:register'):
+            self.assertContains(self.client.get(reverse(name)), 'Другой аккаунт Google')
+
+        # Ссылка ведёт в Google с просьбой показать выбор аккаунта
+        response = self.client.get(reverse('google_login') + '?auth_params=prompt%3Dselect_account')
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('prompt=select_account', response['Location'])
+        self.assertNotIn('prompt=', self.client.get(reverse('google_login'))['Location'])
 
     def test_logout_requires_post(self):
         self.client.force_login(self.user)
@@ -63,8 +79,8 @@ class ProfileAndSettingsTests(StoreTestCase):
         # Входящая заявка ведёт в профиль отправителя и показывает его роль
         self.assertContains(response, f'href="{reverse("mfs:user_profile", args=["root"])}" class="activity-item-link"')
         self.assertContains(response, '#role-creator"></use></svg>Создатель</p>')
-        # Исходящая — роль получателя
-        self.assertContains(response, '#role-user"></use></svg>Пользователь</p>')
+        # Исходящая — роль получателя (bob — автор игр, поэтому «Разработчик»)
+        self.assertContains(response, '#role-developer"></use></svg>Разработчик</p>')
 
     def test_profile_page_edits_nickname_and_bio(self):
         response = self.client.post(reverse('mfs:profile'), {'username': 'alice2', 'bio': '  Люблю инди  '})
@@ -156,6 +172,23 @@ class ProfileAndSettingsTests(StoreTestCase):
         self.post_settings(form='appearance', show_hints='on')
         self.assertTrue(Profile.objects.get(user=self.user).show_hints)
 
+    def test_liquid_glass_design_can_be_switched_on_and_off(self):
+        # По умолчанию обычный дизайн: атрибута нет, тумблер выключен
+        response = self.client.get(reverse('mfs:settings'))
+        self.assertNotContains(response, 'data-design="glass"')
+        self.assertContains(response, 'id="liquidGlassToggle" class="settings-toggle" >')
+
+        self.post_settings(form='appearance', show_hints='on', liquid_glass='on')
+        self.assertEqual(Profile.objects.get(user=self.user).design, Profile.Design.GLASS)
+        self.assertContains(self.client.get(reverse('mfs:index')), 'data-design="glass"')
+
+        # Выключенный тумблер возвращает обычный дизайн, остальные настройки не трогает
+        self.post_settings(form='appearance', show_hints='on')
+        profile = Profile.objects.get(user=self.user)
+        self.assertEqual(profile.design, Profile.Design.DEFAULT)
+        self.assertTrue(profile.show_hints)
+        self.assertNotContains(self.client.get(reverse('mfs:index')), 'data-design="glass"')
+
     def test_catalog_uses_saved_sort_unless_url_overrides_it(self):
         self.post_settings(form='catalog', default_catalog_sort='title')
         url = reverse('mfs:catalog')
@@ -233,7 +266,7 @@ class ProfileAndSettingsTests(StoreTestCase):
         self.assertEqual(len(devices), 2)
         self.assertTrue(devices[0]['current'])
         other = devices[1]
-        self.assertEqual((other['name'], other['is_mobile']), ('Chrome · Android', True))
+        self.assertEqual((other['name'], other['is_mobile']), ('Chrome • Android', True))
         self.assertIsNotNone(other['started'])
         # Ключ сессии в страницу не попадает — только его хеш
         self.assertNotIn(phone.session.session_key, self.client.get(reverse('mfs:settings')).content.decode())
@@ -261,9 +294,9 @@ class ProfileAndSettingsTests(StoreTestCase):
 
     def test_user_agent_names(self):
         from ..sessions import describe_user_agent
-        self.assertEqual(describe_user_agent('Mozilla/5.0 (Windows NT 10.0) Chrome/130.0 Safari/537.36 Edg/130.0')[0], 'Edge · Windows')
-        self.assertEqual(describe_user_agent('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) Version/17.0 Mobile Safari/604.1'), ('Safari · iPhone', True))
-        self.assertEqual(describe_user_agent('Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Firefox/131.0')[0], 'Firefox · Linux')
+        self.assertEqual(describe_user_agent('Mozilla/5.0 (Windows NT 10.0) Chrome/130.0 Safari/537.36 Edg/130.0')[0], 'Edge • Windows')
+        self.assertEqual(describe_user_agent('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) Version/17.0 Mobile Safari/604.1'), ('Safari • iPhone', True))
+        self.assertEqual(describe_user_agent('Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Firefox/131.0')[0], 'Firefox • Linux')
         self.assertEqual(describe_user_agent('')[0], 'Неизвестное устройство')
 
     def test_export_contains_my_data_and_downloads_as_file(self):
@@ -349,6 +382,25 @@ class PrivacyTests(StoreTestCase):
         self.client.force_login(User.objects.create_superuser('root', password='Str0ng-pass-123'))
         self.assert_library_hidden()
 
+    def test_private_profile_still_shows_role_but_not_bio(self):
+        Profile.objects.filter(user=self.other).update(bio='Секретное описание')
+        self.client.force_login(self.user)
+        response = self.client.get(self.url)
+        self.assertContains(response, '#role-developer"></use></svg>Разработчик')  # bob — автор игр
+        self.assertNotContains(response, 'Секретное описание')
+
+    def test_friend_is_removed_from_their_profile_not_from_the_list(self):
+        friendship = Friendship.objects.create(
+            sender=self.user.profile, receiver=self.other.profile, status=Friendship.Status.ACCEPTED
+        )
+        Profile.objects.filter(user=self.other).update(profile_visibility='everyone')
+        self.client.force_login(self.user)
+        # В профиле друга — меню «Вы друзья ▾» с удалением
+        response = self.client.get(self.url)
+        self.assertContains(response, f'data-url="{reverse("mfs:friend_remove", args=[friendship.pk])}"')
+        # В своём списке друзей кнопки удаления больше нет
+        self.assertNotContains(self.client.get(reverse('mfs:profile')), 'data-friend-action="remove" data-id="{}"'.format(friendship.pk))
+
     def test_owner_still_sees_own_private_profile(self):
         self.client.force_login(self.other)
         self.assertContains(self.client.get(self.url), 'Alpha')
@@ -368,3 +420,118 @@ class PrivacyTests(StoreTestCase):
         self.client.force_login(self.other)
         self.client.post(reverse('mfs:settings'), {'form': 'privacy', 'profile_visibility': 'private'})
         self.assertTrue(Profile.objects.get(user=self.other).show_library)
+
+
+class AvatarRemoveTests(StoreTestCase):
+    def test_avatar_can_be_removed_in_profile_and_in_settings(self):
+        self.client.force_login(self.user)
+        settings_url = reverse('mfs:settings')
+        self.client.post(settings_url, {'form': 'profile', 'username': 'alice', 'avatar': make_png()})
+        self.assertTrue(Profile.objects.get(user=self.user).avatar)
+
+        # Профиль: кнопка в режиме правки, удаляется при «Сохранить»
+        self.client.post(reverse('mfs:profile'), {'avatar_clear': '1'})
+        self.assertFalse(Profile.objects.get(user=self.user).avatar)
+
+        # Настройки: удаляется сразу
+        self.client.post(settings_url, {'form': 'profile', 'username': 'alice', 'avatar': make_png()})
+        self.client.post(settings_url, {'form': 'profile', 'username': 'alice', 'avatar_clear': '1'})
+        self.assertFalse(Profile.objects.get(user=self.user).avatar)
+
+    def test_new_avatar_wins_over_remove_flag(self):
+        self.client.force_login(self.user)
+        self.client.post(reverse('mfs:profile'), {'avatar_clear': '1', 'avatar': make_png()})
+        self.assertTrue(Profile.objects.get(user=self.user).avatar)
+
+
+@override_settings(EMAIL_ENABLED=True, EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+class PasswordResetTests(StoreTestCase):
+    def setUp(self):
+        super().setUp()
+        self.user.email = 'alice@example.com'
+        self.user.save()
+
+    def test_reset_by_email_sets_new_password(self):
+        response = self.client.post(reverse('mfs:password_reset'), {'email': 'ALICE@example.com'})
+        self.assertContains(response, 'мы отправили на неё письмо')
+        self.assertEqual(len(mail.outbox), 1)
+        link = re.search(r'http://testserver(/password-reset/\S+/)', mail.outbox[0].body).group(1)
+
+        self.client.post(link, {'new_password1': 'N3w-strong-pass', 'new_password2': 'N3w-strong-pass'})
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('N3w-strong-pass'))
+        # Ссылка одноразовая
+        self.assertContains(self.client.get(link), 'Ссылка устарела')
+
+    def test_unknown_email_gets_same_answer_and_no_letter(self):
+        response = self.client.post(reverse('mfs:password_reset'), {'email': 'nobody@example.com'})
+        self.assertContains(response, 'мы отправили на неё письмо')
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_reset_requests_are_limited(self):
+        for _ in range(6):
+            self.client.post(reverse('mfs:password_reset'), {'email': 'alice@example.com'})
+        self.assertEqual(len(mail.outbox), 5)
+
+    @override_settings(EMAIL_ENABLED=False)
+    def test_without_mail_page_offers_social_login(self):
+        response = self.client.post(reverse('mfs:password_reset'), {'email': 'alice@example.com'})
+        self.assertContains(response, 'Отправка писем на сайте сейчас не настроена')
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_login_page_links_to_reset(self):
+        self.assertContains(self.client.get(reverse('mfs:login')), reverse('mfs:password_reset'))
+
+
+class ProfileWallTests(StoreTestCase):
+    def befriend(self):
+        Friendship.objects.create(
+            sender=self.user.profile, receiver=self.other.profile, status=Friendship.Status.ACCEPTED,
+        )
+
+    def test_friend_can_post_and_stranger_cannot(self):
+        url = reverse('mfs:wall_post', args=['bob'])
+        self.client.force_login(self.user)
+        self.client.post(url, {'text': 'Привет!'})
+        self.assertFalse(ProfileComment.objects.exists())
+
+        self.befriend()
+        response = self.client.post(url, {'text': 'Привет!'})
+        self.assertRedirects(response, reverse('mfs:user_profile', args=['bob']) + '#wall', fetch_redirect_response=False)
+        self.assertContains(self.client.get(reverse('mfs:user_profile', args=['bob'])), 'Привет!')
+
+    def test_owner_writes_on_own_wall_and_sees_it_in_profile(self):
+        self.client.force_login(self.user)
+        self.client.post(reverse('mfs:wall_post', args=['alice']), {'text': 'Моя запись'})
+        self.assertContains(self.client.get(reverse('mfs:profile')), 'Моя запись')
+
+    def test_author_and_wall_owner_can_delete_others_cannot(self):
+        self.befriend()
+        comment = ProfileComment.objects.create(author=self.user, profile=self.other.profile, text='Запись')
+        carol = User.objects.create_user('carol')
+        self.client.force_login(carol)
+        self.client.post(reverse('mfs:wall_delete', args=[comment.pk]))
+        self.assertTrue(ProfileComment.objects.exists())
+
+        self.client.force_login(self.other)  # владелец стены
+        self.client.post(reverse('mfs:wall_delete', args=[comment.pk]))
+        self.assertFalse(ProfileComment.objects.exists())
+
+
+class SettingsAvatarRemoveTests(StoreTestCase):
+    def test_settings_have_trash_button_on_avatar(self):
+        self.user.profile.avatar = make_png()
+        self.user.profile.save()
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('mfs:settings'))
+        self.assertContains(response, 'class="avatar-remove" id="avatarRemove"')
+        self.assertNotContains(response, 'avatar-remove-link')
+
+
+class SocialLinkTests(StoreTestCase):
+    def test_settings_show_linked_social_account(self):
+        SocialAccount.objects.create(user=self.user, provider='discord', uid='42', extra_data={'username': 'alice_d'})
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('mfs:settings'))
+        self.assertContains(response, 'Вход через соцсети')
+        self.assertContains(response, 'Привязан')

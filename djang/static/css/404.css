@@ -36,9 +36,11 @@
     --padding-md: 20px;
     --padding-big: 30px;
 
+    /* те же значения, что в style.css: у Inter есть только 400, 600 и 800 */
+    --text-regular: 400;
     --text-normal: 500;
     --text-semibold: 600;
-    --text-bold: 700;
+    --text-bold: 800;
     --transition: 0.2s ease;
 }
 

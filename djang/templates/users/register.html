@@ -65,6 +65,12 @@
             </a>
 {% endif %}
         </div>
+{% if 'google' in social_providers %}
+        <!-- Обычная кнопка входит в последний аккаунт Google, эта ссылка открывает выбор аккаунта -->
+        <div class="social-login-alt">
+            <a href="{% provider_login_url 'google' auth_params='prompt=select_account' %}">Другой аккаунт Google</a>
+        </div>
+{% endif %}
     </form>
 
             <div class="section-header-2">

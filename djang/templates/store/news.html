@@ -57,7 +57,7 @@
                     <input type="search" name="q" value="{{ query }}" placeholder="Поиск по новостям..." aria-label="Поиск по новостям">
                     <button type="button" class="clear-search-btn" aria-label="Очистить поиск" hidden>&times;</button>
                     <button type="submit" aria-label="Найти">
-                        <img src="{% static 'img/icons/search.png' %}" width="22" height="22" alt="">
+                        <img src="{% static 'img/icons/search.png' %}" class="search-btn-icon" width="22" height="22" alt="">
                     </button>
                 </div>
 
@@ -88,7 +88,8 @@
                 {% endfor %}
 
                 {% if not pinned_news and not regular_news %}
-                    <div class="empty-news">Новостей по выбранным фильтрам не найдено.</div>
+                    {% url 'mfs:news' as news_url %}
+                    {% include 'store/_empty_state.html' with icon='search' title='Новостей не найдено' text='По выбранным фильтрам ничего нет.' link_url=news_url link_text='Показать все новости' %}
                 {% endif %}
             </div>
 

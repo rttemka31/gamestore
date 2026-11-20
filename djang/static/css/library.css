@@ -55,7 +55,7 @@
 }
 
 .last-launch-text {
-    font-weight: var(--text-normal);
+    font-weight: var(--text-regular);
 }
 
 .last-launch-wrapper {
@@ -133,34 +133,6 @@
     gap: 10px;
     margin-top: auto;
     min-height: 30px;
-}
-
-.buy-button {
-    border: none;
-    background:  var(--accent);
-    color: var(--text-primary);
-    padding: 11px 27px;
-    border-radius: var(--radius-sm);
-    font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    cursor: pointer;
-    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
-    display: inline-block; /* ОБЯЗАТЕЛЬНО: разрешает браузеру применять transform и анимации */
-    text-decoration: none;
-
-    /* 2. Анимируем строго свойство transform */
-    transition: transform 0.175s ease-out;
-
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-.buy-button:hover {
-    transform: scale(1.1);
-}
-
-.buy-button:active {
-    transform: scale(0.9);
 }
 
 .purchase-box {
@@ -396,7 +368,7 @@
 
 .sidebar-item:hover {
     transform: translateX(5px);
-    background-color: var(--bg-card) 5%;
+    background-color: var(--bg-card); /* как у жанров в каталоге */
     color: var(--text-primary);
     border-left: 3px solid var(--accent);
 }
@@ -493,11 +465,11 @@
 
 .hero-title {
     margin: 0;
+    font-family: var(--font-display);
     font-size: calc(24px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
+    font-weight: var(--text-normal);
     color: var(--text-primary);
     text-shadow: 0 6px 6px rgba(0, 0, 0, 1);
-    letter-spacing: 0.3px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -515,25 +487,7 @@
 }
 
 .play-button {
-    border: none;
-    background: var(--accent);
-    color: var(--text-primary);
-    padding: 11px 27px;
-    border-radius: var(--radius-sm);
-    font-size: calc(16px * var(--font-scale, 1));
     margin-right: var(--padding-sm);
-    cursor: pointer;
-    font-weight: var(--text-semibold);
-
-    /* 1. Готовим слой для GPU и отключаем скачки субпикселей */
-    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
-
-    /* 2. Анимируем строго свойство transform */
-    transition: transform 0.175s ease-out;
-
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-decoration: none;
 }
 
 .status-running {
@@ -550,15 +504,6 @@
     background-color: var(--success);
 }
 
-.play-button:hover {
-    /* 3. Scale 1.04–1.05 выглядит аккуратнее и не раздувает буквы */
-    transform: scale(1.1);
-}
-
-.play-button:active {
-    transform: scale(0.9);
-}
-
 .play-button a {
     text-decoration: none;
 }
@@ -572,7 +517,7 @@
 }
 
 .section-block h3 {
-    font-size: calc(14px * var(--font-scale, 1));
+    font-size: calc(16px * var(--font-scale, 1));
     letter-spacing: 1px;
     color: var(--accent-text);
     margin-bottom: 15px;
@@ -590,6 +535,13 @@
 }
 
 /* ПУСТОЕ СОСТОЯНИЕ */
+/* Пустая библиотека: блок «пусто» по центру основной области */
+.library-empty-wrap {
+    width: min(560px, 100%);
+    margin: 100px auto 0;
+    padding: 0 var(--space-4);
+}
+
 .empty-state {
     margin: auto;
     text-align: center;
@@ -603,37 +555,10 @@
     font-weight: var(--text-semibold) !important;
 }
 
-.store-btn {
-    display: inline-block;
-    margin-top: 15px;
-    padding: 10px 24px;
-    background: var(--bg-card);
-    color: var(--text-primary);
-    text-decoration: none;
-    border-radius: var(--radius-sm);
-    font-weight: var(--text-semibold);
-
-    outline: 1px solid transparent; /* Заставляет Chrome сглаживать грани */
-
-    /* 2. Анимируем строго свойство transform */
-    transition: transform 0.175s ease-out;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-.store-btn:hover {
-    /* 3. Scale 1.04–1.05 выглядит аккуратнее и не раздувает буквы */
-    transform: scale(1.1);
-}
-
-.store-btn:active {
-    transform: scale(0.9);
-}
-
 /* Иконка в левом списке (как в Steam) */
 .sidebar-game-icon {
-    width: 22.5px;
-    height: 22.5px;
+    width: var(--icon-md);
+    height: var(--icon-md);
     object-fit: contain;
     border-radius: var(--radius-verysm);
     flex-shrink: 0;
@@ -647,7 +572,6 @@
     align-items: center;
     gap: 15px;
 
-    /* Плашка не шире обложки: длинное название обрежется многоточием */
     max-width: calc(100% - 80px);
     z-index: 3;
     background: rgba(0, 0, 0, 0.7);
@@ -660,7 +584,7 @@
     width: 50px;
     height: 50px;
     object-fit: contain;
-    display: block;      /* Убирает базовый нижний отступ картинки */
+    display: block;
     flex-shrink: 0;
     border-radius: var(--radius-sm);
 }
@@ -703,11 +627,11 @@
 }
 
 .settings-btn:hover {
-    transform: scale(1.1);
+    transform: scale(var(--btn-hover-scale));
 }
 
 .settings-btn:active {
-    transform: scale(0.9);
+    transform: scale(0.96);
 }
 
 .dropdown-menu {
@@ -799,7 +723,7 @@
     flex-shrink: 0;
     width: 22.5px;
     height: 22.5px;
-    font-size: 20px;
+    font-size: 18px;
     opacity: 0;
     transition: opacity 0.2s, background 0.2s, border-color 0.2s;
 }
@@ -830,10 +754,17 @@
     cursor: grabbing;
 }
 
-.fav-toggle {
+.fav-toggle,
+.settings-dropdown > .settings-btn {
     width: 42px;
     height: 42px;
     padding: 0;
+}
+
+/* Шестерёнка — svg, ставим её ровно по центру кнопки */
+.settings-dropdown > .settings-btn {
+    display: inline-grid;
+    place-items: center;
 }
 
 /* На телефонах и планшетах список игр над страницей игры, а не отдельной колонкой */
@@ -918,11 +849,11 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
-    gap: var(--padding-big);
+    gap: calc(var(--space-5) + var(--space-4)); /* 40px между разделами */
 }
 
 .library-panel-side {
-    gap: var(--padding-md);
+    gap: var(--space-6); /* 32px между карточками */
 }
 
 .library-panel .section-header {
@@ -939,10 +870,12 @@
     margin: 0;
     color: var(--text-primary);
     font-size: calc(24px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
 }
 
 .library-card h2 {
+    /* Полужирный — только заголовок. Раньше толщина стояла на всей карточке, и обычный текст
+       внутри («Вы ещё не оценили эту игру», текст отзыва) тоже становился полужирным */
+    font-weight: var(--text-semibold);
     margin-bottom: var(--padding-sm2);
 }
 
@@ -992,6 +925,10 @@
     filter: brightness(1.15);
 }
 
+.last-played-text {
+    font-weight: var(--text-semibold);
+}
+
 .library-stats {
     margin: 0;
 }
@@ -1014,20 +951,40 @@
     border-bottom: none;
 }
 
+/* Подпись — обычным, значение — полужирным, как в разделе «О сайте» настроек.
+   Раньше было наоборот: подпись полужирная, значение обычное */
 .library-stats dt {
     color: var(--text-muted);
+    font-weight: var(--text-regular);
 }
 
 .library-stats dd {
     margin: 0;
     color: var(--text-secondary);
-    font-weight: var(--text-normal);
+    font-weight: var(--text-semibold);
     text-align: right;
+}
+
+/* Сообщение, приложенное к подарку */
+.library-gift-message {
+    margin: var(--padding-sm2) 0 0;
+    padding: 10px 14px;
+    color: var(--text-secondary);
+    background: var(--bg-card-hover);
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-style: italic;
+    overflow-wrap: anywhere;
 }
 
 .library-muted {
     color: var(--text-muted);
-    font-weight: var(--text-normal);
+    font-weight: var(--text-regular);
+}
+
+/* Жанры — того же размера, что на странице игры */
+.library-genres .chip {
+    padding: 6px 7px;
 }
 
 .library-genres {
@@ -1062,8 +1019,8 @@
 .library-friends {
     display: flex;
     flex-direction: column;
-    gap: 3px;
-    margin: 0 calc(var(--padding-sm) * -1);
+    gap: var(--space-2);
+    margin: 0;
     padding: 0;
     list-style: none;
 }
@@ -1074,17 +1031,33 @@
     gap: 10px;
     padding: var(--padding-sm);
     color: var(--text-primary);
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-normal);
     font-family: var(--font-display);
     text-decoration: none;
+    position: relative;
+    background: var(--bg-card);
     border-radius: var(--radius-sm);
-    transition: background-color 0.2s, color 0.2s;
+    transition: background-color 0.3s;
 }
 
 .library-friends a:hover {
-    color: var(--text-primary);
-    background: var(--bg-card);
+    background: var(--bg-card-hover);
+}
+
+/* Полупрозрачная рамка при наведении, как у карточек игр */
+.library-friends a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid transparent;
+    border-radius: inherit;
+    transition: border-color 0.3s;
+    pointer-events: none;
+}
+
+.library-friends a:hover::after {
+    border-color: var(--border);
 }
 
 .library-friend-avatar {
@@ -1095,7 +1068,9 @@
     width: 50px;
     height: 50px;
     color: var(--text-primary);
-    background: var(--bg-card-hover);
+    font-family: var(--font-body); /* буква вместо аватара — как в профиле и отзывах */
+    font-weight: var(--text-semibold);
+    background: var(--bg-primary); /* как у аватаров друзей в профиле: не сливается с фоном карточки */
     border-radius: 50%;
     object-fit: cover;
 }
@@ -1149,30 +1124,6 @@
     50% { opacity: 0.3; }
 }
 
-.stop-button {
-    display: inline-flex;
-    align-items: center;
-    padding: 11px 20px;
-    color: var(--text-primary);
-    background: var(--bg-card-hover);
-    border: 2px solid transparent;
-    border-radius: var(--radius-sm);
-    font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    cursor: pointer;
-    transition: border-color 0.2s, background-color 0.2s;
-}
-
-.stop-button:hover {
-    border-color: var(--danger);
-    background: rgba(199, 49, 42, 0.2);
-}
-
-.stop-button:disabled {
-    opacity: 0.6;
-    cursor: wait;
-}
-
 /* Метка запущенной игры в списке слева */
 .sidebar-running {
     display: none;
@@ -1182,7 +1133,19 @@
     background: var(--success);
     border-radius: var(--radius-verysm);
     font-size: calc(13px * var(--font-scale, 1));
-    font-weight: var(--text-bold);
+    font-weight: var(--text-semibold);
+    white-space: nowrap;
+}
+
+/* Игра куплена или подарена, но ещё не открыта */
+.sidebar-new {
+    margin-left: auto;
+    padding: 2px 7px;
+    color: var(--text-primary);
+    background: var(--accent);
+    border-radius: var(--radius-verysm);
+    font-size: calc(13px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
     white-space: nowrap;
 }
 
@@ -1214,7 +1177,7 @@
     background-color: var(--bg-primary);
     background-size: cover;
     background-position: center;
-    filter: blur(18px) brightness(0.35);
+    filter: blur(25px) brightness(0.35);
     transform: scale(1.1); /* размытые края не просвечивают по краям экрана */
 }
 

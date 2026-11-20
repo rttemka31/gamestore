@@ -26,18 +26,13 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 DEBUG = os.environ.get('DJANGO_DEBUG') == '1'
 
-#ALLOWED_HOSTS = [
-    #host.strip()
-    #for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,.trycloudflare.com').split(',')
-    #if host.strip()
-#]
-#ALLOWED_HOSTS = [
-    #host.strip()
-    #for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,*.trycloudflare.com').split(',')
-    #if host.strip()
-#]
-
-ALLOWED_HOSTS = ['*']
+# Адреса, с которых сайт принимает запросы; остальные получают 400. Поддомены записываются
+# с точкой в начале: «.trycloudflare.com», а не «*.trycloudflare.com»
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,.trycloudflare.com').split(',')
+    if host.strip()
+]
 
 CSRF_TRUSTED_ORIGINS = ['https://*.trycloudflare.com']
 
@@ -74,6 +69,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'mfs.sessions.DeviceTrackingMiddleware',  # устройства, на которых выполнен вход (список в настройках)
+    'mfs.models.DiscountExpiryMiddleware',  # снимает скидки с истёкшим сроком «Скидка до»
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
@@ -199,6 +195,8 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 # Автоматически связывать соцсеть с существующим аккаунтом по Email
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+# ...но только по почте, подтверждённой соцсетью: адрес из настроек профиля никто не проверял
+SOCIALACCOUNT_ADAPTER = 'mfs.security.SocialAccountAdapter'
 
 # Не требовать подтверждения почты при входе через соцсети
 SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
@@ -207,3 +205,19 @@ GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
 DISCORD_CLIENT_ID = os.environ.get('DISCORD_CLIENT_ID', '')
 DISCORD_CLIENT_SECRET = os.environ.get('DISCORD_CLIENT_SECRET', '')
+
+# Почта для писем «Сброс пароля» (SMTP, например Gmail с паролем приложения).
+# Без логина и пароля письма не отправляются, а страница сброса предлагает вход через соцсеть
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_ENABLED = bool(EMAIL_HOST_USER and EMAIL_HOST_PASSWORD)
+if EMAIL_ENABLED:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+    EMAIL_USE_TLS = True
+    EMAIL_TIMEOUT = 15
+    DEFAULT_FROM_EMAIL = f'GameStore <{EMAIL_HOST_USER}>'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 24  # ссылка из письма действует сутки

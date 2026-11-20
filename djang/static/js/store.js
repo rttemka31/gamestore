@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 makeRedirect(btn, 'В библиотеке ➜', gameId ? `${libraryUrl}?active=${gameId}` : libraryUrl);
             } else if (data.status === 'ok') {
                 btn.classList.add('in-cart');
-                makeRedirect(btn, '✓ Добавлено', cartUrl);
+                makeRedirect(btn, 'В корзине ➜', cartUrl);
 
                 // счётчик есть и в шапке, и у мобильной иконки корзины
                 document.querySelectorAll('.cart-badge').forEach(badge => {
@@ -108,15 +108,81 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 btn.classList.toggle('active', data.in_wishlist);
                 btn.setAttribute('aria-pressed', data.in_wishlist);
-                // сердце закрашивается через .active; у кнопки на странице игры ещё меняется надпись
-                const label = btn.querySelector('.js-wishlist-label');
-                if (label) label.textContent = data.in_wishlist ? btn.dataset.on : btn.dataset.off;
+                // сердце закрашивается через .active; у кнопки на странице игры ещё меняется подсказка
+                if (btn.dataset.on) {
+                    const text = data.in_wishlist ? btn.dataset.on : btn.dataset.off;
+                    btn.title = text;
+                    btn.setAttribute('aria-label', text);
+                }
             } else if (data.status !== 'login_required') {
                 window.gsToast(data.message || 'Не удалось обновить список желаемого');
             }
         } catch (error) {
             console.error('Ошибка списка желаемого:', error);
             window.gsToast('Не удалось обновить список желаемого');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    // ---------- Обратный отсчёт до конца скидки ----------
+    // «ещё 2 дня 5 ч», «ещё 5 ч 12 мин», «ещё 9 мин»
+    const deadlines = document.querySelectorAll('.js-deadline');
+    const plural = (n, one, few, many) => {
+        if (n % 100 >= 11 && n % 100 <= 14) return many;
+        if (n % 10 === 1) return one;
+        return n % 10 >= 2 && n % 10 <= 4 ? few : many;
+    };
+    function tickDeadlines() {
+        deadlines.forEach(el => {
+            const diff = new Date(el.dataset.deadline).getTime() - Date.now();
+            if (isNaN(diff)) return;
+            if (diff <= 0) {
+                el.textContent = 'скидка закончилась';
+                return;
+            }
+            const days = Math.floor(diff / 86400000);
+            const hours = Math.floor(diff / 3600000) % 24;
+            const minutes = Math.max(1, Math.floor(diff / 60000) % 60);
+            let left;
+            if (days) left = `${days} ${plural(days, 'день', 'дня', 'дней')}${hours ? ` ${hours} ч` : ''}`;
+            else if (hours) left = `${hours} ч ${minutes} мин`;
+            else left = `${minutes} мин`;
+            el.textContent = `ещё ${left}`;
+        });
+    }
+    if (deadlines.length) {
+        tickDeadlines();
+        setInterval(tickDeadlines, 30000);
+    }
+
+    // ---------- Аватарка в профиле открывается на весь экран ----------
+    // В режиме правки нажатие по аватарке меняет её, поэтому там просмотра нет
+    document.addEventListener('click', e => {
+        const img = e.target.closest('.profile-avatar img');
+        if (!img || img.closest('.is-editing') || !window.gsLightbox) return;
+        window.gsLightbox.open([img.currentSrc || img.src]);
+    });
+
+    // ---------- Переключатели со счётчиком: лайк новости, «Полезно» у отзыва ----------
+    document.addEventListener('click', async e => {
+        const btn = e.target.closest('.js-toggle-count');
+        if (!btn) return;
+        e.preventDefault();  // кнопка лежит внутри карточки-ссылки новости
+
+        btn.disabled = true;
+        try {
+            const data = await window.gsPost(btn.dataset.url);
+            if (data.status === 'success') {
+                btn.classList.toggle('active', data.active);
+                btn.setAttribute('aria-pressed', data.active);
+                btn.querySelector('.js-count').textContent = data.count;
+            } else if (data.status !== 'login_required') {
+                window.gsToast(data.message || 'Не удалось сохранить отметку');
+            }
+        } catch (error) {
+            console.error('Ошибка отметки:', error);
+            window.gsToast('Не удалось сохранить отметку');
         } finally {
             btn.disabled = false;
         }
@@ -280,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const col = document.createElement('div');
                 const title = document.createElement('strong');
                 // «{creator}Создатель» — значок роли из спрайта _role_icons.html и подпись
-                const role = rawHead.match(/^\{(creator|admin|user)\}/);
+                const role = rawHead.match(/^\{(creator|admin|developer|user)\}/);
                 const head = role ? rawHead.slice(role[0].length) : rawHead;
                 if (role) {
                     const svgNS = 'http://www.w3.org/2000/svg';
@@ -341,6 +407,28 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', hide, {passive: true});
     window.addEventListener('resize', hide);
 })();
+
+// ---------- Обрезанный текст раскрывается по нажатию ----------
+// Отзывы и описание профиля показываются в 3 строки с многоточием. Если текст не влез,
+// по нажатию (или Enter) он раскрывается целиком — иначе конец длинного отзыва не прочитать.
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.review .profile-status, .profile-info .profile-status').forEach(el => {
+        if (el.scrollHeight <= el.clientHeight + 2) return;
+        el.classList.add('is-clamped');
+        el.tabIndex = 0;
+        el.title = 'Показать полностью';
+    });
+});
+
+document.addEventListener('click', e => {
+    const el = e.target.closest('.profile-status.is-clamped');
+    if (el) el.classList.toggle('is-expanded');
+});
+
+document.addEventListener('keydown', e => {
+    const el = e.target.closest && e.target.closest('.profile-status.is-clamped');
+    if (el && e.key === 'Enter') el.classList.toggle('is-expanded');
+});
 
 // ---------- Просмотр картинок на весь экран ----------
 // window.gsLightbox.open(urls, index). Любая ссылка или картинка с data-lightbox="группа" и
@@ -421,7 +509,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = e.target.closest('a[data-lightbox]');
         if (!item) return;
         e.preventDefault();
-        const group = [...document.querySelectorAll(`a[data-lightbox="${item.dataset.lightbox}"]`)];
+        // Неприятный скриншот: первое нажатие только снимает размытие, второе открывает просмотр
+        const hidden = el => el.dataset.sensitive && !el.classList.contains('is-revealed');
+        if (hidden(item)) {
+            item.classList.add('is-revealed');
+            item.setAttribute('aria-label', 'Открыть скриншот на весь экран');
+            return;
+        }
+        const group = [...document.querySelectorAll(`a[data-lightbox="${item.dataset.lightbox}"]`)].filter(el => !hidden(el));
         open(group.map(el => el.dataset.original), group.indexOf(item));
     });
 

@@ -1,0 +1,11 @@
+{% comment %}
+Пустое состояние — одинаковое по всему сайту: значок, заголовок, пояснение и (если нужно) кнопка.
+{% include 'store/_empty_state.html' with icon='gamepad' title='…' text='…' link_url=… link_text='…' %}
+icon — имя значка из store/_icon.html или 'heart'; compact=True — поменьше, для блоков внутри страницы.
+{% endcomment %}
+<div class="empty-block{% if compact %} empty-block-compact{% endif %}">
+    {% if icon %}<div class="empty-block-icon">{% if icon == 'heart' %}{% include 'store/_heart_icon.html' with heart_class='heart-icon-filled' %}{% else %}{% include 'store/_icon.html' with name=icon %}{% endif %}</div>{% endif %}
+    <h3 class="empty-block-title">{{ title }}</h3>
+    {% if text %}<p class="empty-block-text">{{ text }}</p>{% endif %}
+    {% if link_url %}<a href="{{ link_url }}" class="buy-button">{{ link_text }}</a>{% endif %}
+</div>

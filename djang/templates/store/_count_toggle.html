@@ -1,0 +1,7 @@
+{# Кнопка-переключатель со счётчиком: лайк новости, «Полезно» у отзыва. store.js (.js-toggle-count) шлёт POST на data-url и обновляет счётчик #}
+<button type="button" class="count-toggle js-toggle-count{% if active %} active{% endif %}"
+        data-url="{{ url }}" aria-pressed="{% if active %}true{% else %}false{% endif %}"
+        title="{{ label }}" aria-label="{{ label }}"{% if disabled %} disabled{% endif %}>
+    {% if icon == 'thumb' %}{% include 'store/_icon.html' with name='thumb' %}{% else %}{% include 'store/_heart_icon.html' %}{% endif %}{% if text %}<span>{{ text }}</span>{% endif %}
+    <span class="js-count">{{ count|default:0 }}</span>
+</button>

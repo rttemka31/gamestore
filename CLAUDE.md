@@ -10,10 +10,11 @@
 - Фронтенд — шаблоны Django + чистые CSS/JS, без сборщика и без npm
 
 ## Команды
-Запускать через venv проекта (`venv\Scripts\python.exe`):
-- Сервер: `python manage.py runserver`
-- Тесты: `python manage.py test mfs` (~100 тестов, около 2 минут)
-- Миграции: `python manage.py makemigrations mfs` → `python manage.py migrate`
+Окружение — через uv (`pyproject.toml` + `uv.lock`, окружение в `.venv\`). После клонирования или правки зависимостей: `uv sync`.
+- Сервер: `uv run manage.py runserver`
+- Тесты: `uv run manage.py test mfs` (~156 тестов, около 2 минут)
+- Миграции: `uv run manage.py makemigrations mfs` → `uv run manage.py migrate`
+- Новая зависимость: `uv add <пакет>` (не через pip). Старая папка `venv\` и `requirements.txt` остались от прежней схемы.
 
 Настройки берутся из `.env` (образец — `example.env`). Для разработки `DJANGO_DEBUG=1`, `DJANGO_HTTPS=0`. Для публичного запуска через Cloudflare Tunnel — `DJANGO_DEBUG=0`, `DJANGO_HTTPS=1` и `runserver --insecure` (подробно в README).
 

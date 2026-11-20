@@ -11,7 +11,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from ..models import Game
+from ..models import DiscountExpiryMiddleware, Game
 
 
 MEDIA_ROOT = tempfile.mkdtemp()
@@ -32,6 +32,9 @@ class StoreTestCase(TestCase):
 
     def setUp(self):
         cache.clear()  # счётчики попыток входа и регистрации не должны переходить из теста в тест
+        # Проверку сроков скидок считаем уже сделанной: её запросы не должны сбивать счёт запросов страниц.
+        # Тесты срока скидки снимают эту отметку сами
+        cache.set(DiscountExpiryMiddleware.CACHE_KEY, True, None)
         self.user = User.objects.create_user('alice', password='Str0ng-pass-123')
         self.other = User.objects.create_user('bob', password='Str0ng-pass-123')
         self.game = Game.objects.create(author=self.other, title='Alpha', price=Decimal('100'), discount=50)

@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static socialaccount %}
 {% load l10n %}
 
 {% block title %}GameStore | Настройки{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/settings.css' %}?v=18">
+    <link rel="stylesheet" href="{% static 'css/settings.css' %}?v=28">
 
     {% if user.is_authenticated and user.profile.accent_color %}
     <style>
@@ -155,9 +155,12 @@
                                     {% endif %}
                                 </div>
                             
-                                <label for="avatarInput" class="avatar-overlay" id="avatarOverlay" style="font-size: 24px;">📷</label>
+                                <label for="avatarInput" class="avatar-overlay" id="avatarOverlay" style="font-size: 24px;" aria-label="Сменить аватарку">{% include 'store/_icon.html' with name='camera' %}</label>
+                                <button type="button" class="avatar-remove" id="avatarRemove" data-letter="{{ user.username|first|upper }}"
+                                        title="Удалить аватарку" aria-label="Удалить аватарку"{% if not user.profile.avatar %} hidden{% endif %}><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
                             </div>
                             <input type="file" name="avatar" id="avatarInput" accept="image/*" style="display: none;">
+                            <input type="hidden" name="avatar_clear" id="avatarClear" value="">
                         </div>
 
                         <div class="settings-form">
@@ -190,7 +193,7 @@
                             <label>Обложка профиля</label>
                             <div class="banner-wrapper" id="bannerWrapper">
                                 <div class="settings-banner" id="bannerPreview" style="background-image: url('{% if user.profile.banner %}{{ user.profile.banner.url }}{% endif %}');">
-                                    <label for="bannerInput" class="banner-overlay" style="font-size: 24px;">📷</label>
+                                    <label for="bannerInput" class="banner-overlay" style="font-size: 24px;" aria-label="Сменить баннер">{% include 'store/_icon.html' with name='camera' %}</label>
                                 </div>
                             </div>
                             <input type="file" name="banner" id="bannerInput" accept="image/*" style="display: none;">
@@ -247,6 +250,28 @@
                         <button type="submit" class="btn-primary">Сменить пароль</button>
                     </form>
 
+                    {% if social_list %}
+                    <div class="settings-form settings-extra-action" id="social">
+                        <span class="settings-toggle-title">Вход через соцсети</span>
+                        <span class="settings-hint">Запасной способ входа: если забудете пароль, войдите через привязанный аккаунт.</span>
+
+                        <ul class="device-list">
+                            {% for provider in social_list %}
+                            <li class="device-item">
+                                <span class="device-icon"><img src="{% static provider.icon %}" alt="" width="22" height="22"></span>
+                                <div class="device-info">
+                                    <span class="device-name">{{ provider.name }}</span>
+                                    <span class="device-meta">{% if provider.account %}Привязан{% if provider.label %} • {{ provider.label }}{% endif %}{% else %}Не привязан{% endif %}</span>
+                                </div>
+                                {% if not provider.account %}
+                                    <a href="{% provider_login_url provider.id process='connect' %}" class="btn-secondary device-logout">Привязать</a>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
                     <div class="settings-form settings-extra-action" id="devicesBlock">
                         <span class="settings-toggle-title">Устройства</span>
                         <span class="settings-hint">Где сейчас выполнен вход в аккаунт. Если устройство незнакомое — завершите его сеанс и смените пароль.</span>
@@ -273,7 +298,7 @@
                                         <span class="device-meta">
                                             {% if device.ip %}IP {{ device.ip }} • {% endif %}
                                             {% if device.current or device.active_now %}активен сейчас{% elif device.seen %}был активен {{ device.seen|timesince }} назад{% else %}активность неизвестна{% endif %}
-                                            {% if device.started %} • вход {{ device.started|date:"j E, H:i" }}{% endif %}
+                                            {% if device.started %} • вход {{ device.started|date:"d b. Yг., H:i" }}{% endif %}
                                         </span>
                                     </div>
                                     {% if not device.current %}
@@ -304,6 +329,7 @@
                         <label class="settings-toggle-row">
                             <div>
                                 <span class="settings-toggle-title">Отключить размытие</span>
+                                <span class="settings-hint">Шапка, меню и подсказки станут непрозрачными — помогает, если сайт подтормаживает</span>
                             </div>
                             <input type="checkbox" name="disable_blur" id="disableBlurToggle" class="settings-toggle" {% if user.profile.disable_blur %}checked{% endif %}>
                         </label>
@@ -366,6 +392,14 @@
                             </div>
                             <input type="checkbox" name="show_hints" id="showHintsToggle" class="settings-toggle" {% if user.profile.show_hints %}checked{% endif %}>
                         </label>
+
+                        <label class="settings-toggle-row">
+                            <div>
+                                <span class="settings-toggle-title">Дизайн Liquid Glass <span class="settings-demo-badge">Демо</span>{% include 'store/_hint.html' with title="Liquid Glass" text="Стеклянный дизайн: шапка, кнопки и значки поверх картинок становятся прозрачными, как стекло, с бликом по краю. Преломление у краёв видно в Chrome, Edge и Opera, в остальных браузерах стекло просто матовое. Это демо-версия — выключите тумблер, и вернётся обычный дизайн." %}</span>
+                                <span class="settings-hint">Выкл. — обычный дизайн, вкл. — стеклянный</span>
+                            </div>
+                            <input type="checkbox" name="liquid_glass" id="liquidGlassToggle" class="settings-toggle" {% if user.profile.design == 'glass' %}checked{% endif %}>
+                        </label>
                     </form>
                 </section>
 
@@ -381,6 +415,15 @@
                             <select id="default_catalog_sort" name="default_catalog_sort">
                                 {% for key, label in sort_options %}
                                     <option value="{{ key }}" {% if user.profile.default_catalog_sort == key %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="settings-field">
+                            <label for="genre_sort">Сортировка жанров</label>
+                            <select id="genre_sort" name="genre_sort">
+                                {% for key, label in genre_sort_options %}
+                                    <option value="{{ key }}" {% if user.profile.genre_sort == key %}selected{% endif %}>{{ label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -452,7 +495,7 @@
                         <div class="logo">GAME<span>STORE</span></div>
                         {% if site_version %}
                             <span class="about-version-text">
-                                Версия {{ site_version.number }} от {{ site_version.date|date:"d E Y" }}
+                                Версия {{ site_version.number }} от {{ site_version.date|date:"d b. Yг." }}
                                 <a href="{{ site_version.url }}">Что нового ➜</a>
                             </span>
                         {% endif %}
@@ -732,52 +775,6 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    const avatarPreview = document.getElementById("avatarPreview");
-    const avatarInput = document.getElementById("avatarInput");
-
-    // Функция вычисления среднего цвета картинки с затемнением
-    function setBorderFromImage(imgElement) {
-        if (!imgElement) return;
-
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        canvas.width = 1;
-        canvas.height = 1;
-
-        try {
-            ctx.drawImage(imgElement, 0, 0, 1, 1);
-            const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-
-            // Коэффициент затемнения: 0.6 = на 40% темнее
-            const factor = 0.6;
-
-            const darkR = Math.floor(r * factor);
-            const darkG = Math.floor(g * factor);
-            const darkB = Math.floor(b * factor);
-
-            // Устанавливаем затемненный цвет границы
-            avatarPreview.style.borderColor = `rgb(${darkR}, ${darkG}, ${darkB})`;
-        } catch (e) {
-            console.warn("Не удалось получить цвет аватарки:", e);
-        }
-    }
-
-    // 1. При загрузке страницы берем цвет текущего аватара
-    const currentImg = avatarPreview ? avatarPreview.querySelector("img") : null;
-    if (currentImg) {
-        if (currentImg.complete) {
-            setBorderFromImage(currentImg);
-        } else {
-            currentImg.addEventListener("load", () => setBorderFromImage(currentImg));
-        }
-    }
-
-    // 2. Для новой аватарки цвет рамки пересчитывает обработчик кропа
-    window.__setAvatarBorder = setBorderFromImage;
-});
-</script>
-<script>
     document.addEventListener('DOMContentLoaded', () => {
         const saveStatus = document.querySelector('.save-status');
         const autoSaveForms = document.querySelectorAll('#profileForm, #appearanceForm, #catalogForm, #privacyForm');
@@ -842,6 +839,21 @@ document.addEventListener("DOMContentLoaded", () => {
         window.__profileForm = profileForm;
 
         const avatarPreview = document.getElementById('avatarPreview');
+        const avatarRemove = document.getElementById('avatarRemove');
+        const avatarClear = document.getElementById('avatarClear');
+        // Удаление аватарки сохраняется сразу, как и остальные поля профиля
+        avatarRemove?.addEventListener('click', () => {
+            if (!confirm('Удалить аватарку?')) return;
+            avatarInput.value = '';
+            avatarClear.value = '1';
+            submitAutoSaveForm(profileForm);  // данные формы собираются сразу, поэтому флаг можно снять
+            avatarClear.value = '';
+            const letter = document.createElement('span');
+            letter.id = 'avatarLetter';
+            letter.textContent = avatarRemove.dataset.letter;
+            avatarPreview.replaceChildren(letter);
+            avatarRemove.hidden = true;
+        });
         if (avatarInput) {
             // Выбранную аватарку сначала кадрируем в круглой рамке, в форму уходит уже вырезанный квадрат
             avatarInput.addEventListener('change', () => {
@@ -856,9 +868,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         const img = new Image();
                         img.id = 'avatarImg';
                         img.alt = '';
-                        img.onload = () => window.__setAvatarBorder?.(img);
                         img.src = url;
                         avatarPreview.replaceChildren(img);
+                        if (avatarRemove) avatarRemove.hidden = false;
                         submitAutoSaveForm(profileForm);
                     },
                     onCancel: () => { avatarInput.value = ''; },
@@ -927,6 +939,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (disableBlurToggle) {
             disableBlurToggle.addEventListener('change', (e) => {
                 document.body.classList.toggle('no-blur', e.target.checked);
+            });
+        }
+
+        // Смена дизайна на лету: стили Liquid Glass включаются атрибутом data-design на <html>
+        const liquidGlassToggle = document.getElementById('liquidGlassToggle');
+        if (liquidGlassToggle) {
+            liquidGlassToggle.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    document.documentElement.dataset.design = 'glass';
+                } else {
+                    delete document.documentElement.dataset.design;
+                }
             });
         }
 

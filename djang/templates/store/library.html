@@ -4,7 +4,7 @@
 {% block title %}GameStore | Библиотека{% endblock %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/library.css' %}?v=32">
+    <link rel="stylesheet" href="{% static 'css/library.css' %}?v=44">
 {% endblock %}
 
 {% block content %}
@@ -29,11 +29,13 @@
                     data-remove-url="{% url 'mfs:remove_from_library' game.id %}"
                     data-launch-url="{% url 'mfs:launch_game' game.id %}"
                     data-stop-url="{% url 'mfs:stop_game' game.id %}"
-                    data-last-played="{% if game.user_last_played %}{{ game.user_last_played|date:'d.m.Y в H:i' }}{% endif %}">
+                    {% if game.user_is_new %}data-new data-seen-url="{% url 'mfs:library_seen' game.id %}"{% endif %}
+                    data-last-played="{% if game.user_last_played %}{{ game.user_last_played|date:'d b. Yг.' }}{% endif %}">
 
                     <img src="{{ game.get_icon_url }}" alt="" class="sidebar-game-icon" loading="lazy" decoding="async">
                     <span class="game-name" title="{{ game.title }}">{{ game.title }}</span>
                     <span class="sidebar-running" title="Сейчас в игре">В игре</span>
+                    {% if game.user_is_new %}<span class="sidebar-new" title="Новая игра: ещё не открывали">Новое</span>{% endif %}
                 </li>
             {% empty %}
                 <li class="sidebar-empty">Библиотека пуста</li>
@@ -60,7 +62,7 @@
                             <h1 id="detailTitle" class="hero-title"></h1>
                             <span class="last-launch-info">
                                 Последний запуск:
-                                <strong class="last-played-text" style="font-weight: 600;">Ещё не запускалась</strong>
+                                <strong class="last-played-text">Ещё не запускалась</strong>
                             </span>
                         </div>
                     </div>
@@ -81,7 +83,7 @@
 
                     <!-- Меню настроек -->
                     <div class="settings-dropdown">
-                        <button type="button" class="settings-btn" id="settingsBtn" title="Настройки">⚙️</button>
+                        <button type="button" class="settings-btn" id="settingsBtn" title="Настройки" aria-label="Настройки">{% include 'store/_icon.html' with name='gear' %}</button>
                         <div class="dropdown-menu" id="dropdownMenu">
                             <form id="deleteGameForm" action="" method="POST" onsubmit="return confirm('Удалить эту игру из вашей библиотеки?');">
                                 {% csrf_token %}
@@ -114,11 +116,9 @@
                 </div>
             </div>
         {% else %}
-            <div class="empty-state">
-                <h2>В вашей библиотеке пока нет игр</h2>
-                <a href="{% url 'mfs:index' %}" class="buy-button">
-                    Перейти в магазин
-                </a>
+            {% url 'mfs:index' as store_url %}
+            <div class="library-empty-wrap">
+                {% include 'store/_empty_state.html' with icon='gamepad' title='В вашей библиотеке пока нет игр' text='Купите или получите бесплатную игру в магазине — она появится здесь.' link_url=store_url link_text='Перейти в магазин' %}
             </div>
         {% endif %}
     </main>
@@ -126,7 +126,7 @@
 </div>
 {% endblock %}
 {% block extra_js %}
-<script src="{% static 'js/favorites.js' %}?v=1"></script>
+<script src="{% static 'js/favorites.js' %}?v=2"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const detailView = document.getElementById('gameDetailView');
@@ -227,6 +227,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         lastPlayedText.textContent = item.dataset.lastPlayed || 'Ещё не запускалась';
         renderActionState();
+        markSeen(item);
+    }
+
+    // Новую игру открыли — снимаем метку «Новое» и обновляем счётчик у «Библиотеки» в шапке
+    async function markSeen(item) {
+        if (!item.hasAttribute('data-new')) return;
+        item.removeAttribute('data-new');
+        item.querySelector('.sidebar-new')?.remove();
+        try {
+            const data = await window.gsPost(item.dataset.seenUrl);
+            if (data.status !== 'success') return;
+            document.querySelectorAll('[data-library-badge]').forEach(badge => {
+                badge.textContent = data.new_count;
+                badge.title = `Новых игр: ${data.new_count}`;
+                badge.hidden = !data.new_count;
+            });
+            document.querySelectorAll('[data-library-badge-dot]').forEach(dot => { dot.hidden = !data.new_count; });
+        } catch (error) {
+            console.error('Не удалось отметить игру просмотренной:', error);
+        }
     }
 
     // --- Экран запуска ---

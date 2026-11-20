@@ -1,0 +1,17 @@
+[project]
+name = "gamestore"
+version = "1.1.4"
+description = "Интернет-магазин видеоигр на Django"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "Django==6.1.2",
+    "django-allauth==65.19.7",
+    "pillow==12.3.0",
+    "PyJWT==2.15.1",
+    "python-dotenv==1.2.4",
+    "requests==2.34.2",
+    "tzdata==2026.5",
+]
+
+[tool.uv]
+package = false

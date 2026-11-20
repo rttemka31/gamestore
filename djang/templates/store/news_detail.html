@@ -3,6 +3,11 @@
 
 {% block title %}GameStore | {{ item.title }}{% endblock %}
 
+{% block og_title %}{{ item.title }}{% endblock %}
+{% block og_description %}{{ item.description|news_plain|truncatechars:200 }}{% endblock %}
+{% block og_image %}{% if item.image %}<meta property="og:image" content="{{ item.image.url|absolute_url:request }}">{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block twitter_card %}{% if item.image %}summary_large_image{% else %}summary{% endif %}{% endblock %}
+
 {% block content %}
 <main class="container news-container">
     <a href="{% url 'mfs:news' %}" class="news-back"><span class="arrow-left" aria-hidden="true">➜</span> Все новости</a>
@@ -14,7 +19,7 @@
 
         <div class="news-card-meta">
             <span class="badge news-badge news-badge-{{ item.category }}">{% include 'store/_news_category_icon.html' with code=item.category %}{{ item.get_category_display }}</span>
-            <span class="news-date">{{ item.created_at|date:"d E Y" }}</span>
+            <span class="news-date">{{ item.created_at|date:"d b. Yг." }}</span>
             {% if user.is_staff %}
                 <a href="{% url 'admin:mfs_news_change' item.pk %}" class="catalog-reset">Редактировать</a>
             {% endif %}
@@ -27,6 +32,13 @@
         {% endif %}
 
         <div class="news-description">{{ item.description|news_format }}</div>
+
+        {% if item.is_published %}
+        <div class="news-article-footer">
+            {% url 'mfs:news_like' item.pk as like_url %}
+            {% include 'store/_count_toggle.html' with url=like_url active=item.liked count=item.likes_count label='Нравится' %}
+        </div>
+        {% endif %}
     </article>
 
     {% if newer or older %}
