@@ -101,14 +101,6 @@
     --transition: 0.2s ease;
 }
 
-/* На телефонах и планшетах ритм плотнее — меняются только сами переменные */
-@media (max-width: 768px) {
-    :root {
-        --title-gap: 16px;
-        --section-gap: 40px;
-    }
-}
-
 html[data-font="0"]   { --font-scale: 0.9; }
 html[data-font="2"]   { --font-scale: 1.1; }
 html[data-radius="0"] { --radius-scale: 0.5; }
@@ -243,12 +235,6 @@ textarea {
     border-radius: var(--radius-sm);
 }
 
-.nav-right {
-    display: flex;
-    align-items: center;
-    gap: 25px;
-}
-
 .container {
     width: min(1200px, 90%);
     margin: 0 auto;
@@ -269,7 +255,7 @@ textarea {
     background: var(--bg-card);
     box-shadow: var(--shadow-md);
     margin-bottom: var(--section-gap);
-    border: none; 
+    border: none;
     transition: 0.2s;
 }
 
@@ -300,78 +286,8 @@ textarea {
     min-height: 375px;
     object-fit: cover;
     display: block;
-}
-
-/* Трейлер игры недели лежит в той же ячейке сетки, что и обложка, и проявляется поверх неё */
-.featured-trailer {
     grid-column: 1;
     grid-row: 1;
-    /* Собственный размер видео (1280×720) не должен растягивать строку сетки: иначе карточка
-       становилась выше своих 375px и текст справа, выровненный по центру, уезжал вниз */
-    contain: size;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.5s ease;
-}
-
-.featured-trailer.is-playing {
-    opacity: 1;
-}
-
-.featured > img {
-    grid-column: 1;
-    grid-row: 1;
-}
-
-.featured-info {
-    padding: var(--padding-md);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.featured-label {
-    font-family: var(--font-display);
-    color: var(--accent-text);
-    font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-normal);
-    margin-bottom: 0;
-    flex-wrap: nowrap;
-}
-
-.featured-info h2 {
-    margin: 0 0 15px;
-    color: white;
-    font-size: calc(32px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-}
-
-.featured-info p {
-    margin: 0;
-    color: var(--text-secondary);
-    line-height: 1.5;
-    font-size: calc(16px * var(--font-scale, 1));
-    max-width: 390px;
-}
-
-.featured-link {
-    text-decoration: none;
-}
-
-.price-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.featured-bottom {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: var(--padding-big);
 }
 
 /* Крупная цена — игра недели и страница игры: та же цена, что в карточках, только больше */
@@ -386,10 +302,6 @@ textarea {
 /* =========================
    SECTIONS & GRID
 ========================= */
-
-.games-section {
-    margin-bottom: var(--section-gap);
-}
 
 .section-header {
     display: flex;
@@ -421,26 +333,6 @@ textarea {
     color: white;
 }
 
-.section-header-2 {
-    text-align: center; /* Центрирует саму ссылку внутри контейнера */
-    margin-top: var(--padding-sm2);
-}
-
-.section-header-2 a {
-    color: var(--accent-text);
-    text-decoration: none;
-    font-size: calc(16px * var(--font-scale, 1));
-    transition: 0.2s;
-    font-weight: var(--text-semibold);
-    padding: var(--padding-sm);
-    align-items: center;
-    justify-content: center;
-}
-
-.section-header-2 a:hover {
-    color: white;
-}
-
 .games-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -461,7 +353,7 @@ a.game-card {
     background: var(--bg-card);
     border-radius: var(--radius-md);
     transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
-    border: none; 
+    border: none;
     cursor: pointer;
     text-decoration: none;
     color: var(--text-primary);
@@ -494,7 +386,6 @@ a.game-card:hover::after {
 }
 
 .game-image {
-    position: relative;
     width: 100%;
     height: 150px; /* Фиксируем комфортную высоту картинки в карточке */
     overflow: hidden;
@@ -589,17 +480,9 @@ a.game-card:hover::after {
 .price {
     color: var(--text-primary);
     font-size: calc(18px * var(--font-scale, 1));
-    
+
     font-weight: var(--text-bold);
     line-height: 1;
-}
-
-.featured-release-date {
-    margin-top: 0px;
-    margin-bottom: 0px;
-    color: var(--text-muted);
-    font-size: calc(14px * var(--font-scale, 1));
-    line-height: 1.75;
 }
 
 /* ---------- Значки ----------
@@ -633,93 +516,6 @@ a.game-card:hover::after {
    GAME DETAIL PAGE
 ========================= */
 
-.game-detail-title {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: var(--title-gap); /* как у заголовков других страниц */
-}
-
-.game-detail-title h1 {
-    margin: 0;
-    color: white;
-    font-size: calc(32px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-}
-
-.game-title-line {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    min-width: 0;
-    max-width: 100%;
-}
-
-/* Возрастной рейтинг справа от названия — как счётчик «N товаров» у заголовка корзины */
-.game-age-rating {
-    flex-shrink: 0;
-    color: var(--text-muted);
-    font-size: calc(24px * var(--font-scale, 1));
-    white-space: nowrap;
-}
-
-.game-detail {
-    display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); /* Картинка занимает ~57% ширины, описание ~43% */
-    gap: 30px;
-    margin-bottom: 15px;
-    align-items: start; /* Предотвращает насильное растягивание картинки по высоте текста */
-}
-
-.game-detail-cover {
-    width: 100%;
-    height: auto; /* Высота подстраивается под пропорции картинки */
-    overflow: hidden;
-    border-radius: var(--radius-md);
-}
-
-.game-detail-cover .no-cover {
-    min-height: 600px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-}
-
-.game-detail-info {
-    padding: var(--padding-md);
-    background: var(--bg-surface);
-    border-radius: var(--radius-md);
-    border: 2px solid var(--border);
-}
-
-.game-detail-info h2 {
-    margin-top: 0;
-    color: white;
-    font-size: calc(24px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-}
-
-.game-short-description {
-    color: var(--text-secondary);
-    line-height: 1.75;
-    margin-bottom: 30px;
-    font-size: calc(16px * var(--font-scale, 1));
-}
-
-.detail-row {
-    display: flex;
-    gap: 10px;
-    padding: var(--padding-sm);
-    color: var(--text-secondary);
-    border-bottom: 1px solid var(--border-subtle);
-}
-
-.detail-label {
-    color: var(--text-muted);
-    min-width: 130px;
-}
-
 /* Ник разработчика ведёт в его профиль; оформлен как ссылка «Смотреть все» */
 .detail-author-link {
     color: var(--accent-text);
@@ -733,41 +529,6 @@ a.game-card:hover::after {
     color: var(--text-primary);
 }
 
-/* Жанры на странице игры ведут в каталог с похожими играми */
-.detail-genres {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    min-width: 0; /* иначе длинный жанр растягивает строку шире карточки */
-}
-
-.detail-genres .chip {
-    padding: 6px 7px;
-    font-size: calc(14px * var(--font-scale, 1));
-    gap: var(--padding-sm);
-}
-
-.purchase-box {
-    display: flex;
-    flex-wrap: wrap; /* не помещаются в строку — кнопки целиком уходят под цену, а не по одной */
-    align-items: center;
-    justify-content: space-between;
-    gap: 15px;
-    margin-top: 15px;
-    padding-top: 30px;
-    
-}
-
-.purchase-price {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.detail-section {
-    margin-bottom: var(--section-gap);
-}
-
 .detail-section h2 {
     color: white;
     font-size: calc(24px * var(--font-scale, 1));
@@ -775,44 +536,11 @@ a.game-card:hover::after {
     font-weight: var(--text-semibold);
 }
 
-.description-box {
-    padding: var(--padding-md);
-    background: var(--bg-secondary);
-    border-radius: var(--radius-md);
-    border: 2px solid var(--border);
-    color: var(--text-secondary);
-    line-height: 1.5;
-}
-
 /* =========================
    АДАПТИВ
 ========================= */
 
 @media (max-width: 900px) {
-    .navbar {
-        padding: 0 4%;
-    }
-
-    .nav-left {
-        gap: 15px;
-    }
-
-    .logo {
-        margin-right: 5px;
-        font-size: 16px;
-    }
-
-    .nav-link {
-        font-size: 16px;
-    }
-
-    /* В одну колонку блок выше 375px: без снятия max-height описание и кнопка обрезались */
-    .featured {
-        grid-template-columns: 1fr;
-        min-height: 0;
-        max-height: none;
-    }
-
     .featured > img {
         min-height: 250px;
     }
@@ -821,58 +549,12 @@ a.game-card:hover::after {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .search-area {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-
     .search-box {
         width: 100%;
-    }
-
-    .game-detail {
-        grid-template-columns: minmax(0, 1fr); /* просто 1fr растягивался под длинное слово или жанр */
     }
 }
 
 @media (max-width: 600px) {
-    .container {
-        width: 92%;
-        padding-top: 30px;
-    }
-
-    /* Исправлено: на смартфонах выводим по 1 карточке в ряд */
-    .games-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .featured-info {
-        padding: 25px;
-    }
-
-    .featured-info h2 {
-        font-size: 32px;
-    }
-
-    .game-detail-title {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .game-detail-title h1 {
-        font-size: 32px;
-    }
-
-    .purchase-box {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .purchase-actions {
-        margin-left: 0; /* в колонке кнопки растягиваются на всю ширину */
-    }
-
     .buy-button {
         width: 100%;
     }
@@ -953,44 +635,6 @@ a.game-card:hover::after {
    AUTORIZATION
 ========================= */
 
-.auth-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 65vh;
-}
-
-.auth-box {
-    background: var(--bg-secondary);
-    border: 2px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    padding: var(--padding-md);
-    width: 100%;
-    max-width: 400px;
-    box-shadow: var(--shadow-md);
-}
-
-.auth-box h2 {
-    margin-top: 0;
-    margin-bottom: 30px;
-    color: white;
-    text-align: center;
-    font-size: calc(32px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 25px;
-}
-
-.form-group label {
-    color: var(--text-secondary);
-    font-size: calc(14px * var(--font-scale, 1));
-}
-
 .form-group input {
     background: var(--bg-secondary);
     border: 2px solid var(--border-accent);
@@ -1002,99 +646,9 @@ a.game-card:hover::after {
     transition: 0.2s;
 }
 
-.form-group input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 10%, transparent);
-}
-
 .auth-submit {
     width: 100%;
     margin-top: 10px;
-}
-
-.auth-errors {
-    background-color: rgba(19, 1, 0, 0.6);
-    border: 2px solid var(--danger);
-    color: var(--danger);
-    padding: var(--padding-sm);
-    border-radius: var(--radius-sm);
-    font-size: calc(14px * var(--font-scale, 1));
-    margin-bottom: 25px;
-    text-align: center;
-}
-
-/* Вход и регистрация: слева медленно едет галерея скриншотов сайта, справа форма */
-.auth-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
-    gap: 70px;
-    align-items: center;
-    max-width: 1240px;
-    min-height: calc(100vh - 74px);
-    margin: 0 auto;
-    padding: 0 40px;
-}
-
-.auth-layout .auth-container {
-    flex-direction: column;
-    min-height: 0;
-    padding: 40px 0;
-}
-
-.auth-tagline {
-    margin: 0 0 18px;
-    color: var(--text-secondary);
-    font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    text-align: center;
-}
-
-.auth-showcase {
-    display: flex;
-    gap: 20px;
-    height: calc(100vh - 74px);
-    max-height: 1200px;
-    overflow: hidden;
-    /* верх и низ галереи растворяются в фоне */
-    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 15%, #000 85%, transparent);
-    mask-image: linear-gradient(to bottom, transparent, #000 15%, #000 85%, transparent);
-}
-
-.auth-showcase-column {
-    flex: 1;
-    min-width: 0;
-}
-
-/* Набор картинок повторён трижды, а padding-bottom равен gap: сдвиг на треть дорожки — ровно
-   один набор, поэтому круг замыкается без рывка, а двух оставшихся наборов хватает на всю высоту галереи */
-.auth-showcase-track {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding-bottom: 20px;
-    animation: auth-showcase-scroll 60s linear infinite;
-    will-change: transform;
-}
-
-.auth-showcase-column:nth-child(2) .auth-showcase-track {
-    animation-duration: 70s;
-    animation-direction: reverse;
-    animation-delay: -12s; /* колонки начинают со сдвигом, а не ровными рядами */
-}
-
-.auth-showcase img {
-    display: block;
-    width: 100%;
-    height: auto;
-    border: 2px solid transparent; /* рамка есть всегда, но видна только при наведении — как у карточек игр в магазине */
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
-    transition: border-color 0.3s, filter 0.3s;
-}
-
-.auth-showcase img:hover {
-    border-color: var(--border);
-    filter: brightness(1.10);
 }
 
 @keyframes auth-showcase-scroll {
@@ -1102,100 +656,13 @@ a.game-card:hover::after {
     to { transform: translateY(calc(-100% / 3)); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .auth-showcase-track {
-        animation: none;
-    }
-}
-
 html[data-motion="reduced"] .auth-showcase-track {
     animation: none !important;
-}
-
-/* На узких экранах галерея не помещается рядом с формой — остаётся только форма */
-@media (max-width: 900px) {
-    .auth-layout {
-        display: block;
-        min-height: 0;
-        padding: 0;
-    }
-
-    .auth-showcase {
-        display: none;
-    }
-
-    .auth-layout .auth-container {
-        min-height: 65vh;
-        padding: 30px 16px;
-    }
 }
 
 /* =========================
    GALLERY
 ========================= */
-
-.gallery-container {
-    margin-bottom: 25px;
-}
-
-.main-image-box {
-    width: 100%;
-    aspect-ratio: 16 / 9; /* пропорции трейлеров и скриншотов: кадр не обрезается, на телефоне тоже */
-    background: var(--bg-secondary);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-}
-
-/* Рамка как у карточек игр при наведении: полупрозрачная и лежит поверх кадра,
-   поэтому картинка и трейлер доходят до самого края. Этот же слой рисует индикатор подгрузки */
-.main-image-box::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 4;
-    border: 2px solid var(--border);
-    border-radius: inherit;
-    pointer-events: none;
-}
-
-.main-image-box img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.thumbnails-list {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    align-items: center;
-    justify-content: center;
-    justify-content: safe center; /* Если миниатюры не помещаются, первая не обрезается слева */
-    padding: 5px;
-}
-
-.thumbnails-list img.thumb {
-    width: 100px !important;
-    height: 55px !important;
-    object-fit: cover;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    opacity: 0.5;
-    border: 2px solid transparent;
-    flex-shrink: 0;
-    transition: all 0.2s;
-}
-
-.thumbnails-list img.thumb:hover {
-    opacity: 0.7;
-}
-
-.thumbnails-list img.thumb.active {
-    opacity: 1;
-    border-color: var(--accent);
-    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
-}
 
 .thumb {
     width: 100px;
@@ -1209,52 +676,10 @@ html[data-motion="reduced"] .auth-showcase-track {
     transition: all var(--transition);
 }
 
-.video-thumb,
-.media-thumb {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;      /* Обрезает картинку по скругленным углам */
-    border-radius: var(--radius-sm);    /* Скругление углов для контейнера */
-}
-
-.video-thumb img,
-.media-thumb img {
-    width: 100px !important;
-    height: 55px !important;
-    object-fit: cover;
-    opacity: 0.5;
-    transition: opacity 0.2s;
-}
-.video-thumb img:hover,
-.media-thumb img:hover {
-    opacity: 0.7;
-}
 .thumb.active {
     border-color: var(--accent);
     border-width: 2px;
     box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
-}
-
-.video-thumb.active img,
-.media-thumb.active img {
-    opacity: 1;
-}
-
-.play-badge {
-    position: absolute;
-    width: var(--icon-lg);
-    height: var(--icon-lg);
-    background: var(--accent);
-    border-radius: var(--radius-big);
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(16px * var(--font-scale, 1));
-    padding-left: 2px;
-    pointer-events: none;  /* Пропускает клик на родительский div */
 }
 
 /* =========================
@@ -1332,13 +757,6 @@ html[data-motion="reduced"] .auth-showcase-track {
    SEARCH
 ========================= */
 
-.search-box-container {
-    position: relative;
-    width: 100%;
-    max-width: 500px; /* Ограничиваем максимальную ширину строки поиска */
-    margin-bottom: -20px; /* Добавляем отступ снизу для визуального разделения */
-}
-
 .search-results {
     position: absolute;
     top: calc(100% + 5px);
@@ -1354,14 +772,10 @@ html[data-motion="reduced"] .auth-showcase-track {
 }
 
 .search-result-item {
-    display: flex;
-    align-items: center;
     height: 130px; /* Жесткая фиксированная высота */
-    padding: var(--padding-sm); /* Изменено с 10px 15px на 10px, как в .cart-item */
     background: var(--bg-surface);
     text-decoration: none;
     color: var(--text-secondary);
-    transition: filter 0.3s, background 0.3s;
     border-bottom: 2px solid var(--border);
     box-sizing: border-box; /* Гарантирует, что padding входит в 130px высоты */
 }
@@ -1409,12 +823,6 @@ html[data-motion="reduced"] .auth-showcase-track {
     font-weight: var(--text-semibold);
 }
 
-/* Крестик очистки: стоит в ряду между полем и кнопкой лупы, появляется, когда в поле есть текст */
-.search-box {
-    position: relative;
-    align-items: center;
-}
-
 .search-box .clear-search-btn {
     flex: 0 0 auto;
     width: 42px;
@@ -1444,16 +852,6 @@ html[data-motion="reduced"] .auth-showcase-track {
     appearance: none;
 }
 
-/* Обложка */
-.search-cover {
-    width: 150px;
-    height: 75px;
-    object-fit: cover;
-    border-radius: var(--radius-sm);
-    margin-right: 15px;
-    flex-shrink: 0;
-}
-
 .search-price-block .old-price {
     font-size: calc(12px * var(--font-scale, 1));
     color: var(--text-muted);
@@ -1461,55 +859,18 @@ html[data-motion="reduced"] .auth-showcase-track {
     line-height: 1;
 }
 
-/* Инфо (Название и Жанры) */
-.search-result-info {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 10px;
-    overflow: hidden;
-}
-
-.search-title {
-    font-weight: var(--text-semibold);
-    color: var(--text-primary);
-    /* Если название слишком длинное — оно скроется в три точки */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    margin:
-        0 0 10px;
-    color: white;
-    font-size: calc(18px * var(--font-scale, 1));
-}
-
 /* Правая часть (Бейджи и Цена) */
 .search-result-right {
     margin-left: auto; /* Прижимает весь блок вправо */
-    display: flex;
     flex-direction: column;
-    align-items: flex-end; /* Выравнивает бейджи и текст по правому краю */
     gap: 10px;
     flex-shrink: 0;
     padding-left: 15px;
 }
 
-.search-area {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--title-gap);
-}
-
-.search-area h1 {
-    margin: 0;
-    color: white;
-    font-size: calc(32px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-}
-
 .search-box {
+    position: relative;
+    align-items: center;
     display: flex;
     width: 500px;
     height: 42px;
@@ -1601,7 +962,6 @@ html[data-motion="reduced"] .auth-showcase-track {
     align-items: center;
     gap: 10px;
 }
-
 
 .search-box button {
     width: 42px;
@@ -1734,26 +1094,6 @@ html[data-motion="reduced"] .auth-showcase-track {
     color: var(--text-primary) !important;
 }
 
-/* Подтвердить: «Сохранить», «Принять». Зелёный затемнён до контраста текста 4.5:1 */
-.btn-success {
-    background: color-mix(in srgb, var(--success) 65%, black);
-    color: var(--text-primary) !important;
-}
-
-.btn-success:hover {
-    background: color-mix(in srgb, var(--success) 55%, black);
-}
-
-/* Отказаться: «Отмена», «Отклонить» — красная заливка */
-.btn-danger-solid {
-    background: var(--danger);
-    color: var(--text-primary) !important;
-}
-
-.btn-danger-solid:hover {
-    background: color-mix(in srgb, var(--danger) 85%, black);
-}
-
 .install-btn {
     gap: 6px;
 }
@@ -1774,7 +1114,7 @@ html[data-motion="reduced"] .auth-showcase-track {
     justify-content: center;
     transition: background .15s;
 }
- 
+
 .zoom-btn:hover {
     background: rgba(255, 255, 255, .14);
 }
@@ -1789,19 +1129,6 @@ html[data-motion="reduced"] .auth-showcase-track {
     padding: 20px 50px;
 }
 
-.news-title {
-    margin-bottom: var(--padding-big);
-    color: white;
-    font-size: calc(32px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-}
-
-.news-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--padding-md);
-}
-
 .news-card {
     position: relative; /* 1. Фиксируем ::after внутри карточки */
     background: var(--bg-secondary);
@@ -1810,7 +1137,6 @@ html[data-motion="reduced"] .auth-showcase-track {
     padding: var(--padding-md);
     overflow: hidden; /* 2. Чтобы контент и картинки не вылезали за скругления */
     transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
-    gap: var(--padding-sm);
 }
 
 .news-card::after {
@@ -1833,20 +1159,6 @@ html[data-motion="reduced"] .auth-showcase-track {
     border-color: var(--border-accent); /* Укажите ваш акцентный цвет ховера */
 }
 
-.news-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: var(--padding-sm2);
-    flex-wrap: wrap;
-    border-bottom: 2px transparent solid; /* 1. Резервируем место под рамку, чтобы не прыгал контент */
-    padding-bottom: var(--padding-sm);
-    transition: border-color 0.2s; /* Плавная смена цвета рамки */
-}
-.news-card:hover .news-card-header {
-    border-bottom: 2px solid var(--border-subtle);
-}
-
 .news-card h2 {
     font-size: calc(24px * var(--font-scale, 1));
     line-height: 1.25;
@@ -1856,60 +1168,11 @@ html[data-motion="reduced"] .auth-showcase-track {
     color: var(--text-primary);
 }
 
-.news-description {
-    color: var(--text-secondary);
-    font-size: calc(16px * var(--font-scale, 1));
-    line-height: 1.5;
-}
-
-.news-date {
-    color: var(--text-primary);
-    font-size: calc(14px * var(--font-scale, 1));
-    margin-top: 0px;
-    line-height: 1;
-}
-
-.news-description p {
-    margin: 0 0 var(--padding-sm2) 0;
-}
-
-.news-description p:first-child {
-    margin-bottom: var(--padding-sm); /* Заработает после нажатия 2x Enter в админке */
-}
-
-.news-description ul, 
-.news-description ol {
-    margin: 8px 0 16px 20px;
-    padding: 0;
-}
-
-.news-description li {
-    margin-bottom: var(--padding-sm);
-}
-
-.news-description strong,
-.news-description b {
-    color: var(--text-primary);
-    display: inline-block;
-    margin-top: 10px;
-    margin-bottom: 5px;
-    font-size: calc(16px * var(--font-scale, 1));
-}
-
-.empty-news {
-    padding: var(--padding-big);
-    text-align: center;
-    color: var(--text-muted);
-    background: var(--bg-secondary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-md);
-}
-
 .filter-select {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    
+
     background: var(--bg-secondary);
     border: 2px solid var(--border-accent);
     border-radius: var(--radius-sm);
@@ -1934,69 +1197,8 @@ html[data-motion="reduced"] .auth-showcase-track {
     color: var(--text-primary);
 }
 
-/* Пустая подпись у таймера не занимает места */
-.timer-label:empty {
-    display: none;
-}
-
-.timer-label {
-    font-size: calc(12px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    white-space: nowrap;
-}
-
-.timer-box {
-    font-size: calc(18px * var(--font-scale, 1));
-    font-weight: var(--text-normal);
-    color: var(--accent-text);
-    font-family: var(--font-display);
-    white-space: nowrap;
-    line-height: 1;
-
-    display: inline-block;
-    background: rgba(0, 0, 0, 0.6);
-    color: var(--text-primary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 7px 6px;
-    font-size: calc(14px * var(--font-scale, 1));
-    text-transform: uppercase;
-    letter-spacing: 0.04em; /* надпись заглавными — единственное место, где Unbounded нужен интервал */
-    backdrop-filter: blur(5px);
-}
-
-.gotw-header {
-    display: grid;
-    /* max-content гарантирует, что первая и последняя колонки подстроятся под ширину текста */
-    grid-template-columns: max-content 1fr max-content;
-    align-items: center;
-    margin-bottom: var(--padding-sm2);
-}
-
-.timer-container {
-    grid-column: -2; /* всегда последняя колонка: при выключенных подсказках «?» таймер не съезжает к центру */
-    justify-self: end;
-    display: inline-flex;
-    align-items: center;
-    flex-wrap: wrap; /* на узком экране подпись встаёт над таймером, а не вылезает за карточку */
-    justify-content: flex-end;
-    gap: 4px var(--space-2);
-    min-width: 0;
-    margin-left: var(--space-3);
-}
-
-/* Строка: Дата слева, Название сразу за ней */
-.news-card-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: var(--padding-sm2);
-}
-
 .news-date {
+    margin-top: 0px;
     color: var(--text-muted);
     font-size: calc(14px * var(--font-scale, 1));
     line-height: 1;
@@ -2008,63 +1210,6 @@ html[data-motion="reduced"] .auth-showcase-track {
    PROFILE
    ========================= */
 
-.profile-layout {
-    display: flex;
-    position: relative;
-    width: 100%;
-    max-width: 1300px;
-    margin: 0 auto;
-    padding: 20px 0; /* без боковых отступов: левый край как на остальных страницах */
-    box-sizing: border-box;
-    align-items: flex-start;
-}
-
-.profile-card {
-    position: relative;
-    background: var(--bg-surface);
-    /* Рамка нарисована слоем ::after поверх баннера: картинка доходит до края и просвечивает сквозь рамку */
-    border-radius: var(--radius-md);
-    padding: 0; /* Убираем отступы у самой карточки */
-    overflow: hidden; /* Обрезает верхние углы баннера по форме карточки */
-    margin-bottom: var(--section-gap);
-}
-.profile-card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 4; /* над баннером и его фотоаппаратом */
-    border: 2px solid var(--border);
-    border-radius: inherit;
-    pointer-events: none;
-}
-
-html[data-design="glass"] .profile-card::after {
-    border-color: transparent; /* у стеклянного оформления своя кромка */
-}
-
-.profile-banner {
-    width: 100%;
-    height: 200px; /* Высота баннера */
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    border-radius: var(--radius-md) var(--radius-md) 0 0;
- 
-    /* нужно для позиционирования градиента */
-    position: relative;
-    overflow: hidden;
-}
- 
-.profile-banner::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 30px; /* высота зоны перехода — чем больше, тем мягче и заметнее */
-    background: linear-gradient(to bottom, transparent, var(--bg-surface));
-    pointer-events: none; /* чтобы не мешал кликам по баннеру, если они есть */
-}
 .banner-overlay {
     position: absolute;
     top: 0;
@@ -2083,22 +1228,6 @@ html[data-design="glass"] .profile-card::after {
     /* Делаем плавание/появление при ховере: */
     opacity: 0;
     transition: opacity 0.2s ease, background 0.2s ease;
-}
-
-.profile-banner:hover .banner-overlay {
-    opacity: 1;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(2.5px);
-}
-
-.profile-main {
-    padding: 0 30px 30px 30px; /* Левый, правый и нижний отступы */
-    display: flex;
-    /* На планшете рядом с боковым меню места мало: кнопка переносится под имя,
-       а не уезжает за край карточки */
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 20px;
 }
 
 .profile-avatar {
@@ -2147,45 +1276,12 @@ html[data-design="glass"] .profile-card::after {
     justify-content: center;
     font-size: calc(24px * var(--font-scale, 1));
     cursor: pointer;
- 
+
     opacity: 0;
     pointer-events: none; /* пока невидим — не перехватывает клики по аватару/инпутам под ним */
     transition: opacity 0.2s ease, background 0.2s ease;
 }
 
-/* Круглая зона наведения: иначе углы квадратной обёртки затемняли аватар без размытия */
-.profile-avatar-wrapper {
-    border-radius: 50%;
-}
-
-.profile-avatar-wrapper:hover .avatar-overlay {
-    opacity: 1;
-    pointer-events: auto; /* теперь можно кликнуть по лейблу и открыть file input */
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(1px);
-}
-
-.profile-avatar-wrapper:not(.editing) .avatar-overlay {
-    display: none;
-}
-
-/* Режим правки профиля: фотоаппарат на аватарке и баннере приглушённо виден сразу,
-   чтобы было понятно, что картинки можно сменить; при наведении — в полную силу */
-.profile-card.is-editing .avatar-overlay,
-.profile-card.is-editing .banner-overlay {
-    opacity: 0.5;
-    pointer-events: auto;
-}
-
-.profile-card.is-editing .profile-avatar-wrapper:hover .avatar-overlay,
-.profile-card.is-editing .profile-banner:hover .banner-overlay {
-    opacity: 1;
-}
-
-.profile-actions {
-    display: flex;
-    align-items: center;
-}
 .profile-info {
     flex: 1;
 }
@@ -2218,220 +1314,6 @@ html[data-design="glass"] .profile-card::after {
     -webkit-line-clamp: unset;
 }
 
-.profile-stats {
-    display: flex;
-    margin-top: 30px;
-    gap: 30px;
-    padding: 20px 30px;
-    padding-top: var(--padding-md);
-    border-top: 2px solid var(--border-subtle);
-}
-.profile-stat {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.profile-stat:not(:last-child) {
-    border-right: 2px solid var(--border-subtle);
-    padding-right: var(--padding-md); /* Отступ от текста до линии */
-    margin-right: -5px;  /* Отступ от линии до следующего элемента */
-}
-.profile-stat strong {
-    font-size: calc(24px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    white-space: nowrap; /* дата «Участник с» не разрывается на две строки */
-}
-
-/* На телефоне полная дата не помещается при крупных отступах — сжимаем их и цифры */
-@media (max-width: 480px) {
-    .profile-stats {
-        gap: var(--padding-sm2);
-        padding: var(--padding-sm2) var(--padding-sm);
-    }
-
-    .profile-stats {
-        justify-content: center;
-    }
-
-    .profile-stat {
-        align-items: center;
-    }
-
-    .profile-stat:not(:last-child) {
-        padding-right: var(--padding-sm2);
-    }
-
-    .profile-stat strong {
-        font-size: calc(20px * var(--font-scale, 1));
-    }
-}
-
-@media (max-width: 360px) {
-    .profile-stat strong {
-        font-size: calc(18px * var(--font-scale, 1));
-    }
-}
-.profile-stat span {
-    color: var(--text-muted);
-    font-size: calc(14px * var(--font-scale, 1));
-}
-
-.profile-section {
-    margin-bottom: var(--section-gap);
-}
-
-.activity-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--grid-gap);
-}
-.activity-item {
-    position: relative; /* Обязательно: делает карточку точкой отсчета для ::after */
-    display: flex;
-    align-items: center;
-    padding: var(--padding-sm2);
-    border-radius: var(--radius-md);
-    background: var(--bg-card); /* как у карточек каталога */
-    transition: 0.2s;
-    min-height: 130px;
-    max-height: 130px;
-    transition: background 0.3s, box-shadow 0.3s; /* как у карточек корзины */
-}
-
-.activity-item-link {
-    color: inherit;
-    text-decoration: none;
-}
-
-/* Без filter на всей карточке (см. .cart-item:hover): светлеет только обложка или аватар */
-.activity-item:hover {
-    background: var(--bg-card-hover);
-    box-shadow: var(--shadow-md);
-}
-
-.activity-cover img,
-.activity-cover-2 img {
-    transition: filter 0.3s;
-}
-
-.activity-item:hover :is(.activity-cover, .activity-cover-2) img {
-    filter: brightness(1.10);
-}
-
-.activity-item::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: var(--radius-md);
-    border: 2px solid transparent;
-    transition: border-color 0.3s, filter 0.3s;
-    pointer-events: none;
-    z-index: 2;
-}
-
-.activity-item:hover::after {
-    border-color: var(--border);
-}
-
-.activity-cover {
-    height: 100px;
-    width: 200px;
-    flex-shrink: 0;
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-    background-color: var(--bg-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.activity-cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.activity-cover-2 {
-    width: 75px;
-    height: 75px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    overflow: hidden;
-    background-color: var(--bg-primary);
-    font-weight: var(--text-semibold); /* буква вместо аватара */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.activity-cover-2 img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.activity-info,
-.activity-info-game {
-    flex: 1 1 auto;
-    min-width: 0; /* длинное название игры обрезается многоточием, а не растягивает карточку */
-    margin-left: var(--padding-sm2);
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* Центрирует всё содержимое по вертикали */
-    align-items: flex-start; /* Выравнивает тексты и иконку по левому краю аккуратной колонкой */
-    position: relative;
-}
-.activity-info-t {
-    font-size: calc(16px * var(--font-scale, 1));
-    color: var(--text-muted);
-    font-weight: var(--text-regular);
-}
-.activity-info-game h3 {
-    margin: 0 0 var(--space-2);
-    font-size: calc(18px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-}
-.activity-info h3 {
-    font-family: var(--font-display);
-    margin: 0 0 var(--space-2);
-    font-size: calc(18px * var(--font-scale, 1));
-    font-weight: var(--text-normal);
-}
-.empty-activity {
-    margin: 0;
-
-    color: var(--text-muted);
-    font-size: calc(16px * var(--font-scale, 1));
-}
-.activity-time {
-    margin-left: auto;
-    color: var(--text-muted);
-    font-size: calc(16px * var(--font-scale, 1));
-}
-
-.profile-empty {
-    padding: 45px 20px;
-    text-align: center;
-    background: var(--bg-secondary);
-    border-radius: var(--radius-md);
-    border: 2px solid var(--border);
-}
-.profile-empty-icon {
-    font-size: calc(32px * var(--font-scale, 1));
-    margin-bottom: 10px;
-    color: var(--rating);
-}
-.profile-empty h3 {
-    margin: 0 0 15px;
-    font-weight: var(--text-semibold);
-}
-.profile-empty p {
-    margin: 0;
-    color: var(--text-muted);
-}
 /* Пустое состояние (store/_empty_state.html) — одинаковое по всему сайту */
 .empty-block {
     display: flex;
@@ -2490,32 +1372,6 @@ html[data-design="glass"] .profile-card::after {
     font-size: calc(16px * var(--font-scale, 1));
 }
 
-.profile-placeholder {
-    color: var(--text-muted);
-    font-size: calc(16px * var(--font-scale, 1));
-}
-
-.achievements {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.achievement {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    background: var(--bg-surface);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-regular);
-}
-.achievement.locked {
-    opacity: 0.5;
-}
-
 body.no-blur,
 body.no-blur * {
     backdrop-filter: none !important;
@@ -2526,31 +1382,6 @@ body.no-blur * {
     display: flex;
     gap: var(--padding-sm2);
     margin-top: var(--padding-sm);
-}
-
-.social-login {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--padding-sm2);
-    margin-top: var(--padding-sm2);
-}
-
-/* «Другой аккаунт Google» — мелкая ссылка под кнопками входа через соцсети */
-.social-login-alt {
-    margin-top: var(--padding-sm);
-    text-align: center;
-    font-size: calc(14px * var(--font-scale, 1));
-}
-
-.social-login-alt a {
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color 0.2s;
-}
-
-.social-login-alt a:hover {
-    color: var(--accent-text);
 }
 
 .color-dot {
@@ -2580,7 +1411,7 @@ body.no-blur * {
     z-index: 1000;
     padding: 20px;
 }
- 
+
 .banner-crop-box {
     background: var(--bg-secondary);
     border: 2px solid var(--card-border, rgba(255, 255, 255, .08));
@@ -2588,7 +1419,7 @@ body.no-blur * {
     padding: 20px;
     width: min(680px, 100%);
 }
- 
+
 .banner-crop-box h3 {
     margin: 0 0 15px;
     font-size: calc(16px * var(--font-scale, 1));
@@ -2605,11 +1436,11 @@ body.no-blur * {
     cursor: grab;
     touch-action: none;
 }
- 
+
 .banner-crop-stage.dragging {
     cursor: grabbing;
 }
- 
+
 .banner-crop-stage img {
     position: absolute;
     top: 0;
@@ -2618,7 +1449,7 @@ body.no-blur * {
     user-select: none;
     pointer-events: none;
 }
- 
+
 .banner-crop-frame {
     position: absolute;
     left: 0;
@@ -2631,14 +1462,14 @@ body.no-blur * {
     border-radius: var(--radius-sm);
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, .65); /* затемняет всё, что вне рамки */
 }
- 
+
 .banner-crop-controls {
     display: flex;
     align-items: center;
     gap: 10px;
     margin-top: 15px;
 }
- 
+
 #bannerZoom,
 .crop-zoom {
     flex: 1;
@@ -2649,7 +1480,7 @@ body.no-blur * {
     background: rgba(255, 255, 255, .15); /* перезаписывается JS-ом для заливки по значению */
     outline: none;
 }
- 
+
 #bannerZoom::-webkit-slider-thumb,
 .crop-zoom::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -2660,7 +1491,7 @@ body.no-blur * {
     border: 3px solid var(--accent);
     cursor: pointer;
 }
- 
+
 #bannerZoom::-moz-range-thumb,
 .crop-zoom::-moz-range-thumb {
     width: 22.5px;
@@ -2670,14 +1501,14 @@ body.no-blur * {
     border: 3px solid var(--accent);
     cursor: pointer;
 }
- 
+
 #bannerZoom::-moz-range-track,
 .crop-zoom::-moz-range-track {
     height: 5px;
     border-radius: var(--radius-pill);
     background: transparent;
 }
- 
+
 .banner-crop-actions {
     display: flex;
     justify-content: flex-end;
@@ -2693,21 +1524,6 @@ body.no-blur * {
 .btn-secondary {
     align-self: flex-start;
     flex-shrink: 0;
-}
-
-.profile-sidebar {
-    width: 250px;
-    display: flex;
-    flex-direction: column;
-    gap: 0px;
-    margin-right: 30px;
-    position: sticky;
-    top: 90px; /* Отступ меню от верхнего края экрана при скролле */
-    align-self: start;
-    background-color: none;
-    padding: var(--padding-sm);
-    border-radius: var(--radius-md);
-    border: 2px solid var(--border);
 }
 
 .settings-nav-link {
@@ -2745,34 +1561,6 @@ body.no-blur * {
     border-radius: 50%;
 }
 
-.nav-icon-wrapper {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    padding: 0px;
-    text-decoration: none;
-    line-height: 0;
-    width: 50px;
-    height: 50px;
-}
-
-.nav-icon-wrapper::after {
-    content: '';
-    position: absolute;
-    /* Отрицательные значения inset выносят рамку СНАРУЖИ */
-    inset: -4px; 
-    border-radius: 50%;
-    border: 2px solid transparent; /* Прозрачная рамка по умолчанию */
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    pointer-events: none;
-}
-
-.nav-icon-wrapper:hover::after {
-    border-color: var(--border);
-}
-
 .settings-nav-link:hover {
     transform: translateX(5px);
     background-color: var(--bg-card);
@@ -2790,197 +1578,7 @@ body.no-blur * {
     opacity: 0.85;
 }
 
-.profile-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.profile-tab[hidden] {
-    display: none;
-}
-
-.friends-search { position: relative; }
-#friendSearchResults {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    z-index: 50;
-}
-.search-result-link {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex: 1;
-    min-width: 0;
-    color: inherit;
-    text-decoration: none;
-}
-.search-avatar-ph {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: var(--text-semibold);
-    color: var(--text-primary);
-    border-radius: 50%;
-}
-.search-sub, .search-badge-muted { font-size: calc(14px * var(--font-scale, 1)); color: var(--text-muted); }
-
-/* =========================
-   FRIEND SEARCH
-========================= */
-
-.friends-search {
-    position: relative;
-    width: 100%;
-    min-width: 0;
-    z-index: 20;
-}
-
-/* Само поле — общий .search-box, как в магазине, только на всю ширину */
-.friends-search .search-box {
-    width: 100%;
-}
-
-#friendSearchResults {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    right: 0;
-    width: 100%;
-    max-height: 340px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    box-sizing: border-box;
-
-    display: none;
-    padding: var(--space-2);
-    background: var(--bg-primary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-
-    z-index: 50; /* Выше содержимого страницы, но ниже шапки сайта */
-}
-
-#friendSearchResults[style*="display: block"] {
-    display: block;
-}
-
-#friendSearchResults .search-result-item {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    min-width: 0;
-    min-height: 130px;
-    box-sizing: border-box;
-    border-radius: var(--radius-md);
-    transition: background .15s;
-}
-
-#friendSearchResults .search-result-item:hover {
-    background: var(--bg-secondary);
-}
-
-#friendSearchResults .search-result-link {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    flex: 1;
-    min-width: 0;
-    color: inherit;
-    text-decoration: none;
-}
-
-#friendSearchResults .search-avatar-ph,
-#friendSearchResults .search-result-item img {
-    flex: 0 0 75px;
-    width: 75px;
-    height: 75px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-#friendSearchResults .search-avatar-ph {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-secondary);
-    font-weight: var(--text-semibold);
-    font-size: calc(16px * var(--font-scale, 1));
-}
-
-#friendSearchResults .search-result-info {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-}
-
-#friendSearchResults .search-result-name {
-    display: block;
-    overflow: hidden;
-    color: var(--text-primary);
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-#friendSearchResults .search-sub,
-#friendSearchResults .search-badge-muted {
-    display: block;
-    margin-top: 0px;
-    color: var(--text-muted);
-    font-size: calc(14px * var(--font-scale, 1));
-}
-
-#friendSearchResults button {
-    flex: 0 0 auto;
-    max-width: 100%;
-    padding: 9px 14px;
-    border-radius: var(--radius-sm);
-    white-space: nowrap;
-}
-
-#friendSearchResults:empty {
-    display: none !important;
-}
-
-@media (max-width: 600px) {
-    #friendSearchResults .search-result-item {
-        gap: 8px;
-        padding: 8px;
-    }
-
-    #friendSearchResults .search-result-link {
-        gap: 8px;
-    }
-
-    #friendSearchResults button {
-        padding: 7px 9px;
-        font-size: 12px;
-    }
-}
-
-/* ===== FRIEND SEARCH: FIXED ===== */
-
-/* Результаты: обычный блок под полем */
-#friendSearchResults.search-results {
-    position: absolute;
-    width: 100%;
-    max-height: 260px;
-    margin: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    background: var(--bg-primary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: none;
-}
-
-#friendSearchResults[style*="display: none"] {
-    display: none !important;
-}
+/* ===== FRIEND SEARCH: выпадающий список результатов ===== */
 
 .search-result-item {
     display: flex;
@@ -2994,10 +1592,6 @@ body.no-blur * {
     transition: background .15s;
 }
 
-#friendSearchResults .search-result-item:hover {
-    background: var(--bg-secondary);
-}
-
 .search-result-link {
     display: flex;
     align-items: center;
@@ -3008,25 +1602,8 @@ body.no-blur * {
     text-decoration: none;
 }
 
-.search-avatar,
-.search-avatar-ph {
-    flex: 0 0 75px;
-    width: 75px;
-    height: 75px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.search-avatar-ph {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-primary);
-    font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-}
-
 .search-result-info {
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -3044,14 +1621,11 @@ body.no-blur * {
 }
 
 .search-title {
+    margin:
+        0 0 10px;
     color: var(--text-primary);
     font-size: calc(18px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
-}
-
-.search-sub {
-    color: var(--text-muted);
-    font-size: calc(16px * var(--font-scale, 1));
 }
 
 .search-result-right {
@@ -3059,18 +1633,6 @@ body.no-blur * {
     flex: 0 0 auto;
     align-items: center;
     justify-content: flex-end;
-}
-
-.friend-add-btn {
-    flex-shrink: 0;
-}
-
-.friend-add-btn:hover { filter: brightness(1.1); }
-
-.search-badge-muted {
-    color: var(--text-muted);
-    font-size: calc(14px * var(--font-scale, 1));
-    white-space: nowrap;
 }
 
 .search-empty {
@@ -3084,49 +1646,6 @@ body.no-blur * {
 @media (max-width: 480px) {
     .search-result-item,
     .search-result-link { gap: 8px; }
-
-    .search-avatar,
-    .search-avatar-ph {
-        flex-basis: 50px;
-        width: 50px;
-        height: 50px;
-    }
-
-    .friend-add-btn { padding: 7px 10px; font-size: 14px; }
-}
-
-
-
-#friendSearchResults button,
-#friendSearchResults .friend-add-btn {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-
-    width: auto;
-    min-width: 0;
-    max-width: 100%;
-    height: auto;
-    min-height: var(--btn-h-sm);
-
-    padding: var(--space-1) var(--space-4);
-    font-family: inherit;
-    font-size: calc(14px * var(--font-scale, 1));
-    line-height: 1.25;
-    font-weight: var(--text-semibold);
-    white-space: nowrap;
-
-    box-sizing: border-box;
-    transform: none;
-}
-
-@media (max-width: 600px) {
-    #friendSearchResults button,
-    #friendSearchResults .friend-add-btn {
-        padding: 7px 9px;
-        font-size: 12px;
-    }
 }
 
 /* =========================================================
@@ -3137,37 +1656,13 @@ body.no-blur * {
 
 /* ---------- Планшеты / большие телефоны ---------- */
 @media (max-width: 768px) {
-
     .container {
         width: 94%;
         padding: 20px 0 60px;
     }
 
-    /* Поиск */
-    .search-area {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-    }
-
-    .search-area h1 {
-        font-size: calc(24px * var(--font-scale, 1));
-    }
-
-    .search-box-container {
-        max-width: 100%;
-        margin-bottom: 0;
-    }
-
     .search-box {
         width: 100%;
-    }
-
-    /* Игра недели */
-    .featured {
-        grid-template-columns: 1fr;
-        min-height: 0;
-        max-height: none;
     }
 
     .featured > img {
@@ -3175,94 +1670,18 @@ body.no-blur * {
         height: 220px;
     }
 
-    .featured-info {
-        padding: var(--padding-md);
-    }
-
-    .featured-info h2 {
-        font-size: calc(24px * var(--font-scale, 1));
-    }
-
-    .featured-info p {
-        max-width: 100%;
-    }
-
-    .timer-box {
-        margin-left: 0;
-    }
-
     /* Карточки */
     .games-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    a.game-card {
-        min-width: 0;
-        max-width: none;
-    }
-
-    /* Отключаем "прыжок" карточки при наведении на тач-экранах */
-    a.game-card:hover {
-        transform: none;
     }
 }
 
 /* ---------- Телефоны ---------- */
 @media (max-width: 600px) {
-
-    .container {
-        width: 92%;
-        padding-top: 15px;
-    }
-
-    /* ----- Поиск ----- */
-    .search-area h1 {
-        font-size: 24px;
-    }
-
     /* поиск на телефоне той же высоты 42px, что и на компьютере */
-
-    /* Страница игры: подпись уже, чтобы длинный жанр помещался в строку */
-    .detail-label {
-        min-width: 96px;
-    }
-
-    /* на самых узких экранах жанры переходят под подпись, а не вылезают за край */
-    .detail-row:has(.detail-genres) {
-        flex-wrap: wrap;
-    }
-
-    .detail-genres {
-        flex: 1 1 180px;
-        min-width: 0;
-    }
 
     .search-box input {
         font-size: 16px; /* 16px — чтобы iOS не зумил страницу при фокусе */
-    }
-
-    /* Выпадающие результаты поиска */
-    .search-result-item {
-        height: auto;
-        min-height: 50px;
-        padding: var(--padding-sm);
-        gap: 8px;
-    }
-
-    .search-cover {
-        width: 70px;
-        height: 30px;
-        margin-right: 5px;
-    }
-
-    .search-title {
-        font-size: 14px;
-        margin: 0;
-    }
-
-    .search-result-right {
-        padding-left: 6px;
-        gap: 6px;
     }
 
     .search-badges {
@@ -3271,92 +1690,9 @@ body.no-blur * {
         justify-content: flex-end;
     }
 
-    .search-price-block {
-        gap: 5px;
-    }
-
-    .search-price-block .search-price {
-        font-size: 14px;
-    }
-
     /* ----- Игра недели ----- */
     .featured > img {
         height: 180px;
-    }
-
-    .featured-info {
-        padding: var(--padding-sm2);
-    }
-
-    .gotw-header {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-start;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .featured-label {
-        font-size: 14px;
-    }
-
-    /* Таймер — в той же строке, что «Игра недели ?», прижат к правому краю
-       (на отдельную строку уходит, только если совсем не помещается) */
-    .timer-container {
-        justify-self: auto;
-        flex: 0 0 auto;
-        justify-content: flex-end;
-        margin-left: auto;
-    }
-
-    .timer-label {
-        font-size: 11px;
-        letter-spacing: 0;
-    }
-
-    .timer-box {
-        font-size: 12px;
-        padding: 6px 5px;
-        margin-left: 0;
-    }
-
-    .featured-info h2 {
-        font-size: 24px;
-        margin-bottom: 10px;
-    }
-
-    .featured-info p {
-        font-size: 14px;
-        line-height: 1.6;
-    }
-
-    .featured-release-date {
-        font-size: 14px;
-        margin-top: 5px;
-    }
-
-    .featured-bottom {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-        margin-top: var(--padding-md);
-    }
-
-    .price-group {
-        justify-content: space-between;
-    }
-
-    .price-block-lg .price {
-        font-size: calc(18px * var(--font-scale, 1));
-    }
-
-    .price-block-lg .old-price {
-        font-size: calc(14px * var(--font-scale, 1));
-    }
-
-    .featured .buy-button,
-    .js-add-to-cart {
-        width: 100%;
     }
 
     /* ----- Секции ----- */
@@ -3368,96 +1704,30 @@ body.no-blur * {
         font-size: 14px;
     }
 
-    /* ----- Сетка карточек: 1 колонка ----- */
-    .games-grid {
-        grid-template-columns: 1fr;
-    }
-
     .game-image {
         height: 170px;
-    }
-
-    .game-info {
-        padding: 12px;
     }
 
     .game-info h3 {
         font-size: 18px;
     }
 
-    .game-genres {
-        font-size: 14px;
-    }
-
-    .release-date {
-        font-size: 14px;
-        margin-bottom: 15px;
-    }
-
     .game-bottom {
         flex-wrap: wrap;
         gap: 8px;
     }
-
 }
 
 /* ---------- Очень маленькие экраны ---------- */
 @media (max-width: 380px) {
-
-    .search-area h1 {
-        font-size: 24px;
-    }
-
     .featured > img {
         height: 150px;
-    }
-
-    .featured-info h2 {
-        font-size: 18px;
     }
 
     .game-image {
         height: 140px;
     }
-
-    .search-cover {
-        display: none; /* на очень узких экранах прячем обложку в поиске */
-    }
-
-    .timer-box {
-        font-size: 11px;
-        padding: 6px 4px;
-        letter-spacing: 0;
-    }
-
-    /* На самых узких экранах таймер помещается в строку «Игра недели ?» */
-    .gotw-header {
-        gap: 6px;
-    }
-
-    .featured-label {
-        font-size: 13px;
-    }
 }
-
-/* Средняя оценка */
-.game-rating {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 15px 0;
-}
-.stars-static {
-    --percent: 0%;
-    position: relative;
-    font-size: calc(32px * var(--font-scale, 1));
-    letter-spacing: 2px;
-    background: linear-gradient(90deg, var(--rating) var(--percent), rgba(255,255,255,.2) var(--percent));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-.game-rating-count { color: var(--text-muted); }
 
 /* Форма отзыва */
 .review-form {
@@ -3470,7 +1740,7 @@ body.no-blur * {
     border: 2px solid var(--border);
     border-radius: var(--radius-md);
 }
-.review-form-title { font-weight: var(--text-semibold); }
+
 .review-form textarea {
     width: 100%;
     resize: vertical;
@@ -3483,29 +1753,7 @@ body.no-blur * {
     outline: none;
 }
 .review-form textarea:focus { border-color: var(--accent); }
-.review-form-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); } /* на узком экране «Удалить» переходит на вторую строку */
-
-/* Выбор звёзд */
-.star-input {
-    display: inline-flex;
-    flex-direction: row-reverse;   /* 5 слева в DOM, но визуально 1..5 */
-    justify-content: flex-end;
-    align-self: flex-start;
-}
-.star-input input { position: absolute; opacity: 0; pointer-events: none; }
-.star-input label {
-    padding: 0 2px;
-    font-size: calc(32px * var(--font-scale, 1));
-    line-height: 1;
-    color: rgba(255,255,255,.4); /* пустые звёзды должны быть заметны: контраст не ниже 3:1 */
-    cursor: pointer;
-    transition: color .2s, transform .2s;
-}
-.star-input label:hover,
-.star-input label:hover ~ label,
-.star-input input:checked ~ label { color: var(--rating); }
-.star-input label:hover { transform: scale(1.25); }
-.star-input input:focus-visible + label { outline: 2px solid var(--accent); border-radius: var(--radius-sm); }
+ /* на узком экране «Удалить» переходит на вторую строку */
 
 /* Список отзывов */
 .reviews { display: flex; flex-direction: column; gap: var(--grid-gap); }
@@ -3514,13 +1762,13 @@ body.no-blur * {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    
+
     padding: var(--padding-sm2);
     border-radius: var(--radius-md);
     background: var(--bg-surface);
     min-height: 130px;
     max-height: none;
-    transition: transform 0.3s, box-shadow 0.3s, background 0.3s; 
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
 }
 
 .review > * {
@@ -3563,37 +1811,16 @@ body.no-blur * {
     gap: 4px var(--space-3);
     margin-bottom: var(--padding-sm);
 }
-.review-author-block {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px 10px;
-    min-width: 0;
-}
-.review-status {
-    padding: 2px 6px;
-    color: var(--text-secondary);
-    background: var(--bg-primary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    line-height: 1.25;
-    white-space: nowrap;
-}
+
 .review-author { color: inherit; font-weight: var(--text-normal); text-decoration: none; font-size: calc(16px * var(--font-scale, 1)); font-family: var(--font-display);}
-.review-rating { flex-shrink: 0; color: var(--rating); letter-spacing: 3px; font-size: calc(22px * var(--font-scale, 1)); white-space: nowrap; }
-.review-date { color: var(--text-muted); font-size: calc(14px * var(--font-scale, 1)); }
+
 /* =========================
    КАТАЛОГ, ЧИПЫ, УВЕДОМЛЕНИЯ
 ========================= */
 
 .chip {
     display: inline-block;
-    max-width: 100%;
     padding: 9px 14px;
-    overflow: hidden;
-    text-overflow: ellipsis; /* совсем длинный жанр на узкой карточке — с многоточием */
     white-space: nowrap; /* длинный жанр не переносится на вторую строку и не делает плашку выше */
     color: var(--text-secondary);
     background: var(--bg-secondary);
@@ -3614,12 +1841,6 @@ body.no-blur * {
     color: var(--text-primary);
     background: var(--accent);
     border-color: var(--accent);
-}
-
-.chip-count {
-    margin-left: 4px;
-    font-size: calc(12px * var(--font-scale, 1));
-    opacity: 0.7;
 }
 
 .catalog-header {
@@ -3706,10 +1927,6 @@ body.no-blur * {
     font-size: calc(14px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
     letter-spacing: 0.3px;
-}
-
-.filter-group-title {
-    margin: 0;
 }
 
 /* Пункт-ссылка (в новостях) выглядит так же, как пункт-радиокнопка каталога */
@@ -3869,6 +2086,30 @@ a.filter-option {
 }
 
 @media (max-width: 900px) {
+    .navbar {
+        padding: 0 4%;
+    }
+
+    .nav-left {
+        gap: 15px;
+    }
+
+    .logo {
+        margin-right: 5px;
+        font-size: 16px;
+    }
+
+    .nav-link {
+        font-size: 16px;
+    }
+
+    /* В одну колонку блок выше 375px: без снятия max-height описание и кнопка обрезались */
+    .featured {
+        grid-template-columns: 1fr;
+        min-height: 0;
+        max-height: none;
+    }
+
     .catalog-layout {
         grid-template-columns: minmax(0, 1fr);
     }
@@ -3984,7 +2225,6 @@ html[data-motion="reduced"] *::after {
 
 /* Шапка: на средних экранах все пункты должны помещаться без прокрутки страницы */
 .user-name {
-    
     display: inline-block;
     max-width: 150px;
     overflow: hidden;
@@ -4006,6 +2246,9 @@ html[data-motion="reduced"] *::after {
 }
 
 .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 25px;
     min-width: 0;
 }
 
@@ -4208,36 +2451,6 @@ html[data-motion="reduced"] *::after {
     }
 }
 
-/* Баннер по умолчанию, пока пользователь не загрузил свой */
-.profile-banner {
-    background-color: var(--bg-card);
-    background-image: linear-gradient(135deg, color-mix(in srgb, var(--accent) 45%, var(--bg-card)), var(--bg-card));
-}
-
-/* Профиль на планшетах и телефонах: меню над содержимым, а не отдельной колонкой */
-@media (max-width: 768px) {
-    .profile-layout {
-        flex-direction: column;
-        padding: 10px 0;
-        gap: 15px;
-    }
-
-    .profile-sidebar {
-        position: static;
-        width: 100%;
-        margin: 0;
-        box-sizing: border-box;
-    }
-
-    .profile-content {
-        width: 100%;
-        min-width: 0;
-        margin: 0;
-        padding: 0;
-        border: none;
-    }
-}
-
 /* =========================
    ЖЕЛАЕМОЕ И ИЗБРАННОЕ
 ========================= */
@@ -4247,34 +2460,6 @@ html[data-motion="reduced"] *::after {
 .btn-muted {
     background: var(--bg-card-hover);
     color: var(--text-primary) !important;
-}
-
-.purchase-actions {
-    display: flex;
-    margin-left: auto; /* и под ценой кнопки остаются справа */
-    justify-content: flex-end;
-    align-items: center;
-    gap: var(--space-3);
-}
-
-/* ♡ и ♥ берутся из разных шрифтов с разной высотой: без фиксированной высоты строки
-   кнопка при нажатии становится ниже, и вся страница сдвигается */
-.purchase-actions .buy-button {
-    line-height: 1.25;
-}
-
-/* Квадратная кнопка с одной иконкой рядом с «В корзину»: «В желаемое», «Подарить другу» */
-.purchase-icon-btn {
-    width: var(--btn-h);
-    min-width: var(--btn-h);
-    padding: 0;
-    flex-shrink: 0;
-}
-
-.purchase-icon-btn.active {
-    background: var(--bg-card-hover);
-    background: color-mix(in srgb, var(--accent) 22%, var(--bg-card-hover));
-    box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 .game-image {
@@ -4337,43 +2522,6 @@ html[data-motion="reduced"] *::after {
     border-color: var(--accent);
 }
 
-.profile-empty-icon .heart-icon {
-    width: 1em;
-    height: 1em;
-    color: var(--accent);
-}
-
-.profile-hint {
-    margin: -10px 0 var(--padding-sm2);
-    color: var(--text-muted);
-    font-size: calc(14px * var(--font-scale, 1));
-}
-
-.profile-games-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-}
-
-.favorites-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 15px;
-}
-
-.favorites-zone {
-    border-radius: var(--radius-md);
-    outline: 2px dashed transparent;
-    outline-offset: 6px;
-    transition: outline-color 0.2s;
-}
-
-.fav-dragging .favorites-zone {
-    outline-color: var(--border-accent);
-}
-
-.favorites-zone.is-drag-over {
-    outline-color: var(--accent) !important;
-}
-
 .fav-card {
     position: relative;
     display: block;
@@ -4385,61 +2533,6 @@ html[data-motion="reduced"] *::after {
     text-decoration: none;
     /* Яркость и фон тоже меняются плавно: без них свет при наведении вспыхивал рывком */
     transition: transform 0.3s, box-shadow 0.3s, background 0.3s, filter 0.3s;
-}
-
-.fav-card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 1; /* поверх обложки и подписи, как рамка у карточек каталога */
-    border: 2px solid transparent;
-    border-radius: var(--radius-md);
-    transition: border-color 0.3s;
-    pointer-events: none;
-}
-
-.fav-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-8px); /* как у карточек каталога */
-    background: var(--bg-card-hover);
-    filter: brightness(1.10);
-}
-
-.fav-card:hover::after {
-    border-color: var(--border);
-}
-
-.fav-card[draggable="true"] {
-    cursor: grab;
-}
-
-.fav-card img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.fav-card .no-cover {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: var(--text-muted);
-}
-
-.fav-card-title {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    padding: 24px var(--padding-sm2) var(--padding-sm);
-    overflow: hidden;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
-    font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .fav-remove {
@@ -4464,101 +2557,12 @@ html[data-motion="reduced"] *::after {
     border-color: var(--danger);
 }
 
-.fav-card .fav-remove {
-    position: absolute;
-    top: var(--padding-sm);
-    right: var(--padding-sm);
-    z-index: 2;
-}
-
-.fav-slot {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    aspect-ratio: 2 / 1;
-    padding: var(--padding-sm2);
-    color: var(--text-muted);
-    background: var(--bg-secondary);
-    border: 2px dashed var(--border);
-    border-radius: var(--radius-md);
-    font-size: calc(14px * var(--font-scale, 1));
-    text-align: center;
-}
-
 .is-dragging {
     opacity: 0.4;
 }
 
 .drop-before {
     box-shadow: -4px 0 0 var(--accent);
-}
-
-.owned-games {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: var(--padding-sm);
-}
-
-.owned-game {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 8px; /* + рамка 2px — та же высота, что и раньше */
-    color: var(--text-secondary);
-    background: var(--bg-card);
-    border: 2px solid transparent;
-    border-radius: var(--radius-sm);
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    text-decoration: none;
-    cursor: grab;
-    transition: background-color 0.2s, border-color 0.2s;
-}
-
-.owned-game:hover {
-    background: var(--bg-card-hover);
-    border-color: var(--border);
-}
-
-/* Меню «Вы друзья ▾» в профиле друга */
-.friend-menu {
-    position: relative;
-}
-
-.friend-menu-list {
-    position: absolute;
-    top: calc(100% + var(--space-2));
-    right: 0;
-    z-index: 20;
-    min-width: 100%;
-    padding: var(--space-1);
-    background: var(--bg-secondary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    box-shadow: var(--shadow-lg);
-}
-
-.friend-menu-list[hidden] {
-    display: none;
-}
-
-.friend-menu-danger {
-    display: block;
-    width: 100%;
-    padding: 10px 14px;
-    color: var(--danger-text);
-    background: none;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    white-space: nowrap;
-    text-align: left;
-    cursor: pointer;
-}
-
-.friend-menu-danger:hover {
-    background: var(--bg-card-hover);
 }
 
 /* Игра, которую ведут пальцем в «Избранное» (favorites.js) */
@@ -4581,38 +2585,6 @@ html[data-motion="reduced"] *::after {
     }
 }
 
-.owned-game img {
-    width: 28px;
-    height: 28px;
-    flex-shrink: 0;
-    border-radius: var(--radius-verysm);
-    object-fit: cover;
-}
-
-.owned-game .game-name {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.fav-star {
-    flex-shrink: 0;
-    padding: 0 4px;
-    color: var(--text-muted);
-    background: none;
-    border: none;
-    font-size: calc(22px * var(--font-scale, 1));
-    line-height: 1;
-    cursor: pointer;
-    transition: color 0.2s, transform 0.175s ease-out;
-}
-
-.fav-star:hover {
-    transform: scale(1.15);
-}
-
 .fav-star.active,
 .fav-toggle.active {
     color: var(--rating);
@@ -4621,42 +2593,6 @@ html[data-motion="reduced"] *::after {
 /* =========================
    НОВОСТИ: СПИСОК И СТАТЬЯ
 ========================= */
-
-.news-container .catalog-header {
-    align-items: center;
-    margin-bottom: var(--padding-md);
-}
-
-.news-title {
-    margin-bottom: 0;
-}
-
-.news-create {
-    display: inline-flex;
-    align-items: center;
-    align-self: stretch; /* та же высота, что у фильтров в ряду */
-    margin-left: auto;
-    color: var(--accent-text);
-    border-color: var(--accent);
-}
-
-/* Когда кнопка уходит на свою строку, она стоит слева, как фильтры */
-@media (max-width: 600px) {
-    .news-create {
-        margin-left: 0;
-    }
-}
-
-.news-create:hover {
-    color: var(--text-primary);
-    background: var(--accent);
-}
-
-/* Список новостей с боковой панелью занимает всю ширину контейнера, как каталог */
-.news-index {
-    max-width: none;
-    padding: 20px 0 100px;
-}
 
 .news-badge {
     gap: 6px;
@@ -4668,29 +2604,9 @@ html[data-motion="reduced"] *::after {
     height: var(--icon-md);
 }
 
-.news-results {
-    display: flex;
-    align-items: center;
-    margin: 0 0 var(--padding-md);
-    color: var(--text-muted);
-    font-weight: var(--text-semibold);
-    font-size: calc(16px * var(--font-scale, 1));
-}
-
-.news-group-title {
-    margin: var(--padding-sm2) 0 0;
-    color: var(--text-muted);
-    font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    letter-spacing: 0.3px;
-    text-transform: capitalize;
-}
-
-.news-group-title:first-child {
-    margin-top: 0;
-}
-
 .news-list {
+    display: flex;
+    flex-direction: column;
     gap: var(--padding-sm2);
 }
 
@@ -4728,10 +2644,6 @@ html[data-motion="reduced"] *::after {
     margin-left: auto;
     color: var(--text-muted);
     font-size: calc(14px * var(--font-scale, 1));
-}
-
-.news-card-meta .catalog-reset {
-    margin-left: 0;
 }
 
 /* Закреплённая новость: вместо второй надписи — значок булавки */
@@ -4777,132 +2689,6 @@ html[data-motion="reduced"] *::after {
 .news-more {
     color: var(--accent-text);
     font-size: calc(16px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-}
-
-.news-back {
-    display: inline-block;
-    margin-bottom: var(--padding-md);
-    color: var(--accent-text);
-    font-weight: var(--text-semibold);
-    text-decoration: none;
-}
-
-.news-back:hover {
-    color: var(--text-primary);
-}
-
-.news-article {
-    padding: var(--padding-big);
-    background: var(--bg-secondary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-md);
-}
-
-.news-article-title {
-    margin: 0 0 var(--padding-md);
-    color: var(--text-primary);
-    font-family: var(--font-display);
-    font-size: calc(32px * var(--font-scale, 1));
-    font-weight: var(--text-normal);
-    line-height: 1.25;
-}
-
-.news-article-image {
-    display: block;
-    width: 100%;
-    max-height: 420px;
-    margin-bottom: var(--padding-md);
-    border-radius: var(--radius-sm);
-    object-fit: cover;
-}
-
-.news-description a {
-    color: var(--accent-text);
-    overflow-wrap: anywhere;
-}
-
-.news-draft {
-    margin: 0 0 var(--padding-sm2);
-    padding: 9px 14px;
-    color: var(--warning);
-    border: 2px solid rgba(255, 171, 0, 0.3);
-    border-radius: var(--radius-sm);
-    font-size: calc(14px * var(--font-scale, 1));
-}
-
-.news-neighbours {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr)); /* две кнопки в ряд и на телефоне, вплоть до 320px */
-    gap: var(--padding-sm2);
-    margin-top: var(--padding-md);
-}
-
-.news-neighbour {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: var(--padding-sm2);
-    color: var(--text-primary);
-    background: var(--bg-secondary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-md);
-    font-weight: var(--text-semibold);
-    text-decoration: none;
-    transition: background 0.3s, border-color 0.3s;
-}
-
-.news-neighbour:hover {
-    background: var(--bg-surface);
-    border-color: var(--border-accent);
-}
-
-.news-neighbour span {
-    color: var(--text-muted);
-    font-size: calc(14px * var(--font-scale, 1));
-}
-
-.news-neighbour-next {
-    text-align: right;
-}
-
-@media (max-width: 768px) {
-    .news-container {
-        padding: 15px 0;
-    }
-
-    .news-card {
-        flex-direction: column;
-    }
-
-    .news-card-image {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 16 / 9;
-    }
-
-    .news-article {
-        padding: var(--padding-md);
-    }
-
-    .purchase-actions {
-        justify-content: stretch;
-        flex-wrap: nowrap;
-    }
-
-    /* На телефоне квадратные кнопки остаются квадратными, «В корзину» занимает остаток строки */
-    .purchase-actions .buy-button:not(.purchase-icon-btn) {
-        flex: 1;
-    }
-
-    .purchase-actions .purchase-icon-btn {
-        width: var(--btn-h);
-    }
-}
-
-/* Игра, запущенная прямо сейчас, в недавней активности профиля */
-.activity-playing {
-    color: var(--success);
     font-weight: var(--text-semibold);
 }
 
@@ -4981,109 +2767,14 @@ html[data-motion="reduced"] *::after {
     font-size: calc(14px * var(--font-scale, 1));
 }
 
-@media (max-width: 768px) {
-    .site-footer-inner {
-        grid-template-columns: 1fr 1fr;
-        gap: var(--space-5);
-    }
-
-    .site-footer-brand {
-        grid-column: 1 / -1;
-    }
-}
-
 /* =========================
    ПРОФИЛЬ НА ТЕЛЕФОНЕ
 ========================= */
 
 @media (max-width: 600px) {
-    /* Шапка профиля: аватар и имя в строку, кнопка — отдельной строкой во всю ширину; ничего не уходит за край */
-    .profile-main {
-        flex-wrap: wrap;
-        gap: var(--space-3) var(--space-4);
-        padding: 0 var(--space-4) var(--space-4);
-    }
-
-    .profile-avatar-wrapper,
-    .profile-avatar {
-        width: 96px;
-        height: 96px;
-        min-width: 96px;
-    }
-
-    .profile-avatar {
-        font-size: calc(48px * var(--font-scale, 1));
-    }
-
     .profile-info {
         flex: 1 1 0;
         min-width: 0;
-    }
-
-    .profile-title {
-        overflow-wrap: anywhere;
-    }
-
-    .profile-actions {
-        flex-basis: 100%;
-    }
-
-    .profile-actions .buy-button,
-    .profile-actions > div {
-        width: 100%;
-        margin: 0;
-    }
-
-    /* Недавняя активность: обложка поменьше слева, справа от неё — название, время в игре
-       и «… назад» одной колонкой (раньше «… назад» уезжало отдельной строкой под обложку) */
-    .activity-item {
-        display: grid;
-        grid-template-columns: auto minmax(0, 1fr);
-        align-items: center;
-        gap: 2px var(--space-3);
-        min-height: 0;
-        max-height: none;
-    }
-
-    .activity-item > .activity-cover {
-        grid-row: span 2;
-    }
-
-    .activity-item > .activity-info-game,
-    .activity-item > .activity-time {
-        grid-column: 2;
-    }
-
-    .activity-item > .activity-info-game {
-        align-self: end;
-    }
-
-    .activity-item > .activity-time {
-        align-self: start;
-    }
-
-    .activity-cover {
-        width: 120px;
-        height: 60px;
-    }
-
-    .activity-info-game {
-        flex: 1 1 0;
-        min-width: 0;
-        margin-left: 0;
-    }
-
-    .activity-info-game h3 {
-        font-size: calc(16px * var(--font-scale, 1));
-    }
-
-    .activity-info-t,
-    .activity-time {
-        font-size: calc(14px * var(--font-scale, 1));
-    }
-
-    .activity-time {
-        margin-left: 0;
     }
 }
 
@@ -5104,60 +2795,10 @@ html[data-motion="reduced"] *::after {
     background: var(--media-loader) center / 30px 30px no-repeat, var(--bg-secondary);
 }
 
-/* Видео встало на подгрузку во время просмотра — тот же индикатор поверх кадра */
-.main-image-box {
-    position: relative;
-}
-
 /* =========================
    НЕПРИЯТНЫЙ КОНТЕНТ (жестокость, нагота — отмечается в админке)
    Кадр размыт, пока посетитель сам не нажмёт «Показать»
 ========================= */
-.main-image-box.is-sensitive > img,
-.main-image-box.is-sensitive > video {
-    filter: blur(25px) brightness(0.5);
-    transform: scale(1.15); /* размытые края не просвечивают фоном по краям рамки */
-}
-
-.sensitive-cover {
-    position: absolute;
-    inset: 0;
-    z-index: 3;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-2);
-    padding: var(--padding-md);
-    text-align: center;
-}
-
-.sensitive-cover[hidden] {
-    display: none;
-}
-
-.sensitive-cover-title {
-    margin: 0;
-    color: var(--text-primary);
-    font-size: calc(18px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-}
-
-.sensitive-cover-text {
-    margin: 0 0 var(--space-2);
-    color: var(--text-secondary);
-    font-size: calc(14px * var(--font-scale, 1));
-}
-
-.sensitive-cover .btn-secondary {
-    align-self: center; /* у .btn-secondary по умолчанию flex-start */
-}
-
-/* Миниатюры на странице игры: размыта картинка внутри обёртки, рамка остаётся чёткой */
-:is(.video-thumb, .media-thumb)[data-sensitive]:not(.is-revealed) img {
-    filter: blur(5px) brightness(0.75);
-    transform: scale(1.15); /* размытые края не просвечивают у рамки */
-}
 
 /* Скриншоты-ссылки (библиотека) */
 .sensitive-media {
@@ -5189,10 +2830,6 @@ html[data-motion="reduced"] *::after {
     display: none;
 }
 
-.main-image-box.is-buffering::after {
-    background: var(--media-loader) center / 30px 30px no-repeat;
-}
-
 /* =========================
    ДЛИННЫЕ НАЗВАНИЯ ИГР
 ========================= */
@@ -5206,10 +2843,6 @@ html[data-motion="reduced"] *::after {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-.game-detail-title h1 {
-    flex: 0 1 auto;
 }
 
 /* Длинные слова без пробелов (ссылка в описании, ник или «О себе» из одних букв) переносятся,
@@ -5229,12 +2862,6 @@ html[data-motion="reduced"] *::after {
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.game-detail-title .badge,
-.game-detail-title .badge-with-hint,
-.game-detail-title .hint {
-    flex: none;
 }
 
 /* =========================
@@ -5276,9 +2903,6 @@ html[data-motion="reduced"] *::after {
     color: var(--text-primary);
     font-size: calc(24px * var(--font-scale, 1));
     font-weight: var(--text-semibold);
-}
-
-.library-about summary {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -5424,21 +3048,6 @@ html[data-hints="off"] .hint {
     padding: 10px 15px;
 }
 
-/* Значок и его «?» не разъезжаются по разным строкам */
-.badge-with-hint {
-    display: inline-flex;
-    flex: none;
-    align-items: center;
-}
-
-/* Аватарка автора отзыва — того же размера, что у создателей в «О сайте» (50px) */
-.review-user {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    min-width: 0;
-}
-
 .review-avatar {
     display: grid;
     flex: 0 0 50px;
@@ -5462,52 +3071,14 @@ html[data-hints="off"] .hint {
     object-fit: cover;
 }
 
-/* Поля ника и описания в режиме редактирования профиля */
-.profile-edit-input {
-    display: block;
-    box-sizing: border-box;
-    width: 100%;
-    max-width: 360px;
-    margin: 0 0 var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    color: var(--text-primary);
-    background: var(--bg-secondary);
-    border: 2px solid var(--border-accent);
-    border-radius: var(--radius-sm);
-    font: inherit;
-    font-size: calc(14px * var(--font-scale, 1));
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.profile-edit-input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
-}
-
 [data-profile-view][hidden],
 .profile-edit-input[hidden] {
     display: none;
 }
 
-.profile-edit-name {
-    font-family: var(--font-display);
-    font-weight: var(--text-normal);
-    font-size: calc(16px * var(--font-scale, 1));
-}
-
-.profile-edit-bio {
-    resize: vertical;
-    min-height: 60px;
-}
-
 /* =========================
    ПРОСМОТР КАРТИНОК НА ВЕСЬ ЭКРАН (store.js, gsLightbox)
 ========================= */
-
-#currentImage {
-    cursor: zoom-in;
-}
 
 .lightbox {
     position: fixed;
@@ -5583,26 +3154,6 @@ html[data-hints="off"] .hint {
     transform: translateX(-50%);
 }
 
-@media (max-width: 600px) {
-    .lightbox {
-        padding: 56px 8px;
-    }
-
-    .lightbox-prev,
-    .lightbox-next {
-        top: auto;
-        bottom: 8px;
-    }
-
-    .lightbox-prev {
-        left: 16px;
-    }
-
-    .lightbox-next {
-        right: 16px;
-    }
-}
-
 /* Отзыв: аватарка слева, ник, текст и дата — плотной колонкой справа от неё */
 .review.review {
     flex-direction: row;
@@ -5653,12 +3204,6 @@ html[data-hints="off"] .hint {
     height: var(--icon-md);
 }
 
-/* Геймпад вместо обложки в недавних играх профиля */
-.activity-cover .ui-icon {
-    width: var(--icon-lg);
-    height: var(--icon-lg);
-}
-
 /* Значки ролей (спрайт _role_icons.html) */
 .role-icon {
     display: inline-block;
@@ -5673,11 +3218,6 @@ html[data-hints="off"] .hint {
 .role-icon-admin { color: var(--role-admin); }
 .role-icon-developer { color: var(--role-developer); }
 .role-icon-user { color: var(--accent-text); }
-
-/* Поле ника и описания: фокус показывает своя рамка, вторая обводка не нужна */
-.profile-edit-input:focus-visible {
-    outline: none;
-}
 
 /* Подсказка с колонками (например, роли) — окошко шире */
 .hint-bubble.hint-bubble-wide {
@@ -5722,139 +3262,6 @@ html[data-hints="off"] .hint {
     main.settings-page > h1 {
         font-size: calc(28px * var(--font-scale, 1));
     }
-}
-
-/* Окно «Подарить другу» на странице игры */
-.gift-dialog {
-    width: min(440px, calc(100% - 32px));
-    max-height: calc(100dvh - 32px);
-    padding: var(--padding-md);
-    color: var(--text-primary);
-    background: var(--bg-secondary);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-}
-
-.gift-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.6);
-}
-
-.gift-dialog h2 {
-    margin: 0 0 var(--padding-sm2);
-    font-size: calc(20px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    overflow-wrap: anywhere;
-}
-
-.gift-label {
-    display: block;
-    margin: 0 0 6px;
-    color: var(--text-secondary);
-    font-size: calc(14px * var(--font-scale, 1));
-}
-
-.gift-friends {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-height: 260px;
-    margin-bottom: var(--padding-sm2);
-    overflow-y: auto;
-}
-
-.gift-friend {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    background: var(--bg-card);
-    border: 2px solid transparent;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
-}
-
-.gift-friend:hover {
-    background: var(--bg-card-hover);
-}
-
-/* Сама радиокнопка скрыта: выбранного друга показывает рамка карточки */
-.gift-friend input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.gift-friend:has(input:checked) {
-    border-color: var(--accent);
-}
-
-.gift-friend:has(input:focus-visible) {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-}
-
-.gift-friend.is-disabled {
-    cursor: not-allowed;
-}
-
-.gift-friend.is-disabled:hover {
-    background: var(--bg-card);
-}
-
-.gift-friend.is-disabled .gift-friend-name {
-    color: var(--text-muted);
-}
-
-.gift-friend-avatar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 32px;
-    height: 32px;
-    color: var(--text-primary);
-    font-weight: var(--text-semibold);
-    background: var(--bg-card-hover);
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.gift-friend-name {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.gift-friend-note {
-    color: var(--text-muted);
-    font-size: calc(13px * var(--font-scale, 1));
-}
-
-.gift-dialog textarea {
-    width: 100%;
-    resize: vertical;
-    padding: 9px 14px;
-    color: var(--text-primary);
-    background: var(--bg-card);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-family: inherit;
-    outline: none;
-}
-
-.gift-dialog textarea:focus {
-    border-color: var(--accent);
-}
-
-.gift-empty {
-    margin: 0;
-    color: var(--text-secondary);
-    line-height: 1.6;
 }
 
 .gift-actions {
@@ -5956,15 +3363,12 @@ html[data-hints="off"] .hint {
     display: block;
 }
 
-.gift-popup-cover {
-    transition: filter 0.3s;
-}
-
 .gift-popup-cover-link:hover .gift-popup-cover {
     filter: brightness(1.1);
 }
 
 .gift-popup-cover {
+    transition: filter 0.3s;
     display: block;
     width: 100%;
     aspect-ratio: 2 / 1;
@@ -6008,6 +3412,47 @@ html[data-hints="off"] .hint {
 }
 
 @media (max-width: 768px) {
+    :root {
+        --title-gap: 16px;
+        --section-gap: 40px;
+    }
+
+    /* Игра недели */
+    .featured {
+        grid-template-columns: 1fr;
+        min-height: 0;
+        max-height: none;
+    }
+
+    a.game-card {
+        min-width: 0;
+        max-width: none;
+    }
+
+    /* Отключаем "прыжок" карточки при наведении на тач-экранах */
+    a.game-card:hover {
+        transform: none;
+    }
+
+    .news-card {
+        flex-direction: column;
+    }
+
+    .news-card-image {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+    }
+
+    .site-footer-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-5);
+    }
+
+    .site-footer-brand {
+        grid-column: 1 / -1;
+    }
+
     .nav-toggle {
         position: relative;
     }
@@ -6141,27 +3586,6 @@ html[data-hints="off"] .hint {
     gap: var(--space-3);
 }
 
-.news-article-footer {
-    display: flex;
-    margin-top: var(--padding-md);
-}
-
-/* Отзывы: порядок и нижняя строка (дата, часы в игре, «Полезно») */
-.reviews-sort {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-bottom: var(--padding-md);
-}
-
-.review-footer {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2) var(--space-3);
-}
-
 /* Срок скидки: короткая дата в карточке и окошко под ценой на странице игры и у игры недели */
 .discount-until {
     margin-left: auto;
@@ -6215,69 +3639,98 @@ html[data-hints="off"] .hint {
 }
 
 @media (max-width: 600px) {
+    .container {
+        width: 92%;
+        padding-top: 15px;
+    }
+
+    /* Выпадающие результаты поиска */
+    .search-result-item {
+        height: auto;
+        min-height: 50px;
+        padding: var(--padding-sm);
+        gap: 8px;
+    }
+
+    .search-title {
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .search-result-right {
+        padding-left: 6px;
+        gap: 6px;
+    }
+
+    .search-price-block {
+        gap: 5px;
+    }
+
+    .search-price-block .search-price {
+        font-size: 14px;
+    }
+
+    .price-block-lg .price {
+        font-size: calc(18px * var(--font-scale, 1));
+    }
+
+    .price-block-lg .old-price {
+        font-size: calc(14px * var(--font-scale, 1));
+    }
+
+    .featured .buy-button,
+    .js-add-to-cart {
+        width: 100%;
+    }
+
+    /* ----- Сетка карточек: 1 колонка ----- */
+    .games-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .game-info {
+        padding: 12px;
+    }
+
+    .game-genres {
+        font-size: 14px;
+    }
+
+    .release-date {
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+
+    .profile-avatar-wrapper,
+    .profile-avatar {
+        width: 96px;
+        height: 96px;
+        min-width: 96px;
+    }
+
+    .profile-avatar {
+        font-size: calc(48px * var(--font-scale, 1));
+    }
+
+    .lightbox {
+        padding: 56px 8px;
+    }
+
+    .lightbox-prev,
+    .lightbox-next {
+        top: auto;
+        bottom: 8px;
+    }
+
+    .lightbox-prev {
+        left: 16px;
+    }
+
+    .lightbox-next {
+        right: 16px;
+    }
+
     .purchase-price-col {
         align-items: stretch; /* на телефоне цена и окошко срока — во всю ширину, как кнопки */
     }
-}
-
-/* Восстановление пароля */
-.auth-forgot {
-    display: inline-block;
-    margin-top: var(--space-2);
-    color: var(--accent-text);
-    font-size: calc(14px * var(--font-scale, 1));
-    font-weight: var(--text-semibold);
-    text-decoration: none;
-}
-
-.auth-forgot:hover {
-    text-decoration: underline;
-}
-
-.auth-text {
-    margin: 0 0 var(--space-4);
-    color: var(--text-secondary);
-    font-size: calc(15px * var(--font-scale, 1));
-    line-height: 1.5;
-}
-
-.auth-text-muted {
-    margin-top: var(--space-5);
-    color: var(--text-muted);
-    font-size: calc(14px * var(--font-scale, 1));
-}
-
-.auth-box .form-errors {
-    margin-bottom: var(--space-4);
-    color: var(--danger-text);
-    font-size: calc(14px * var(--font-scale, 1));
-}
-
-a.auth-submit {
-    display: block;
-    text-align: center;
-    text-decoration: none;
-}
-
-/* Стена профиля: форма и записи оформлены как отзывы на странице игры */
-.wall-form .buy-button {
-    align-self: flex-start;
-}
-
-.wall-delete-form {
-    position: relative;
-    z-index: 3; /* над рамкой карточки (::after) */
-    margin: 0;
-}
-
-/* Крестик — как «Убрать из избранного», только чуть меньше: карточка комментария невысокая */
-.wall-delete {
-    width: 30px;
-    height: 30px;
-    font-size: calc(20px * var(--font-scale, 1));
-}
-
-/* Аватарку в профиле можно открыть на весь экран (store.js) */
-.profile-card:not(.is-editing) .profile-avatar img {
-    cursor: zoom-in;
 }

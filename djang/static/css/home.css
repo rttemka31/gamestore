@@ -1,0 +1,326 @@
+/*
+   ГЛАВНАЯ: магазин (store/index.html)
+   Подключается только на этих страницах, сразу после style.css и до тем (Хэллоуин, Liquid Glass),
+   поэтому темы перекрывают эти стили так же, как стили style.css.
+   Токены (цвета, отступы, размеры) — в :root файла style.css.
+*/
+
+/* =========================
+   FEATURED GAME
+========================= */
+
+/* Трейлер игры недели лежит в той же ячейке сетки, что и обложка, и проявляется поверх неё */
+.featured-trailer {
+    grid-column: 1;
+    grid-row: 1;
+    /* Собственный размер видео (1280×720) не должен растягивать строку сетки: иначе карточка
+       становилась выше своих 375px и текст справа, выровненный по центру, уезжал вниз */
+    contain: size;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+.featured-trailer.is-playing {
+    opacity: 1;
+}
+
+.featured-info {
+    padding: var(--padding-md);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.featured-label {
+    font-family: var(--font-display);
+    color: var(--accent-text);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-normal);
+    margin-bottom: 0;
+    flex-wrap: nowrap;
+}
+
+.featured-info h2 {
+    margin: 0 0 15px;
+    color: white;
+    font-size: calc(32px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.featured-info p {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    font-size: calc(16px * var(--font-scale, 1));
+    max-width: 390px;
+}
+
+.featured-link {
+    text-decoration: none;
+}
+
+.price-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.featured-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--padding-big);
+}
+
+/* =========================
+   SECTIONS & GRID
+========================= */
+
+.games-section {
+    margin-bottom: var(--section-gap);
+}
+
+/* =========================
+   GAME CARD
+========================= */
+
+.featured-release-date {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+    line-height: 1.75;
+}
+
+/* =========================
+   АДАПТИВ
+========================= */
+
+@media (max-width: 900px) {
+    .search-area {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+/* =========================
+   SEARCH
+========================= */
+
+.search-box-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px; /* Ограничиваем максимальную ширину строки поиска */
+    margin-bottom: -20px; /* Добавляем отступ снизу для визуального разделения */
+}
+
+.search-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--title-gap);
+}
+
+.search-area h1 {
+    margin: 0;
+    color: white;
+    font-size: calc(32px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+/* =========================
+   NEWS
+========================= */
+
+/* Пустая подпись у таймера не занимает места */
+.timer-label:empty {
+    display: none;
+}
+
+.timer-label {
+    font-size: calc(12px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+.timer-box {
+    font-size: calc(18px * var(--font-scale, 1));
+    font-weight: var(--text-normal);
+    color: var(--accent-text);
+    font-family: var(--font-display);
+    white-space: nowrap;
+    line-height: 1;
+
+    display: inline-block;
+    background: rgba(0, 0, 0, 0.6);
+    color: var(--text-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 7px 6px;
+    font-size: calc(14px * var(--font-scale, 1));
+    text-transform: uppercase;
+    letter-spacing: 0.04em; /* надпись заглавными — единственное место, где Unbounded нужен интервал */
+    backdrop-filter: blur(5px);
+}
+
+.gotw-header {
+    display: grid;
+    /* max-content гарантирует, что первая и последняя колонки подстроятся под ширину текста */
+    grid-template-columns: max-content 1fr max-content;
+    align-items: center;
+    margin-bottom: var(--padding-sm2);
+}
+
+.timer-container {
+    grid-column: -2; /* всегда последняя колонка: при выключенных подсказках «?» таймер не съезжает к центру */
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap; /* на узком экране подпись встаёт над таймером, а не вылезает за карточку */
+    justify-content: flex-end;
+    gap: 4px var(--space-2);
+    min-width: 0;
+    margin-left: var(--space-3);
+}
+
+/* =========================================================
+   МОБИЛЬНАЯ ВЕРСИЯ (только классы из index.html)
+   Вставьте В САМЫЙ КОНЕЦ style.css, чтобы правила
+   перебивали старые @media (max-width: 900px / 600px)
+========================================================= */
+
+@media (max-width: 768px) {
+    /* Поиск */
+    .search-area {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .search-area h1 {
+        font-size: calc(24px * var(--font-scale, 1));
+    }
+
+    .search-box-container {
+        max-width: 100%;
+        margin-bottom: 0;
+    }
+
+    .featured-info {
+        padding: var(--padding-md);
+    }
+
+    .featured-info h2 {
+        font-size: calc(24px * var(--font-scale, 1));
+    }
+
+    .featured-info p {
+        max-width: 100%;
+    }
+
+    .timer-box {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    /* ----- Поиск ----- */
+    .search-area h1 {
+        font-size: 24px;
+    }
+
+    .featured-info {
+        padding: var(--padding-sm2);
+    }
+
+    .gotw-header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .featured-label {
+        font-size: 14px;
+    }
+
+    /* Таймер — в той же строке, что «Игра недели ?», прижат к правому краю
+       (на отдельную строку уходит, только если совсем не помещается) */
+    .timer-container {
+        justify-self: auto;
+        flex: 0 0 auto;
+        justify-content: flex-end;
+        margin-left: auto;
+    }
+
+    .timer-label {
+        font-size: 11px;
+        letter-spacing: 0;
+    }
+
+    .timer-box {
+        font-size: 12px;
+        padding: 6px 5px;
+        margin-left: 0;
+    }
+
+    .featured-info h2 {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+
+    .featured-info p {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .featured-release-date {
+        font-size: 14px;
+        margin-top: 5px;
+    }
+
+    .featured-bottom {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-top: var(--padding-md);
+    }
+
+    .price-group {
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 380px) {
+    .search-area h1 {
+        font-size: 24px;
+    }
+
+    .featured-info h2 {
+        font-size: 18px;
+    }
+
+    .timer-box {
+        font-size: 11px;
+        padding: 6px 4px;
+        letter-spacing: 0;
+    }
+
+    /* На самых узких экранах таймер помещается в строку «Игра недели ?» */
+    .gotw-header {
+        gap: 6px;
+    }
+
+    .featured-label {
+        font-size: 13px;
+    }
+}

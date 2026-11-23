@@ -1,0 +1,670 @@
+/*
+   СТРАНИЦА ИГРЫ (store/game_detail.html)
+   Подключается только на этих страницах, сразу после style.css и до тем (Хэллоуин, Liquid Glass),
+   поэтому темы перекрывают эти стили так же, как стили style.css.
+   Токены (цвета, отступы, размеры) — в :root файла style.css.
+*/
+
+/* =========================
+   GAME DETAIL PAGE
+========================= */
+
+.game-detail-title {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: var(--title-gap); /* как у заголовков других страниц */
+}
+
+.game-detail-title h1 {
+    margin: 0;
+    color: white;
+    font-size: calc(32px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.game-title-line {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* Возрастной рейтинг справа от названия — как счётчик «N товаров» у заголовка корзины */
+.game-age-rating {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    font-size: calc(24px * var(--font-scale, 1));
+    white-space: nowrap;
+}
+
+.game-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); /* Картинка занимает ~57% ширины, описание ~43% */
+    gap: 30px;
+    margin-bottom: 15px;
+    align-items: start; /* Предотвращает насильное растягивание картинки по высоте текста */
+}
+
+.game-detail-cover {
+    width: 100%;
+    height: auto; /* Высота подстраивается под пропорции картинки */
+    overflow: hidden;
+    border-radius: var(--radius-md);
+}
+
+.game-detail-info {
+    padding: var(--padding-md);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+}
+
+.game-detail-info h2 {
+    margin-top: 0;
+    color: white;
+    font-size: calc(24px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.game-short-description {
+    color: var(--text-secondary);
+    line-height: 1.75;
+    margin-bottom: 30px;
+    font-size: calc(16px * var(--font-scale, 1));
+}
+
+.detail-row {
+    display: flex;
+    gap: 10px;
+    padding: var(--padding-sm);
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.detail-label {
+    color: var(--text-muted);
+    min-width: 130px;
+}
+
+/* Жанры на странице игры ведут в каталог с похожими играми */
+.detail-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    min-width: 0; /* иначе длинный жанр растягивает строку шире карточки */
+}
+
+.detail-genres .chip {
+    padding: 6px 7px;
+    font-size: calc(14px * var(--font-scale, 1));
+    gap: var(--padding-sm);
+}
+
+.purchase-box {
+    display: flex;
+    flex-wrap: wrap; /* не помещаются в строку — кнопки целиком уходят под цену, а не по одной */
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 15px;
+    padding-top: 30px;
+}
+
+.purchase-price {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.detail-section {
+    margin-bottom: var(--section-gap);
+}
+
+/* =========================
+   АДАПТИВ
+========================= */
+
+@media (max-width: 900px) {
+    .game-detail {
+        grid-template-columns: minmax(0, 1fr); /* просто 1fr растягивался под длинное слово или жанр */
+    }
+}
+
+/* =========================
+   GALLERY
+========================= */
+
+.main-image-box {
+    width: 100%;
+    aspect-ratio: 16 / 9; /* пропорции трейлеров и скриншотов: кадр не обрезается, на телефоне тоже */
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+/* Рамка как у карточек игр при наведении: полупрозрачная и лежит поверх кадра,
+   поэтому картинка и трейлер доходят до самого края. Этот же слой рисует индикатор подгрузки */
+.main-image-box::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    border: 2px solid var(--border);
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.main-image-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.thumbnails-list {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    align-items: center;
+    justify-content: center;
+    justify-content: safe center; /* Если миниатюры не помещаются, первая не обрезается слева */
+    padding: 5px;
+}
+
+.thumbnails-list img.thumb {
+    width: 100px !important;
+    height: 55px !important;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    opacity: 0.5;
+    border: 2px solid transparent;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+
+.thumbnails-list img.thumb:hover {
+    opacity: 0.7;
+}
+
+.thumbnails-list img.thumb.active {
+    opacity: 1;
+    border-color: var(--accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.video-thumb,
+.media-thumb {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;      /* Обрезает картинку по скругленным углам */
+    border-radius: var(--radius-sm);    /* Скругление углов для контейнера */
+}
+
+.video-thumb img,
+.media-thumb img {
+    width: 100px !important;
+    height: 55px !important;
+    object-fit: cover;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.video-thumb img:hover,
+.media-thumb img:hover {
+    opacity: 0.7;
+}
+
+.video-thumb.active img,
+.media-thumb.active img {
+    opacity: 1;
+}
+
+.play-badge {
+    position: absolute;
+    width: var(--icon-lg);
+    height: var(--icon-lg);
+    background: var(--accent);
+    border-radius: var(--radius-big);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(16px * var(--font-scale, 1));
+    padding-left: 2px;
+    pointer-events: none;  /* Пропускает клик на родительский div */
+}
+
+/* =========================
+   PROFILE
+   ========================= */
+
+.empty-activity {
+    margin: 0;
+
+    color: var(--text-muted);
+    font-size: calc(16px * var(--font-scale, 1));
+}
+
+/* =========================================================
+   МОБИЛЬНАЯ ВЕРСИЯ (только классы из index.html)
+   Вставьте В САМЫЙ КОНЕЦ style.css, чтобы правила
+   перебивали старые @media (max-width: 900px / 600px)
+========================================================= */
+
+@media (max-width: 600px) {
+    .game-detail-title {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .game-detail-title h1 {
+        font-size: 32px;
+    }
+
+    .purchase-box {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .purchase-actions {
+        margin-left: 0; /* в колонке кнопки растягиваются на всю ширину */
+    }
+
+    /* Страница игры: подпись уже, чтобы длинный жанр помещался в строку */
+    .detail-label {
+        min-width: 96px;
+    }
+
+    /* на самых узких экранах жанры переходят под подпись, а не вылезают за край */
+    .detail-row:has(.detail-genres) {
+        flex-wrap: wrap;
+    }
+
+    .detail-genres {
+        flex: 1 1 180px;
+        min-width: 0;
+    }
+}
+
+/* Средняя оценка */
+.game-rating {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.stars-static {
+    --percent: 0%;
+    position: relative;
+    font-size: calc(32px * var(--font-scale, 1));
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--rating) var(--percent), rgba(255,255,255,.2) var(--percent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.game-rating-count { color: var(--text-muted); }
+
+.review-form-title { font-weight: var(--text-semibold); }
+
+.review-form-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+/* Выбор звёзд */
+.star-input {
+    display: inline-flex;
+    flex-direction: row-reverse;   /* 5 слева в DOM, но визуально 1..5 */
+    justify-content: flex-end;
+    align-self: flex-start;
+}
+
+.star-input input { position: absolute; opacity: 0; pointer-events: none; }
+
+.star-input label {
+    padding: 0 2px;
+    font-size: calc(32px * var(--font-scale, 1));
+    line-height: 1;
+    color: rgba(255,255,255,.4); /* пустые звёзды должны быть заметны: контраст не ниже 3:1 */
+    cursor: pointer;
+    transition: color .2s, transform .2s;
+}
+
+.star-input label:hover,
+.star-input label:hover ~ label,
+.star-input input:checked ~ label { color: var(--rating); }
+
+.star-input label:hover { transform: scale(1.25); }
+
+.star-input input:focus-visible + label { outline: 2px solid var(--accent); border-radius: var(--radius-sm); }
+
+.review-author-block {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    min-width: 0;
+}
+
+.review-status {
+    padding: 2px 6px;
+    color: var(--text-secondary);
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    line-height: 1.25;
+    white-space: nowrap;
+}
+
+.review-rating { flex-shrink: 0; color: var(--rating); letter-spacing: 3px; font-size: calc(22px * var(--font-scale, 1)); white-space: nowrap; }
+
+/* =========================
+   ЖЕЛАЕМОЕ И ИЗБРАННОЕ
+========================= */
+
+.purchase-actions {
+    display: flex;
+    margin-left: auto; /* и под ценой кнопки остаются справа */
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+/* ♡ и ♥ берутся из разных шрифтов с разной высотой: без фиксированной высоты строки
+   кнопка при нажатии становится ниже, и вся страница сдвигается */
+.purchase-actions .buy-button {
+    line-height: 1.25;
+}
+
+/* Квадратная кнопка с одной иконкой рядом с «В корзину»: «В желаемое», «Подарить другу» */
+.purchase-icon-btn {
+    width: var(--btn-h);
+    min-width: var(--btn-h);
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.purchase-icon-btn.active {
+    background: var(--bg-card-hover);
+    background: color-mix(in srgb, var(--accent) 22%, var(--bg-card-hover));
+    box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+/* =========================
+   НОВОСТИ: СПИСОК И СТАТЬЯ
+========================= */
+
+@media (max-width: 768px) {
+    .purchase-actions {
+        justify-content: stretch;
+        flex-wrap: nowrap;
+    }
+
+    /* На телефоне квадратные кнопки остаются квадратными, «В корзину» занимает остаток строки */
+    .purchase-actions .buy-button:not(.purchase-icon-btn) {
+        flex: 1;
+    }
+
+    .purchase-actions .purchase-icon-btn {
+        width: var(--btn-h);
+    }
+}
+
+/* =========================
+   ЗАГРУЗКА КАРТИНОК И ВИДЕО
+========================= */
+
+/* Видео встало на подгрузку во время просмотра — тот же индикатор поверх кадра */
+.main-image-box {
+    position: relative;
+}
+
+/* =========================
+   НЕПРИЯТНЫЙ КОНТЕНТ (жестокость, нагота — отмечается в админке)
+   Кадр размыт, пока посетитель сам не нажмёт «Показать»
+========================= */
+
+.main-image-box.is-sensitive > img,
+.main-image-box.is-sensitive > video {
+    filter: blur(25px) brightness(0.5);
+    transform: scale(1.15); /* размытые края не просвечивают фоном по краям рамки */
+}
+
+.sensitive-cover {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--padding-md);
+    text-align: center;
+}
+
+.sensitive-cover[hidden] {
+    display: none;
+}
+
+.sensitive-cover-title {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: calc(18px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.sensitive-cover-text {
+    margin: 0 0 var(--space-2);
+    color: var(--text-secondary);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.sensitive-cover .btn-secondary {
+    align-self: center; /* у .btn-secondary по умолчанию flex-start */
+}
+
+/* Миниатюры на странице игры: размыта картинка внутри обёртки, рамка остаётся чёткой */
+:is(.video-thumb, .media-thumb)[data-sensitive]:not(.is-revealed) img {
+    filter: blur(5px) brightness(0.75);
+    transform: scale(1.15); /* размытые края не просвечивают у рамки */
+}
+
+.main-image-box.is-buffering::after {
+    background: var(--media-loader) center / 30px 30px no-repeat;
+}
+
+/* =========================
+   ДЛИННЫЕ НАЗВАНИЯ ИГР
+========================= */
+
+.game-detail-title h1 {
+    flex: 0 1 auto;
+}
+
+.game-detail-title .badge,
+.game-detail-title .badge-with-hint,
+.game-detail-title .hint {
+    flex: none;
+}
+
+/* =========================
+   ПОДСКАЗКИ «?»
+========================= */
+
+/* Значок и его «?» не разъезжаются по разным строкам */
+.badge-with-hint {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+}
+
+/* =========================
+   ПРОСМОТР КАРТИНОК НА ВЕСЬ ЭКРАН (store.js, gsLightbox)
+========================= */
+
+#currentImage {
+    cursor: zoom-in;
+}
+
+/* =========================
+   ЗАГОЛОВКИ СТРАНИЦ НА ТЕЛЕФОНЕ
+   Один размер на всех страницах: раньше «Магазин игр» был 24px, а «Каталог», «Корзина»
+   и «Настройки» — 32px. Селекторы с main — чтобы перекрыть правила страниц (cart.css и др.)
+========================= */
+
+/* Окно «Подарить другу» на странице игры */
+.gift-dialog {
+    width: min(440px, calc(100% - 32px));
+    max-height: calc(100dvh - 32px);
+    padding: var(--padding-md);
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+}
+
+.gift-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.gift-dialog h2 {
+    margin: 0 0 var(--padding-sm2);
+    font-size: calc(20px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    overflow-wrap: anywhere;
+}
+
+.gift-label {
+    display: block;
+    margin: 0 0 6px;
+    color: var(--text-secondary);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.gift-friends {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 260px;
+    margin-bottom: var(--padding-sm2);
+    overflow-y: auto;
+}
+
+.gift-friend {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--bg-card);
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.gift-friend:hover {
+    background: var(--bg-card-hover);
+}
+
+/* Сама радиокнопка скрыта: выбранного друга показывает рамка карточки */
+.gift-friend input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.gift-friend:has(input:checked) {
+    border-color: var(--accent);
+}
+
+.gift-friend:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.gift-friend.is-disabled {
+    cursor: not-allowed;
+}
+
+.gift-friend.is-disabled:hover {
+    background: var(--bg-card);
+}
+
+.gift-friend.is-disabled .gift-friend-name {
+    color: var(--text-muted);
+}
+
+.gift-friend-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    color: var(--text-primary);
+    font-weight: var(--text-semibold);
+    background: var(--bg-card-hover);
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.gift-friend-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gift-friend-note {
+    color: var(--text-muted);
+    font-size: calc(13px * var(--font-scale, 1));
+}
+
+.gift-dialog textarea {
+    width: 100%;
+    resize: vertical;
+    padding: 9px 14px;
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    outline: none;
+}
+
+.gift-dialog textarea:focus {
+    border-color: var(--accent);
+}
+
+.gift-empty {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* Отзывы: порядок и нижняя строка (дата, часы в игре, «Полезно») */
+.reviews-sort {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--padding-md);
+}
+
+.review-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-3);
+}

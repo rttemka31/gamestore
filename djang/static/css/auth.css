@@ -1,0 +1,287 @@
+/*
+   ВХОД, РЕГИСТРАЦИЯ И СБРОС ПАРОЛЯ (users/login.html, register.html, password_reset*.html)
+   Подключается только на этих страницах, сразу после style.css и до тем (Хэллоуин, Liquid Glass),
+   поэтому темы перекрывают эти стили так же, как стили style.css.
+   Токены (цвета, отступы, размеры) — в :root файла style.css.
+*/
+
+/* =========================
+   SECTIONS & GRID
+========================= */
+
+.section-header-2 {
+    text-align: center; /* Центрирует саму ссылку внутри контейнера */
+    margin-top: var(--padding-sm2);
+}
+
+.section-header-2 a {
+    color: var(--accent-text);
+    text-decoration: none;
+    font-size: calc(16px * var(--font-scale, 1));
+    transition: 0.2s;
+    font-weight: var(--text-semibold);
+    padding: var(--padding-sm);
+    align-items: center;
+    justify-content: center;
+}
+
+.section-header-2 a:hover {
+    color: white;
+}
+
+/* =========================
+   AUTORIZATION
+========================= */
+
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 65vh;
+}
+
+.auth-box {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--padding-md);
+    width: 100%;
+    max-width: 400px;
+    box-shadow: var(--shadow-md);
+}
+
+.auth-box h2 {
+    margin-top: 0;
+    margin-bottom: 30px;
+    color: white;
+    text-align: center;
+    font-size: calc(32px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    color: var(--text-secondary);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.form-group input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.auth-errors {
+    background-color: rgba(19, 1, 0, 0.6);
+    border: 2px solid var(--danger);
+    color: var(--danger);
+    padding: var(--padding-sm);
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+/* Вход и регистрация: слева медленно едет галерея скриншотов сайта, справа форма */
+.auth-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+    gap: 70px;
+    align-items: center;
+    max-width: 1240px;
+    min-height: calc(100vh - 74px);
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+.auth-layout .auth-container {
+    flex-direction: column;
+    min-height: 0;
+    padding: 40px 0;
+}
+
+.auth-tagline {
+    margin: 0 0 18px;
+    color: var(--text-secondary);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-align: center;
+}
+
+.auth-showcase {
+    display: flex;
+    gap: 20px;
+    height: calc(100vh - 74px);
+    max-height: 1200px;
+    overflow: hidden;
+    /* верх и низ галереи растворяются в фоне */
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 15%, #000 85%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 15%, #000 85%, transparent);
+}
+
+.auth-showcase-column {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Набор картинок повторён трижды, а padding-bottom равен gap: сдвиг на треть дорожки — ровно
+   один набор, поэтому круг замыкается без рывка, а двух оставшихся наборов хватает на всю высоту галереи */
+.auth-showcase-track {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-bottom: 20px;
+    animation: auth-showcase-scroll 60s linear infinite;
+    will-change: transform;
+}
+
+.auth-showcase-column:nth-child(2) .auth-showcase-track {
+    animation-duration: 70s;
+    animation-direction: reverse;
+    animation-delay: -12s; /* колонки начинают со сдвигом, а не ровными рядами */
+}
+
+.auth-showcase img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 2px solid transparent; /* рамка есть всегда, но видна только при наведении — как у карточек игр в магазине */
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    transition: border-color 0.3s, filter 0.3s;
+}
+
+.auth-showcase img:hover {
+    border-color: var(--border);
+    filter: brightness(1.10);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-showcase-track {
+        animation: none;
+    }
+}
+
+@media (max-width: 900px) {
+    .auth-layout {
+        display: block;
+        min-height: 0;
+        padding: 0;
+    }
+
+    .auth-showcase {
+        display: none;
+    }
+
+    .auth-layout .auth-container {
+        min-height: 65vh;
+        padding: 30px 16px;
+    }
+}
+
+/* =========================
+   PROFILE
+   ========================= */
+
+.social-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--padding-sm2);
+    margin-top: var(--padding-sm2);
+}
+
+/* «Другой аккаунт Google» — мелкая ссылка под кнопками входа через соцсети */
+.social-login-alt {
+    margin-top: var(--padding-sm);
+    text-align: center;
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.social-login-alt a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.social-login-alt a:hover {
+    color: var(--accent-text);
+}
+
+.nav-icon-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    padding: 0px;
+    text-decoration: none;
+    line-height: 0;
+    width: 50px;
+    height: 50px;
+}
+
+.nav-icon-wrapper::after {
+    content: '';
+    position: absolute;
+    /* Отрицательные значения inset выносят рамку СНАРУЖИ */
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid transparent; /* Прозрачная рамка по умолчанию */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    pointer-events: none;
+}
+
+.nav-icon-wrapper:hover::after {
+    border-color: var(--border);
+}
+
+/* =========================
+   ЗАГОЛОВКИ СТРАНИЦ НА ТЕЛЕФОНЕ
+   Один размер на всех страницах: раньше «Магазин игр» был 24px, а «Каталог», «Корзина»
+   и «Настройки» — 32px. Селекторы с main — чтобы перекрыть правила страниц (cart.css и др.)
+========================= */
+
+/* Восстановление пароля */
+.auth-forgot {
+    display: inline-block;
+    margin-top: var(--space-2);
+    color: var(--accent-text);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+}
+
+.auth-forgot:hover {
+    text-decoration: underline;
+}
+
+.auth-text {
+    margin: 0 0 var(--space-4);
+    color: var(--text-secondary);
+    font-size: calc(15px * var(--font-scale, 1));
+    line-height: 1.5;
+}
+
+.auth-text-muted {
+    margin-top: var(--space-5);
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.auth-box .form-errors {
+    margin-bottom: var(--space-4);
+    color: var(--danger-text);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+a.auth-submit {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+}

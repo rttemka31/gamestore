@@ -1,0 +1,990 @@
+/*
+   ПРОФИЛЬ: свой и чужой (users/profile.html, users/user_profile.html)
+   Подключается только на этих страницах, сразу после style.css и до тем (Хэллоуин, Liquid Glass),
+   поэтому темы перекрывают эти стили так же, как стили style.css.
+   Токены (цвета, отступы, размеры) — в :root файла style.css.
+*/
+
+/* =========================
+   BUTTONS & BADGES
+========================= */
+
+/* Подтвердить: «Сохранить», «Принять». Зелёный затемнён до контраста текста 4.5:1 */
+.btn-success {
+    background: color-mix(in srgb, var(--success) 65%, black);
+    color: var(--text-primary) !important;
+}
+
+.btn-success:hover {
+    background: color-mix(in srgb, var(--success) 55%, black);
+}
+
+/* Отказаться: «Отмена», «Отклонить» — красная заливка */
+.btn-danger-solid {
+    background: var(--danger);
+    color: var(--text-primary) !important;
+}
+
+.btn-danger-solid:hover {
+    background: color-mix(in srgb, var(--danger) 85%, black);
+}
+
+/* =========================
+   PROFILE
+   ========================= */
+
+.profile-layout {
+    display: flex;
+    position: relative;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 20px 0; /* без боковых отступов: левый край как на остальных страницах */
+    box-sizing: border-box;
+    align-items: flex-start;
+}
+
+.profile-card {
+    position: relative;
+    background: var(--bg-surface);
+    /* Рамка нарисована слоем ::after поверх баннера: картинка доходит до края и просвечивает сквозь рамку */
+    border-radius: var(--radius-md);
+    padding: 0; /* Убираем отступы у самой карточки */
+    overflow: hidden; /* Обрезает верхние углы баннера по форме карточки */
+    margin-bottom: var(--section-gap);
+}
+
+.profile-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 4; /* над баннером и его фотоаппаратом */
+    border: 2px solid var(--border);
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+html[data-design="glass"] .profile-card::after {
+    border-color: transparent; /* у стеклянного оформления своя кромка */
+}
+
+.profile-banner {
+    width: 100%;
+    height: 200px; /* Высота баннера */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+
+    /* нужно для позиционирования градиента */
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-banner::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 30px; /* высота зоны перехода — чем больше, тем мягче и заметнее */
+    background: linear-gradient(to bottom, transparent, var(--bg-surface));
+    pointer-events: none; /* чтобы не мешал кликам по баннеру, если они есть */
+}
+
+.profile-banner:hover .banner-overlay {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(2.5px);
+}
+
+.profile-main {
+    padding: 0 30px 30px 30px; /* Левый, правый и нижний отступы */
+    display: flex;
+    /* На планшете рядом с боковым меню места мало: кнопка переносится под имя,
+       а не уезжает за край карточки */
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Круглая зона наведения: иначе углы квадратной обёртки затемняли аватар без размытия */
+.profile-avatar-wrapper {
+    border-radius: 50%;
+}
+
+.profile-avatar-wrapper:hover .avatar-overlay {
+    opacity: 1;
+    pointer-events: auto; /* теперь можно кликнуть по лейблу и открыть file input */
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(1px);
+}
+
+.profile-avatar-wrapper:not(.editing) .avatar-overlay {
+    display: none;
+}
+
+/* Режим правки профиля: фотоаппарат на аватарке и баннере приглушённо виден сразу,
+   чтобы было понятно, что картинки можно сменить; при наведении — в полную силу */
+.profile-card.is-editing .avatar-overlay,
+.profile-card.is-editing .banner-overlay {
+    opacity: 0.5;
+    pointer-events: auto;
+}
+
+.profile-card.is-editing .profile-avatar-wrapper:hover .avatar-overlay,
+.profile-card.is-editing .profile-banner:hover .banner-overlay {
+    opacity: 1;
+}
+
+.profile-actions {
+    display: flex;
+    align-items: center;
+}
+
+.profile-stats {
+    display: flex;
+    margin-top: 30px;
+    gap: 30px;
+    padding: 20px 30px;
+    padding-top: var(--padding-md);
+    border-top: 2px solid var(--border-subtle);
+}
+
+.profile-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.profile-stat:not(:last-child) {
+    border-right: 2px solid var(--border-subtle);
+    padding-right: var(--padding-md); /* Отступ от текста до линии */
+    margin-right: -5px;  /* Отступ от линии до следующего элемента */
+}
+
+.profile-stat strong {
+    font-size: calc(24px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    white-space: nowrap; /* дата «Участник с» не разрывается на две строки */
+}
+
+@media (max-width: 480px) {
+    .profile-stat strong {
+        font-size: calc(20px * var(--font-scale, 1));
+    }
+}
+
+@media (max-width: 360px) {
+    .profile-stat strong {
+        font-size: calc(18px * var(--font-scale, 1));
+    }
+}
+
+.profile-stat span {
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.profile-section {
+    margin-bottom: var(--section-gap);
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--grid-gap);
+}
+
+.activity-item {
+    position: relative; /* Обязательно: делает карточку точкой отсчета для ::after */
+    display: flex;
+    align-items: center;
+    padding: var(--padding-sm2);
+    border-radius: var(--radius-md);
+    background: var(--bg-card); /* как у карточек каталога */
+    transition: 0.2s;
+    min-height: 130px;
+    max-height: 130px;
+    transition: background 0.3s, box-shadow 0.3s; /* как у карточек корзины */
+}
+
+.activity-item-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Без filter на всей карточке (см. .cart-item:hover): светлеет только обложка или аватар */
+.activity-item:hover {
+    background: var(--bg-card-hover);
+    box-shadow: var(--shadow-md);
+}
+
+.activity-cover img,
+.activity-cover-2 img {
+    transition: filter 0.3s;
+}
+
+.activity-item:hover :is(.activity-cover, .activity-cover-2) img {
+    filter: brightness(1.10);
+}
+
+.activity-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-md);
+    border: 2px solid transparent;
+    transition: border-color 0.3s, filter 0.3s;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.activity-item:hover::after {
+    border-color: var(--border);
+}
+
+.activity-cover {
+    height: 100px;
+    width: 200px;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background-color: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activity-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.activity-cover-2 {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    overflow: hidden;
+    background-color: var(--bg-primary);
+    font-weight: var(--text-semibold); /* буква вместо аватара */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activity-cover-2 img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.activity-info,
+.activity-info-game {
+    flex: 1 1 auto;
+    min-width: 0; /* длинное название игры обрезается многоточием, а не растягивает карточку */
+    margin-left: var(--padding-sm2);
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Центрирует всё содержимое по вертикали */
+    align-items: flex-start; /* Выравнивает тексты и иконку по левому краю аккуратной колонкой */
+    position: relative;
+}
+
+.activity-info-t {
+    font-size: calc(16px * var(--font-scale, 1));
+    color: var(--text-muted);
+    font-weight: var(--text-regular);
+}
+
+.activity-info-game h3 {
+    margin: 0 0 var(--space-2);
+    font-size: calc(18px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.activity-info h3 {
+    font-family: var(--font-display);
+    margin: 0 0 var(--space-2);
+    font-size: calc(18px * var(--font-scale, 1));
+    font-weight: var(--text-normal);
+}
+
+.activity-time {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: calc(16px * var(--font-scale, 1));
+}
+
+.profile-placeholder {
+    color: var(--text-muted);
+    font-size: calc(16px * var(--font-scale, 1));
+}
+
+.profile-sidebar {
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    margin-right: 30px;
+    position: sticky;
+    top: 90px; /* Отступ меню от верхнего края экрана при скролле */
+    align-self: start;
+    background-color: none;
+    padding: var(--padding-sm);
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+}
+
+.profile-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-tab[hidden] {
+    display: none;
+}
+
+/* =========================
+   FRIEND SEARCH
+========================= */
+
+.friends-search {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    z-index: 20;
+}
+
+/* Само поле — общий .search-box, как в магазине, только на всю ширину */
+.friends-search .search-box {
+    width: 100%;
+}
+
+#friendSearchResults {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 340px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+
+    display: none;
+    padding: var(--space-2);
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+
+    z-index: 50; /* Выше содержимого страницы, но ниже шапки сайта */
+}
+
+#friendSearchResults[style*="display: block"] {
+    display: block;
+}
+
+#friendSearchResults .search-result-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    min-height: 130px;
+    box-sizing: border-box;
+    border-radius: var(--radius-md);
+    transition: background .15s;
+}
+
+#friendSearchResults .search-result-link {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+}
+
+#friendSearchResults .search-avatar-ph,
+#friendSearchResults .search-result-item img {
+    flex: 0 0 75px;
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+#friendSearchResults .search-avatar-ph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    font-weight: var(--text-semibold);
+    font-size: calc(16px * var(--font-scale, 1));
+}
+
+#friendSearchResults .search-result-info {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+#friendSearchResults .search-sub,
+#friendSearchResults .search-badge-muted {
+    display: block;
+    margin-top: 0px;
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+#friendSearchResults button {
+    border-radius: var(--radius-sm);
+}
+
+#friendSearchResults:empty {
+    display: none !important;
+}
+
+/* ===== FRIEND SEARCH: выпадающий список результатов ===== */
+
+/* Результаты: обычный блок под полем */
+#friendSearchResults.search-results {
+    position: absolute;
+    width: 100%;
+    max-height: 260px;
+    margin: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: none;
+}
+
+#friendSearchResults[style*="display: none"] {
+    display: none !important;
+}
+
+#friendSearchResults .search-result-item:hover {
+    background: var(--bg-secondary);
+}
+
+.search-avatar,
+.search-avatar-ph {
+    flex: 0 0 75px;
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.search-avatar-ph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+}
+
+.search-sub {
+    color: var(--text-muted);
+    font-size: calc(16px * var(--font-scale, 1));
+}
+
+.friend-add-btn {
+    flex-shrink: 0;
+}
+
+.friend-add-btn:hover { filter: brightness(1.1); }
+
+.search-badge-muted {
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+    white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+    .profile-stats {
+        gap: var(--padding-sm2);
+        padding: var(--padding-sm2) var(--padding-sm);
+        justify-content: center;
+    }
+
+    .profile-stat {
+        align-items: center;
+    }
+
+    .profile-stat:not(:last-child) {
+        padding-right: var(--padding-sm2);
+    }
+
+    .search-avatar,
+    .search-avatar-ph {
+        flex-basis: 50px;
+        width: 50px;
+        height: 50px;
+    }
+
+    .friend-add-btn { padding: 7px 10px; font-size: 14px; }
+}
+
+#friendSearchResults button,
+#friendSearchResults .friend-add-btn {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    height: auto;
+    min-height: var(--btn-h-sm);
+
+    padding: var(--space-1) var(--space-4);
+    font-family: inherit;
+    font-size: calc(14px * var(--font-scale, 1));
+    line-height: 1.25;
+    font-weight: var(--text-semibold);
+    white-space: nowrap;
+
+    box-sizing: border-box;
+    transform: none;
+}
+
+/* =========================
+   КАТАЛОГ, ЧИПЫ, УВЕДОМЛЕНИЯ
+========================= */
+
+/* Баннер по умолчанию, пока пользователь не загрузил свой */
+.profile-banner {
+    background-color: var(--bg-card);
+    background-image: linear-gradient(135deg, color-mix(in srgb, var(--accent) 45%, var(--bg-card)), var(--bg-card));
+}
+
+@media (max-width: 768px) {
+    .profile-layout {
+        flex-direction: column;
+        padding: 10px 0;
+        gap: 15px;
+    }
+
+    .profile-sidebar {
+        position: static;
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box;
+    }
+
+    .profile-content {
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: none;
+    }
+}
+
+/* =========================
+   ЖЕЛАЕМОЕ И ИЗБРАННОЕ
+========================= */
+
+.profile-hint {
+    margin: -10px 0 var(--padding-sm2);
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.profile-games-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 15px;
+}
+
+.favorites-zone {
+    border-radius: var(--radius-md);
+    outline: 2px dashed transparent;
+    outline-offset: 6px;
+    transition: outline-color 0.2s;
+}
+
+.fav-dragging .favorites-zone {
+    outline-color: var(--border-accent);
+}
+
+.favorites-zone.is-drag-over {
+    outline-color: var(--accent) !important;
+}
+
+.fav-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1; /* поверх обложки и подписи, как рамка у карточек каталога */
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
+    transition: border-color 0.3s;
+    pointer-events: none;
+}
+
+.fav-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-8px); /* как у карточек каталога */
+    background: var(--bg-card-hover);
+    filter: brightness(1.10);
+}
+
+.fav-card:hover::after {
+    border-color: var(--border);
+}
+
+.fav-card[draggable="true"] {
+    cursor: grab;
+}
+
+.fav-card img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.fav-card .no-cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+}
+
+.fav-card-title {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 24px var(--padding-sm2) var(--padding-sm);
+    overflow: hidden;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fav-card .fav-remove {
+    position: absolute;
+    top: var(--padding-sm);
+    right: var(--padding-sm);
+    z-index: 2;
+}
+
+.fav-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 2 / 1;
+    padding: var(--padding-sm2);
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    font-size: calc(14px * var(--font-scale, 1));
+    text-align: center;
+}
+
+.owned-games {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--padding-sm);
+}
+
+.owned-game {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px; /* + рамка 2px — та же высота, что и раньше */
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+    cursor: grab;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.owned-game:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border);
+}
+
+/* Меню «Вы друзья ▾» в профиле друга */
+.friend-menu {
+    position: relative;
+}
+
+.friend-menu-list {
+    position: absolute;
+    top: calc(100% + var(--space-2));
+    right: 0;
+    z-index: 20;
+    min-width: 100%;
+    padding: var(--space-1);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+}
+
+.friend-menu-list[hidden] {
+    display: none;
+}
+
+.friend-menu-danger {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    color: var(--danger-text);
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    white-space: nowrap;
+    text-align: left;
+    cursor: pointer;
+}
+
+.friend-menu-danger:hover {
+    background: var(--bg-card-hover);
+}
+
+.owned-game img {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: var(--radius-verysm);
+    object-fit: cover;
+}
+
+.owned-game .game-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fav-star {
+    flex-shrink: 0;
+    padding: 0 4px;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    font-size: calc(22px * var(--font-scale, 1));
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.175s ease-out;
+}
+
+.fav-star:hover {
+    transform: scale(1.15);
+}
+
+/* =========================
+   НОВОСТИ: СПИСОК И СТАТЬЯ
+========================= */
+
+/* Игра, запущенная прямо сейчас, в недавней активности профиля */
+.activity-playing {
+    color: var(--success);
+    font-weight: var(--text-semibold);
+}
+
+/* =========================
+   ПРОФИЛЬ НА ТЕЛЕФОНЕ
+========================= */
+
+@media (max-width: 600px) {
+    #friendSearchResults .search-result-item {
+        gap: 8px;
+        padding: 8px;
+    }
+
+    #friendSearchResults .search-result-link {
+        gap: 8px;
+    }
+
+    #friendSearchResults button,
+    #friendSearchResults .friend-add-btn {
+        padding: 7px 9px;
+        font-size: 12px;
+    }
+
+    /* Шапка профиля: аватар и имя в строку, кнопка — отдельной строкой во всю ширину; ничего не уходит за край */
+    .profile-main {
+        flex-wrap: wrap;
+        gap: var(--space-3) var(--space-4);
+        padding: 0 var(--space-4) var(--space-4);
+    }
+
+    .profile-title {
+        overflow-wrap: anywhere;
+    }
+
+    .profile-actions {
+        flex-basis: 100%;
+    }
+
+    .profile-actions .buy-button,
+    .profile-actions > div {
+        width: 100%;
+        margin: 0;
+    }
+
+    /* Недавняя активность: обложка поменьше слева, справа от неё — название, время в игре
+       и «… назад» одной колонкой (раньше «… назад» уезжало отдельной строкой под обложку) */
+    .activity-item {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 2px var(--space-3);
+        min-height: 0;
+        max-height: none;
+    }
+
+    .activity-item > .activity-cover {
+        grid-row: span 2;
+    }
+
+    .activity-item > .activity-info-game,
+    .activity-item > .activity-time {
+        grid-column: 2;
+    }
+
+    .activity-item > .activity-info-game {
+        align-self: end;
+    }
+
+    .activity-item > .activity-time {
+        align-self: start;
+    }
+
+    .activity-cover {
+        width: 120px;
+        height: 60px;
+    }
+
+    .activity-info-game {
+        flex: 1 1 0;
+        min-width: 0;
+        margin-left: 0;
+    }
+
+    .activity-info-game h3 {
+        font-size: calc(16px * var(--font-scale, 1));
+    }
+
+    .activity-info-t,
+    .activity-time {
+        font-size: calc(14px * var(--font-scale, 1));
+    }
+
+    .activity-time {
+        margin-left: 0;
+    }
+}
+
+/* =========================
+   ПОДСКАЗКИ «?»
+========================= */
+
+/* Поля ника и описания в режиме редактирования профиля */
+.profile-edit-input {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 360px;
+    margin: 0 0 var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-accent);
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-size: calc(14px * var(--font-scale, 1));
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.profile-edit-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.profile-edit-name {
+    font-family: var(--font-display);
+    font-weight: var(--text-normal);
+    font-size: calc(16px * var(--font-scale, 1));
+}
+
+.profile-edit-bio {
+    resize: vertical;
+    min-height: 60px;
+}
+
+/* =========================
+   ПРОСМОТР КАРТИНОК НА ВЕСЬ ЭКРАН (store.js, gsLightbox)
+========================= */
+
+/* Геймпад вместо обложки в недавних играх профиля */
+.activity-cover .ui-icon {
+    width: var(--icon-lg);
+    height: var(--icon-lg);
+}
+
+/* Поле ника и описания: фокус показывает своя рамка, вторая обводка не нужна */
+.profile-edit-input:focus-visible {
+    outline: none;
+}
+
+/* =========================
+   ЗАГОЛОВКИ СТРАНИЦ НА ТЕЛЕФОНЕ
+   Один размер на всех страницах: раньше «Магазин игр» был 24px, а «Каталог», «Корзина»
+   и «Настройки» — 32px. Селекторы с main — чтобы перекрыть правила страниц (cart.css и др.)
+========================= */
+
+/* Стена профиля: форма и записи оформлены как отзывы на странице игры */
+.wall-form .buy-button {
+    align-self: flex-start;
+}
+
+.wall-delete-form {
+    position: relative;
+    z-index: 3; /* над рамкой карточки (::after) */
+    margin: 0;
+}
+
+/* Крестик — как «Убрать из избранного», только чуть меньше: карточка комментария невысокая */
+.wall-delete {
+    width: 30px;
+    height: 30px;
+    font-size: calc(20px * var(--font-scale, 1));
+}
+
+/* Аватарку в профиле можно открыть на весь экран (store.js) */
+.profile-card:not(.is-editing) .profile-avatar img {
+    cursor: zoom-in;
+}

@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GameStore{% endblock %}</title>
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=122">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=124">
+    {# Стили отдельных страниц (profile.css, game.css…) — сразу после style.css и до тем, чтобы темы их перекрывали #}
+    {% block page_css %}{% endblock %}
     <link rel="stylesheet" href="{% static 'css/event/halloween.css' %}?v=14">
     <script src="{% static 'js/event/halloween.js' %}?v=3"></script>
     <link rel="stylesheet" href="{% static 'css/design/liquid-glass.css' %}?v=18">

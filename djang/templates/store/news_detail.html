@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% load store_extras %}
+{% load static %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/news.css' %}?v=1">{% endblock %}
 
 {% block title %}GameStore | {{ item.title }}{% endblock %}
 

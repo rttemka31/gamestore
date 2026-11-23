@@ -1,0 +1,226 @@
+/*
+   НОВОСТИ: список и статья (store/news.html, store/news_detail.html)
+   Подключается только на этих страницах, сразу после style.css и до тем (Хэллоуин, Liquid Glass),
+   поэтому темы перекрывают эти стили так же, как стили style.css.
+   Токены (цвета, отступы, размеры) — в :root файла style.css.
+*/
+
+/* =========================
+   NEWS
+========================= */
+
+.news-description {
+    color: var(--text-secondary);
+    font-size: calc(16px * var(--font-scale, 1));
+    line-height: 1.5;
+}
+
+.news-description p {
+    margin: 0 0 var(--padding-sm2) 0;
+}
+
+.news-description p:first-child {
+    margin-bottom: var(--padding-sm); /* Заработает после нажатия 2x Enter в админке */
+}
+
+.news-description ul,
+.news-description ol {
+    margin: 8px 0 16px 20px;
+    padding: 0;
+}
+
+.news-description li {
+    margin-bottom: var(--padding-sm);
+}
+
+.news-description strong,
+.news-description b {
+    color: var(--text-primary);
+    display: inline-block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-size: calc(16px * var(--font-scale, 1));
+}
+
+/* =========================
+   КАТАЛОГ, ЧИПЫ, УВЕДОМЛЕНИЯ
+========================= */
+
+.filter-group-title {
+    margin: 0;
+}
+
+/* =========================
+   НОВОСТИ: СПИСОК И СТАТЬЯ
+========================= */
+
+.news-container .catalog-header {
+    align-items: center;
+    margin-bottom: var(--padding-md);
+}
+
+.news-title {
+    color: white;
+    font-size: calc(32px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    margin-bottom: 0;
+}
+
+.news-create {
+    display: inline-flex;
+    align-items: center;
+    align-self: stretch; /* та же высота, что у фильтров в ряду */
+    margin-left: auto;
+    color: var(--accent-text);
+    border-color: var(--accent);
+}
+
+@media (max-width: 600px) {
+    .news-create {
+        margin-left: 0;
+    }
+}
+
+.news-create:hover {
+    color: var(--text-primary);
+    background: var(--accent);
+}
+
+/* Список новостей с боковой панелью занимает всю ширину контейнера, как каталог */
+.news-index {
+    max-width: none;
+    padding: 20px 0 100px;
+}
+
+.news-results {
+    display: flex;
+    align-items: center;
+    margin: 0 0 var(--padding-md);
+    color: var(--text-muted);
+    font-weight: var(--text-semibold);
+    font-size: calc(16px * var(--font-scale, 1));
+}
+
+.news-group-title {
+    margin: var(--padding-sm2) 0 0;
+    color: var(--text-muted);
+    font-size: calc(16px * var(--font-scale, 1));
+    font-weight: var(--text-semibold);
+    letter-spacing: 0.3px;
+    text-transform: capitalize;
+}
+
+.news-group-title:first-child {
+    margin-top: 0;
+}
+
+.news-card-meta .catalog-reset {
+    margin-left: 0;
+}
+
+.news-back {
+    display: inline-block;
+    margin-bottom: var(--padding-md);
+    color: var(--accent-text);
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+}
+
+.news-back:hover {
+    color: var(--text-primary);
+}
+
+.news-article {
+    padding: var(--padding-big);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.news-article-title {
+    margin: 0 0 var(--padding-md);
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    font-size: calc(32px * var(--font-scale, 1));
+    font-weight: var(--text-normal);
+    line-height: 1.25;
+}
+
+.news-article-image {
+    display: block;
+    width: 100%;
+    max-height: 420px;
+    margin-bottom: var(--padding-md);
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+}
+
+.news-description a {
+    color: var(--accent-text);
+    overflow-wrap: anywhere;
+}
+
+.news-draft {
+    margin: 0 0 var(--padding-sm2);
+    padding: 9px 14px;
+    color: var(--warning);
+    border: 2px solid rgba(255, 171, 0, 0.3);
+    border-radius: var(--radius-sm);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.news-neighbours {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr)); /* две кнопки в ряд и на телефоне, вплоть до 320px */
+    gap: var(--padding-sm2);
+    margin-top: var(--padding-md);
+}
+
+.news-neighbour {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--padding-sm2);
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    font-weight: var(--text-semibold);
+    text-decoration: none;
+    transition: background 0.3s, border-color 0.3s;
+}
+
+.news-neighbour:hover {
+    background: var(--bg-surface);
+    border-color: var(--border-accent);
+}
+
+.news-neighbour span {
+    color: var(--text-muted);
+    font-size: calc(14px * var(--font-scale, 1));
+}
+
+.news-neighbour-next {
+    text-align: right;
+}
+
+@media (max-width: 768px) {
+    .news-container {
+        padding: 15px 0;
+    }
+
+    .news-article {
+        padding: var(--padding-md);
+    }
+}
+
+/* =========================
+   ЗАГОЛОВКИ СТРАНИЦ НА ТЕЛЕФОНЕ
+   Один размер на всех страницах: раньше «Магазин игр» был 24px, а «Каталог», «Корзина»
+   и «Настройки» — 32px. Селекторы с main — чтобы перекрыть правила страниц (cart.css и др.)
+========================= */
+
+.news-article-footer {
+    display: flex;
+    margin-top: var(--padding-md);
+}

@@ -30,6 +30,7 @@
   - `tests/` — тесты разложены так же, как `views/`; общая база в `tests/base.py`
 - `djang/templates/` — `base.html`, `base_mini.html`, `store/`, `users/`, `admin/`; частичные шаблоны начинаются с `_`
 - `djang/static/` — `css/style.css` (общие стили и токены в `:root`), отдельные CSS для страниц, `js/`, сезонные темы в `css/event/` и `js/event/`
+  - стили, которые нужны только одной странице, — в её файл: `profile.css`, `game.css`, `home.css`, `auth.css`, `news.css` (подключаются блоком `{% block page_css %}` — сразу после `style.css` и до тем) или `cart.css`, `library.css`, `settings.css` (блок `extra_head`, после тем)
 - `djang/media/` — загруженные файлы (в git не попадают)
 - `backups/` — копии базы перед миграциями (`db.backup-before-00NN.sqlite3`)
 
